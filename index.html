@@ -19,10 +19,33 @@
  </style>
 </head>
 <body>
-   <table id="wrapper">
-    <tr>
-     <td>UI goes here</td>
-    </tr>
-   </table>
+ <table id="wrapper">
+  <tr>
+   <td>
+    <form method="post">
+     <div id="selectgroup">
+      <label for="group">Group</label>
+      <select name="group" required>
+       <option selected value=""></option>
+      </select>
+     </div>
+     <div id="newgroup">
+      <label for="newgroup">New Group</label>
+      <input type="text" name="newgroup"></input>
+     </div>
+     <div id="entername">
+      <label for="name">Name</label>
+      <input type="text" required></input>
+     </div>
+     <div id="submitbuttons">
+      <input type="submit" name="submit" value="Join"></input>
+      <input type="submit" name="help" value="Help" formnovalidate></input>
+     </div>
+    </form>
+   </td>
+  </tr>
+ </table>
 </body>
 </html>
+<!--
+# vim: tabstop=8 expandtab shiftwidth=1 softtabstop=1
