@@ -11,6 +11,11 @@
     "type": "git",
     "url": "git+https://github.com/jcomeauictx/myturn.git"
   },
+  "dependencies": {
+    "express": ">=2.5.7",
+    "socket.io": ">=0.9.16",
+    "http": ">=0.0.0"
+  },
   "author": "John Comeau <jc@unternet.net>",
   "license": "Apache-1.1",
   "bugs": {
