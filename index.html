@@ -6,11 +6,13 @@
  <meta name="mobile-web-app-capable" content="yes">
  <title>My Turn -- Everybody has a chance to speak</title>
  <link rel="stylesheet" type="text/css" href="css/style.css">
+ <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
  <table id="wrapper">
   <tr>
    <td>
+    <div id="inputform">
     <form method="post">
      <div id="selectgroup">
       <label for="group">Group</label>
@@ -31,6 +33,7 @@
       <input type="submit" name="help" value="Help" formnovalidate></input>
      </div>
     </form>
+    </div>
    </td>
   </tr>
  </table>

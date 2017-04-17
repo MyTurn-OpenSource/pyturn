@@ -1,0 +1,20 @@
+{
+  "name": "myturn",
+  "version": "0.0.1",
+  "description": "David Stodolsky's meeting facilitator",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jcomeauictx/myturn.git"
+  },
+  "author": "John Comeau <jc@unternet.net>",
+  "license": "Apache-1.1",
+  "bugs": {
+    "url": "https://github.com/jcomeauictx/myturn/issues"
+  },
+  "homepage": "https://github.com/jcomeauictx/myturn#readme"
+}

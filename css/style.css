@@ -13,4 +13,6 @@ html, body, #wrapper {
 #inputform {
    border: 1px gray solid;
    border-radius: 5px;
+   width: 20em;
+   margin: auto;  /* required to center form in #wrapper td */
 }
