@@ -13,9 +13,10 @@ var app = function(request, response) {
     });
   } else if (request.method == "POST") {
     request.on("data", function(chunk) {body += chunk.toString();});
-    req.on("end", function() {
+    request.on("end", function() {
       console.log("got POST: " + body);
-      res.redirect("back");
+      response.statusCode = 304;
+      response.end();
     });
   } else {
     console.error("unimplemented method: " + request.method);
