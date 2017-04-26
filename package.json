@@ -12,7 +12,6 @@
     "url": "git+https://github.com/jcomeauictx/myturn.git"
   },
   "dependencies": {
-    "express": "=2.5.7",
     "socket.io": "=0.9.16",
     "http": "=0.0.0",
     "node-jsdom": "=3.1.5",

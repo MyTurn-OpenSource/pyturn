@@ -1,9 +1,12 @@
 var fs = require("fs");
 var app = function(request, response) {
   var body = "";
-  console.log("got " + request.method + " for " + request.url);
+  var url = decodeURI(request.url)
+    .replace(/^\/*/, "")
+    .replace(/\/[.][.]\//g, "/") || "index.html";
+  console.log("got " + request.method + " for " + url);
   if (request.method == "GET") {
-    fs.readFile("index.html", function(error, data) {
+    fs.readFile(url, function(error, data) {
       if (error) return console.error(error);
       response.write(data);
       response.end();
