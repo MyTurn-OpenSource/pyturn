@@ -14,7 +14,6 @@
   "dependencies": {
     "socket.io": "=0.9.16",
     "http": "=0.0.0",
-    "node-jsdom": "=3.1.5",
     "fs": "=0.0.1-security"
   },
   "author": "John Comeau <jc@unternet.net>",

@@ -1,8 +1,5 @@
 var fs = require("fs");
-var jsdom = require("node-jsdom");
 var webpage = fs.readFileSync("index.html", "utf8");
-var document = jsdom.jsdom(webpage);
-var window = document.parentWindow;
 var app = function(request, response) {
   var body = "";
   /* try to prevent malicious users from fetching files out of webspace
@@ -23,11 +20,12 @@ var app = function(request, response) {
     request.on("data", function(chunk) {body += chunk.toString();});
     request.on("end", function() {
       console.log("got POST: " + body);
-      response.statusCode = 304;
+      response.statusCode = 304;  // document not modified
       response.end();
     });
   } else {
     console.error("unimplemented method: " + request.method);
+    response.statusCode = 500;  // server error
   }
 };
 var server = require("http").createServer(app);
