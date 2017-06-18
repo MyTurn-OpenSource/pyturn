@@ -15,8 +15,9 @@ body {
   vertical-align: middle;
   text-align: center;
 }
-.inputgroup {
+.inputrow {
   display: table-row;
+  border-bottom: 1px solid gray;
 }
 label {
   background-color: rgb(247, 247, 247);
@@ -38,7 +39,7 @@ input[type=submit] {
 }
 #formfields {
   display: table;
-  border: 1px gray solid;
+  border: 1px solid gray;
   border-radius: 5px;
 }
 /*
