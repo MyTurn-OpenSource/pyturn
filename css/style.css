@@ -1,10 +1,10 @@
 html, body {
   height: 100%;
-  background: rgb(238, 238, 238);
+  background: #eeeeee;
   font-family: Arial, Helvetica, sans-serif;
 }
 div {
-  margin: auto;
+  margin: auto;  /* for left-right margins to center */
 }
 body {
   display: table;
@@ -17,11 +17,11 @@ body {
 }
 .inputrow {
   display: table-row;
-  border-bottom: 1px solid gray;
 }
 label {
-  background-color: rgb(247, 247, 247);
+  background-color: #f7f7f7;
   text-align: left;
+  font-size: small;
   display: table-cell;
 }
 input, select {
@@ -29,17 +29,21 @@ input, select {
   display: table-cell;
   border: none;
 }
+label, input {
+  padding: 5px;
+}
 #inputform {
   margin: auto;  /* required to center form in #wrapper td */
 }
 input[type=submit] {
   border-radius: 5px;
-  font: large;
+  font-size: large;
   font-weight: bold;
+  border: 1px solid #dddddd;
 }
 #formfields {
   display: table;
-  border: 1px solid gray;
+  border: 1px solid #dddddd;
   border-radius: 5px;
 }
 /*
