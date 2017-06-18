@@ -39,7 +39,6 @@ input[type=submit] {
   display: table;
   border: 1px gray solid;
   border-radius: 5px;
-  width: 20em;
 }
 /*
 # vim tabstop=8 expandtab shiftwidth=2 softtabstop=2
