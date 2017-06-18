@@ -26,6 +26,7 @@ label {
 input, select {
   text-align: left;
   display: table-cell;
+  border: none;
 }
 #inputform {
   margin: auto;  /* required to center form in #wrapper td */
