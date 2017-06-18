@@ -1,23 +1,42 @@
-html, body, #wrapper {
+html, body {
   background: rgb(238, 238, 238);
-  height:100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
+  font-family: Arial, Helvetica, sans-serif;
 }
-#wrapper td {
+body {
+  display: table;
+  height: 100%;
+  width: 100%;
+}
+.wrapper {
+  display: table-cell;
   vertical-align: middle;
   text-align: center;
 }
-#inputform {
-  border: 1px gray solid;
-  border-radius: 5px;
-  width: 20em;
-  margin: auto;  /* required to center form in #wrapper td */
+.inputgroup {
+  display: table-row;
 }
 label {
   background-color: rgb(247, 247, 247);
+  text-align: left;
+  display: table-cell;
+}
+input, select {
+  text-align: left;
+  display: table-cell;
+}
+#inputform {
+  margin: auto;  /* required to center form in #wrapper td */
+}
+input[type=submit] {
+  border-radius: 5px;
+  font: large;
+  font-weight: bold;
+}
+#formfields {
+  display: table;
+  border: 1px gray solid;
+  border-radius: 5px;
+  width: 20em;
 }
 /*
 # vim tabstop=8 expandtab shiftwidth=2 softtabstop=2

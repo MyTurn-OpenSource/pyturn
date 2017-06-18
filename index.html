@@ -9,34 +9,35 @@
  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
- <table id="wrapper">
-  <tr>
-   <td>
-    <div id="inputform">
+ <div class="wrapper">
+  <p>just testing</p>
+  <div class="box" style="display: none;">
+   <div id="inputform">
     <form method="post">
-     <div id="selectgroup">
-      <label for="group">Group</label>
-      <select name="group">
-       <option selected value="">(Create new group)</option>
-      </select>
-     </div>
-     <div id="newgroup" hidden>
-      <label for="newgroup">New Group</label>
-      <input type="text" name="newgroup"></input>
-     </div>
-     <div id="entername">
-      <label for="name">Name</label>
-      <input type="text" required></input>
+     <div id="formfields">
+      <div id="selectgroup" class="inputgroup">
+       <label for="group">Group</label>
+       <select name="group">
+        <option selected value="">(Create new group)</option>
+       </select>
+      </div>
+      <div id="newgroup" class="inputgroup" hidden>
+       <label for="newgroup">New Group</label>
+       <input type="text" name="newgroup"></input>
+      </div>
+      <div id="entername">
+       <label for="name">Name</label>
+       <input type="text" name="name" required></input>
+      </div>
      </div>
      <div id="submitbuttons">
       <input type="submit" name="submit" value="Join"></input>
       <input type="submit" name="help" value="Help" formnovalidate></input>
      </div>
     </form>
-    </div>
-   </td>
-  </tr>
- </table>
+   </div>
+  </div>
+ </div>
 </body>
 </html>
 <!--
