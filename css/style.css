@@ -32,6 +32,11 @@ input, select {
 label, input {
   padding: 5px;
 }
+label {
+  width: 7em;
+  font-weight: bold;
+  border-bottom: 1px solid #dddddd;
+}
 #inputform {
   margin: auto;  /* required to center form in #wrapper td */
 }
@@ -39,13 +44,21 @@ input[type=submit] {
   border-radius: 5px;
   font-size: large;
   font-weight: bold;
-  border: 1px solid #dddddd;
+  border: 1px solid #999999;
+  background-color: #cccccc;
+}
+input[name=help] {
+  background-color: blue;
+  color: white;
 }
 #formfields {
   display: table;
   border: 1px solid #dddddd;
   border-radius: 5px;
 }
+#submitbuttons {
+  margin-top: 10px;
+}  
 /*
-# vim tabstop=8 expandtab shiftwidth=2 softtabstop=2
+vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
 */
