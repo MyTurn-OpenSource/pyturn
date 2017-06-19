@@ -6,9 +6,18 @@
  <meta name="mobile-web-app-capable" content="yes">
  <title>My Turn -- Everybody has a chance to speak</title>
  <link rel="stylesheet" type="text/css" href="css/style.css">
+ <link rel="stylesheet" type="text/css" href="css/loading.css">
  <script src="/socket.io/socket.io.js"></script>
 </head>
-<body>
+<body class="loading">
+ <div id="appLoadingTitle">
+  <p>The application is loading, this can take up to a minute...</p>
+ </div>
+ <div id="appLoadingIndicator">
+  <div></div>
+  <div></div>
+  <div></div>
+ </div>
  <div class="wrapper"><!-- contents centered horizontally and vertically -->
   <div class="box"><!-- container for inputform and submitbuttons -->
    <div id="inputform"><!-- has rounded border -->
