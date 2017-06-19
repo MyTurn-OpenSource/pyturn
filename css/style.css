@@ -10,11 +10,10 @@ body {
   display: table;
   width: 100%;
 }
-.wrapper {
-  display: table-cell;
+#wrapper {
   vertical-align: middle;
   text-align: center;
-  display: none;  /* changed by script after loading */
+  display: none;  /* changed by script to "table-cell" after loading */
 }
 .inputrow {
   display: table-row;

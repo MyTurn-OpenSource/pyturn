@@ -8,18 +8,21 @@
  <link rel="stylesheet" type="text/css" href="css/style.css">
  <link rel="stylesheet" type="text/css" href="css/loading.css">
  <script src="/socket.io/socket.io.js"></script>
+ <script src="client.js"></script>
 </head>
 <body class="loading">
- <div id="appLoadingTitle">
-  <p>The application is loading, this can take up to a minute...</p>
+ <div id="loadindicator">
+  <div id="appLoadingTitle">
+   <p>The application is loading, this can take up to a minute...</p>
+  </div>
+  <div id="appLoadingIndicator">
+   <div></div><!-- these 3 empty divs must remain for loading indicator -->
+   <div></div>
+   <div></div>
+  </div>
  </div>
- <div id="appLoadingIndicator">
-  <div></div>
-  <div></div>
-  <div></div>
- </div>
- <div class="wrapper"><!-- contents centered horizontally and vertically -->
-  <div class="box"><!-- container for inputform and submitbuttons -->
+ <div id="wrapper"><!-- contents centered horizontally and vertically -->
+  <div id="box"><!-- container for inputform and submitbuttons -->
    <div id="inputform"><!-- has rounded border -->
     <form method="post">
      <div id="formfields">
