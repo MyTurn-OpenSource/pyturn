@@ -38,11 +38,14 @@ var data = {"groups": []};
 var getargs = function(string) {
   var list = decodeURIComponent(string.replace("+", "%20")).split("&");
   console.log("list: " + JSON.stringify(list));
-  var args = {}, item, key, value;
+  var args = {}, item, offset, key, value;
   for (var index = 0; index < list.length; index++) {
-    item = list[index].split("=", 1);
-    console.log("item: " + JSON.stringify(item));
-    args[item[0]] = item[1];
+    item = list[index];
+    offset = item.indexOf("=");
+    key = item.substring(0, offset);
+    value = item.substring(offset + 1);
+    console.log(key + "=" + value);
+    args[key] = value;
   }
   return args;
 };
