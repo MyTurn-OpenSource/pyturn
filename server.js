@@ -37,9 +37,11 @@ var io = require("socket.io").listen(server);
 var data = {"groups": []};
 var getargs = function(string) {
   var list = decodeURIComponent(string.replace("+", "%20")).split("&");
+  console.log("list: " + JSON.stringify(list));
   var args = {}, item, key, value;
   for (var index = 0; index < list.length; index++) {
     item = list[index].split("=", 1);
+    console.log("item: " + JSON.stringify(item));
     args[item[0]] = item[1];
   }
   return args;
