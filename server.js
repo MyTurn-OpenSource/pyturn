@@ -26,6 +26,7 @@ var app = function(request, response) {
   } else {
     console.error("unimplemented method: " + request.method);
     response.statusCode = 500;  // server error
+    response.end();
   }
 };
 var server = require("http").createServer(app);
