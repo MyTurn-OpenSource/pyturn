@@ -1,5 +1,6 @@
 var fs = require("fs");
 var webpage = fs.readFileSync("index.html", "utf8");
+var data = {"groups": []};
 var app = function(request, response) {
   console.log("app got request");
   var body = "";
@@ -10,6 +11,7 @@ var app = function(request, response) {
   var url = decodeURI(request.url)
     .replace(/^\/*/, "")
     .replace(/\/[.][.]\//g, "/");
+  var args, group;
   console.log("got " + request.method + " for \"" + url + "\"");
   if (request.method == "GET") {
     fs.readFile(url, function(error, data) {
@@ -22,6 +24,14 @@ var app = function(request, response) {
     request.on("end", function() {
       console.log("got POST: " + body);
       console.log("got POST: " + JSON.stringify(getargs(body)));
+      if ((args = getargs(body))["submit"] == "Join") {
+        console.error("client-side js for " + request.headers["user-agent"] +
+          " should have trapped this");
+        response.statusCode = 500;
+        response.write("We have logged this error where our developers" +
+          " will be able to see it. Hopefully it will be resolved soon.");
+        response.end();
+      }
       response.statusCode = 304;  // document not modified
       response.end();
     });
@@ -34,7 +44,6 @@ var app = function(request, response) {
 var server = require("http").createServer(app);
 console.log("server: " + server);
 var io = require("socket.io").listen(server);
-var data = {"groups": []};
 var getargs = function(string) {
   var list = decodeURIComponent(string.replace("+", "%20")).split("&");
   console.log("list: " + JSON.stringify(list));
