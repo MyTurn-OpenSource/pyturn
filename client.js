@@ -6,9 +6,19 @@ com.jcomeau.myturn.join = function(click) {
     console.log("handling Join on client side");
     click = click || window.event;  // for older MSIE versions
     click.preventDefault();  // don't send formdata to server
-    console.log("click: " + JSON.stringify(click));
-    var target = click.target || click.srcElement;  // also for MSIE
-    console.log("target: " + JSON.stringify(target));
+    var name = document.querySelector("input[name=name]").value;
+    var newGroupName = document.querySelector("input[name=newgroup]").value;
+    var groupName = document.querySelector("select[name=group]").value;
+    console.log("name: " + name + ", newGroupName: " + newGroupName +
+                "groupName: " + groupName);
+    if (groupName == "") {
+        if (newGroupName == "") {
+            selectgroup.style.display = "none";
+            newgroup.style.display = "inherit";
+        } else {
+            console.log("now populate the select with new group name");
+        }
+    }
     return false;  // works even on very old browsers to prevent default action
 };
 window.addEventListener("load", function() {
