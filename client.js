@@ -5,16 +5,18 @@ com.jcomeau.myturn = {};
 com.jcomeau.myturn.join = function(click) {
     console.log("handling Join on client side");
     click = click || window.event;  // for older MSIE versions
-    click.preventDefault();  // don't send formdata to server
-    var name = document.querySelector("input[name=name]").value;
-    var newGroupName = document.querySelector("input[name=newgroup]").value;
-    var groupName = document.querySelector("select[name=group]").value;
-    console.log("name: " + name + ", newGroupName: " + newGroupName +
-                "groupName: " + groupName);
-    if (groupName == "") {
-        if (newGroupName == "") {
+    if (click) click.preventDefault();
+    var name = document.querySelector("input[name=name]");
+    var newGroupName = document.querySelector("input[name=newgroup]");
+    var groupName = document.querySelector("select[name=group]");
+    console.log("name: " + name.value +
+                ", newGroupName: " + newGroupName.value +
+                ", groupName: " + groupName.value);
+    if (groupName.value == "") {
+        if (newGroupName.value == "") {
             selectgroup.style.display = "none";
             newgroup.style.display = "table-row";
+            newGroupName.setAttribute("required", "");
         } else {
             console.log("now populate the select with new group name");
         }
@@ -25,8 +27,8 @@ window.addEventListener("load", function() {
     var cjm = com.jcomeau.myturn;
     document.body.className = "";
     loadindicator.style.display = "none";
+    groupform.onsubmit = cjm.join;
     wrapper.style.display = "table-cell";
-    document.querySelector("input[value=Join]").onclick = cjm.join;
 });
 /*
    vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
