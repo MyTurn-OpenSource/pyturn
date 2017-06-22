@@ -14,7 +14,7 @@ com.jcomeau.myturn.join = function(click) {
     if (groupName == "") {
         if (newGroupName == "") {
             selectgroup.style.display = "none";
-            newgroup.style.display = "inherit";
+            newgroup.style.display = "table-row";
         } else {
             console.log("now populate the select with new group name");
         }

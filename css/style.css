@@ -23,6 +23,9 @@ label {
   text-align: left;
   font-size: small;
   display: table-cell;
+  width: 7em;
+  font-weight: bold;
+  border-bottom: 1px solid #dddddd;
 }
 input, select {
   text-align: left;
@@ -31,11 +34,6 @@ input, select {
 }
 label, input {
   padding: 5px;
-}
-label {
-  width: 7em;
-  font-weight: bold;
-  border-bottom: 1px solid #dddddd;
 }
 #inputform {
   margin: auto;  /* required to center form in #wrapper td */
