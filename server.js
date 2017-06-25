@@ -46,9 +46,9 @@ console.log("server: " + server);
 var io = require("socket.io").listen(server);
 io.sockets.on("connection", function(socket) {
   console.log("received a connection")
-});
-io.sockets.on("join", function(packet) {
-  console.log("got 'join' packet: " + JSON.stringify(packet));
+  socket.on("join", function(packet) {
+    console.log("got 'join' packet: " + JSON.stringify(packet));
+  });
 });
 var getargs = function(string) {
   var list = decodeURIComponent(string.replace("+", "%20")).split("&");
