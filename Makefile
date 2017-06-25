@@ -1,2 +1,2 @@
 run:
-	npm start
+	DEBUG='*' npm start
