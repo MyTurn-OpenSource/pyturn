@@ -1,1 +1,2 @@
 https://colintoh.com/blog/display-table-anti-hero
+https://stackoverflow.com/questions/6873607/socket-io-rooms-difference-between-broadcast-to-and-sockets-in
