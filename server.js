@@ -29,7 +29,8 @@ var app = function(request, response) {
           " should have trapped this");
         response.statusCode = 500;
         response.write("We have logged this error where our developers" +
-          " will be able to see it. Hopefully it will be resolved soon.");
+          " will be able to see it. Hopefully it will be resolved soon." +
+          " Data received: " + JSON.stringify(getargs(body)));
         response.end();
       }
       response.statusCode = 304;  // document not modified
@@ -48,6 +49,17 @@ io.sockets.on("connection", function(socket) {
   console.log("received a connection")
   socket.on("join", function(packet) {
     console.log("got 'join' packet: " + JSON.stringify(packet));
+    socket.join(packet.group);
+    console.log("adding " + packet.name + " to group " + packet.group);
+    try {
+      data.groups[packet.group].members.push(packet.name);
+      data.groups[packet.group].started = true;
+      io.sockets.in(packet.group).emit("session underway");
+    } catch (noSuchGroup) {
+      console.log("error adding " + packet.name + " to group " + packet.group +
+                  ": no such group? (" + noSuchGroup + ")");
+    }
+    console.log(JSON.stringify(data));
   });
 });
 var getargs = function(string) {
