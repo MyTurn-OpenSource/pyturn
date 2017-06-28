@@ -15,6 +15,9 @@ body {
   text-align: center;
   display: none;  /* changed by script to "table-cell" after loading */
 }
+#newgroup {
+  display: none;  /* changed by script to "table-row" if needed */
+}
 .inputrow {
   display: table-row;
 }
