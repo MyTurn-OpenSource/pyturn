@@ -9,6 +9,7 @@ com.jcomeau.myturn.join = function(click) {
     var name = document.querySelector("input[name=name]");
     var newGroupName = document.querySelector("input[name=newgroup]");
     var groupName = document.querySelector("select[name=group]");
+    var selectGroup = document.querySelector("div[id=selectgroup]");
     console.log("name: " + name.value +
                 ", newGroupName: " + newGroupName.value +
                 ", groupName: " + groupName.value);
@@ -16,7 +17,7 @@ com.jcomeau.myturn.join = function(click) {
     if (click) click.preventDefault();
     if (groupName.value == "") {
         if (newGroupName.value == "") {
-            selectgroup.style.display = "none";
+            selectGroup.style.display = "none";
             newgroup.style.display = "table-row";
             newGroupName.setAttribute("required", "");
         } else {
