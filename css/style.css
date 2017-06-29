@@ -7,9 +7,14 @@ html, body {
 div {
   margin: auto;  /* for left-right margins to center */
 }
-body {
-  display: table;
+div.body {
+  margin: 0;
+  height: 100%;
+  width: 100%;
   background: #eeeeee;
+  display: table;
+}
+body {
   width: 100%;
 }
 #wrapper {
