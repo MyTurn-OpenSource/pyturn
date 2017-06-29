@@ -46,9 +46,31 @@
       <input type="submit" name="help" value="Help" formnovalidate></input>
      </div>
     </form>
-   </div>
-  </div>
- </div>
+   </div><!-- inputform -->
+  </div><!-- box -->
+  <div class="groupform"><!-- enter a new group -->
+   <form name="creategroup" method="post">
+    <div class="groupinputs">
+     <div class="inputrow">
+      <label for="name">Name</label>
+      <input type="text" name="name" required></input>
+     </div>
+     <div class="inputrow">
+      <label for="total">Total (min)</label>
+      <input type="number" name="total" required></input>
+     </div>
+     <div class="inputrow">
+      <label for="turn">Turn (sec)</label>
+      <input type="number" name="turn" required></input>
+     </div>
+    </div>
+    <div class="groupsubmit">
+     <input type="submit" name="submit" value="Submit"></input>
+     <input type="submit" name="cancel" value="Cancel"></input>
+    </div>
+   </form>
+  </div><!-- groupform -->
+ </div><!-- wrapper -->
 </body>
 </html>
 <!--
