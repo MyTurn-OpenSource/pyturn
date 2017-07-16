@@ -20,8 +20,8 @@ logging.basicConfig(level = logging.DEBUG if __debug__ else logging.INFO)
 logging.debug('uwsgi.opt: %s' % repr(uwsgi.opt))
 MAXLENGTH = 1024 * 1024  # maximum size in bytes of markdown source of post
 HOMEDIR = pwd.getpwuid(os.getuid()).pw_dir
-DATADIR = uwsgi.opt.get('check_static', '/var/www/myturn')
 THISDIR = os.path.dirname(sys.argv[0]) or os.path.abspath('.')
+DATADIR = uwsgi.opt.get('check_static', THISDIR)
 logging.debug('HOMEDIR: %s' % HOMEDIR)
 logging.debug('USER_SITE: %s' % site.USER_SITE)
 USER_CONFIG = os.path.join(HOMEDIR, 'etc', 'myturn')
@@ -45,11 +45,16 @@ def server(env = None, start_response = None):
     logging.debug('env: %s' % repr(env))
     start = DATADIR
     logging.debug('start: %s' % start)
-    path = (env.get('HTTP_PATH', env.get('REQUEST_URI', '/'))).lstrip('/')
+    path = env.get('HTTP_PATH')
+    logging.debug('path, attempt 1: %s', path)
+    path = path or env.get('REQUEST_URI')
+    logging.debug('path, attempt 2: %s', path)
+    path = (path or '/').lstrip('/')
+    logging.debug('path should not be None at this point: %s', path)
     if not path:
         mimetype = 'text/html'
         page = read(os.path.join(start, 'index.html'))
-        print page  # FIXME: first load groups
+        # FIXME: must load groups into page before returning it
     else:
         page, mimetype = render(path)
     start_response('200 groovy', [('Content-type', mimetype)])
@@ -66,7 +71,7 @@ def render(pagename, standalone=False):
         return ('<div class="post">%s</div>' % cgi.escape(
             read(pagename, maxread=32768)), 'text/plain')
     elif standalone:
-        return (read(pagename, maxread=(10 * 1024 * 1024),
+        return (read(pagename),
             MIMETYPES[os.path.splitext(pagename)[1]])
     else:
         return '', None
@@ -78,4 +83,4 @@ def read(filename):
     with open(filename) as infile:
         return infile.read()
 if __name__ == '__main__':
-    print('\n'.join(example_client(os.environ, lambda *args: None)))
+    print('\n'.join(server(os.environ, lambda *args: None)))
