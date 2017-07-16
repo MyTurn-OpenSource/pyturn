@@ -20,10 +20,10 @@ body {
 #wrapper {
   vertical-align: middle;
   text-align: center;
-  display: none;  /* changed by script to "table-cell" after loading */
+  display: table-cell;
 }
 #newgroup, .groupform {
-  display: none;  /* changed by script to "table-row" if needed */
+  display: table-row;
 }
 .inputrow {
   display: table-row;
