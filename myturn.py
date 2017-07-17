@@ -69,7 +69,7 @@ def render(pagename, standalone=False):
     elif not pagename.endswith(('.png', '.ico', '.jpg', '.jpeg')):
         # assume plain text
         return ('<div class="post">%s</div>' % cgi.escape(
-            read(pagename, maxread=32768)), 'text/plain')
+            read(pagename)), 'text/plain')
     elif standalone:
         return (read(pagename),
             MIMETYPES[os.path.splitext(pagename)[1]])
@@ -82,5 +82,6 @@ def read(filename):
     '''
     with open(filename) as infile:
         return infile.read()
+
 if __name__ == '__main__':
-    print('\n'.join(server(os.environ, lambda *args: None)))
+    print(server(os.environ, lambda *args: None))
