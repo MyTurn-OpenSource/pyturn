@@ -32,14 +32,6 @@ PRIVATE_KEY = os.path.join(USER_CONFIG, 'myturn.private.pem')
 PUBLIC_KEY = os.path.join(USER_CONFIG, 'myturn.public.pem')
 MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
              'jpeg': 'image/jpeg',}
-FILETYPES = [
-    'directory',
-    'md',
-    'url',
-    'txt',
-    'html',
-    'css',
-] + MIMETYPES.keys()
 
 def server(env = None, start_response = None):
     '''
@@ -53,13 +45,13 @@ def server(env = None, start_response = None):
     path = path or env.get('REQUEST_URI')
     logging.debug('path, attempt 2: %s', path)
     path = (path or '/').lstrip('/')
-    logging.debug('path should not be None at this point: %s', path)
+    logging.debug('path should not be None at this point: "%s"', path)
     if not path:
         mimetype = 'text/html'
         page = read(os.path.join(start, 'index.html'))
         # FIXME: must load groups into page before returning it
     else:
-        page, mimetype = render(path)
+        page, mimetype = render(os.path.join(start, path))
     start_response('200 groovy', [('Content-type', mimetype)])
     return page
 
@@ -75,7 +67,7 @@ def render(pagename, standalone=False):
             read(pagename)), 'text/plain')
     elif standalone:
         return (read(pagename),
-            MIMETYPES[os.path.splitext(pagename)[1]])
+            MIMETYPES.get(os.path.splitext(pagename)[1], 'text/plain'))
     else:
         return '', None
 
