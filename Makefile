@@ -2,8 +2,6 @@ APP := myturn
 PORT := 5678
 export
 default: test
-log:
-	sudo tail -n 30 /var/log/uwsgi/app/$(APP).log
 ngrep:
 	$@ -dlo . port $(PORT)
 test: restart fetch log
@@ -30,6 +28,6 @@ enable:
 	  sudo ln -sf ../sites-available/$(APP).conf .
 reload: enable restart
 errorlog:
-	less /var/log/nginx/myturn.error
+	tail -n 50 /var/log/nginx/error.log /var/log/nginx/myturn-error.log
 accesslog:
-	less /var/log/nginx/myturn.access
+	tail -n 50 /var/log/nginx/access.log /var/log/nginx/myturn-access.log
