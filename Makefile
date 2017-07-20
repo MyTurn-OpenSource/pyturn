@@ -31,3 +31,5 @@ enable:
 reload: enable restart
 errorlog:
 	less /var/log/nginx/myturn.error
+accesslog:
+	less /var/log/nginx/myturn.access
