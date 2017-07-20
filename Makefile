@@ -15,13 +15,19 @@ fetch:
 enable:
 	# remember to use parens around each line if running from command line
 	# GNU Make runs each in a subprocess so it's not necessary here
-	if [ -z "$$(readlink -f /var/www/myturn)" ]; then \
+	if [ -z "$$(readlink -e /var/www/myturn)" ]; then \
 	 ln -sf $(PWD) /var/www/myturn; \
 	fi
-	if [ "$$(readlink -f /var/www/myturn)" != "$(PWD)" ]; then \
+	if [ "$$(readlink -e /var/www/myturn)" != "$(PWD)" ]; then \
 	 echo Fix /var/www/myturn to point to this directory! >&2; \
+	 false; \
 	fi
 	sudo ln -sf $(PWD)/$(APP).ini /etc/uwsgi/apps-available
-	cd /etc/uwsgi/apps-enabled && sudo ln -sf ../apps-available/$(APP).ini .
+	cd /etc/uwsgi/apps-enabled && \
+	  sudo ln -sf ../apps-available/$(APP).ini .
 	sudo ln -sf $(PWD)/$(APP).conf /etc/nginx/sites-available
-	cd /etc/nginx/sites-enabled/ && sudo ln -sf ../sites-available/$(APP) .
+	cd /etc/nginx/sites-enabled/ && \
+	  sudo ln -sf ../sites-available/$(APP).conf .
+reload: enable restart
+errorlog:
+	less /var/log/nginx/myturn.error
