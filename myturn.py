@@ -21,7 +21,6 @@ logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('sys.argv: %s', sys.argv)  # only shows [uwsgi]
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
 # so we can see that sys.argv and PWD are useless for uwsgi operation
-MAXLENGTH = 1024 * 1024  # maximum size in bytes of markdown source of post
 HOMEDIR = pwd.getpwuid(os.getuid()).pw_dir
 THISDIR = os.path.dirname(uwsgi.opt['wsgi-file'])
 DATADIR = uwsgi.opt.get('check_static', os.path.join(THISDIR, 'html'))
@@ -59,22 +58,27 @@ def render(pagename, standalone=False):
     '''
     Return content with Content-type header
     '''
+    logging.debug('render(%s, %s) called', pagename, standalone)
     if pagename.endswith('.html'):
+        logging.debug('rendering static HTML content')
         return read(pagename), 'text/html'
     elif not pagename.endswith(('.png', '.ico', '.jpg', '.jpeg')):
         # assume plain text
-        return ('<div class="post">%s</div>' % cgi.escape(
-            read(pagename)), 'text/plain')
+        logging.warn('app is serving %s instead of nginx', pagename)
+        return (read(pagename), 'text/plain')
     elif standalone:
+        logging.warn('app is serving %s instead of nginx', pagename)
         return (read(pagename),
             MIMETYPES.get(os.path.splitext(pagename)[1], 'text/plain'))
     else:
+        logging.error('not standalone, and no match for filetype')
         return '', None
 
 def read(filename):
     '''
     Return contents of a file
     '''
+    logging.debug('returning contents of %s', filename)
     with open(filename) as infile:
         return infile.read()
 
