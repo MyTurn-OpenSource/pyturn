@@ -54,7 +54,7 @@ def server(env = None, start_response = None):
     start_response('200 groovy', [('Content-type', mimetype)])
     return page
 
-def render(pagename, standalone=False):
+def render(pagename, standalone=True):
     '''
     Return content with Content-type header
     '''
