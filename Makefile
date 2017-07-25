@@ -26,8 +26,12 @@ enable:
 	sudo ln -sf $(PWD)/$(APP).conf /etc/nginx/sites-available
 	cd /etc/nginx/sites-enabled/ && \
 	  sudo ln -sf ../sites-available/$(APP).conf .
-reload: enable restart
+reload: newlogs enable restart
 errorlog:
 	tail -n 50 /var/log/nginx/error.log /var/log/nginx/myturn-error.log
 accesslog:
 	tail -n 50 /var/log/nginx/access.log /var/log/nginx/myturn-access.log
+newlogs:
+	sudo rm -f /var/log/nginx/*log
+wsgilog:
+	sudo tail -n 50 /var/log/uwsgi/app/myturn.log
