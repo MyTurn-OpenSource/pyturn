@@ -34,10 +34,6 @@ com.jcomeau.myturn.join = function(click) {
 };
 window.addEventListener("load", function() {
     var cjm = com.jcomeau.myturn;
-    cjm.socket = io.connect();
-    cjm.socket.on("connect", function() {
-        console.log("connected to server");
-    });
     // leave the following 4 lines for last...
     // they turn off the load indicator and show the input form
     document.body.className = "";
