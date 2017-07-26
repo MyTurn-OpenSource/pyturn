@@ -11,7 +11,7 @@ must first mate a local IP address with the name `myturn` in /etc/hosts, e.g.:
 127.0.1.125 myturn
 '''
 from __future__ import print_function
-import sys, os, urllib2, logging, pwd, subprocess, site, cgi
+import sys, os, urllib2, logging, pwd, subprocess, site, cgi, errno
 try:  # command-line testing won't have module available
     import uwsgi
 except ImportError:
@@ -22,7 +22,7 @@ logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
 # so we can see that sys.argv and PWD are useless for uwsgi operation
 HOMEDIR = pwd.getpwuid(os.getuid()).pw_dir
-THISDIR = os.path.dirname(uwsgi.opt['wsgi-file'])
+THISDIR = os.path.dirname(uwsgi.opt.get('wsgi-file', ''))
 APPDIR = uwsgi.opt.get('check_static', os.path.join(THISDIR, 'html'))
 logging.debug('HOMEDIR: %s' % HOMEDIR)
 logging.debug('USER_SITE: %s' % site.USER_SITE)
@@ -50,12 +50,17 @@ def server(env = None, start_response = None):
     logging.debug('path should not be None at this point: "%s"', path)
     if not path:
         if env and env.get('wsgi.input'):
-            logging.debug(env['wsgi.input'].read())
+            logging.debug('POST: %s', cgi.parse_qsl(env['wsgi.input'].read()))
         mimetype = 'text/html'
         page = read(os.path.join(start, 'index.html'))
         # FIXME: must load groups into page before returning it
     else:
-        page, mimetype = render(os.path.join(start, path))
+        try:
+            page, mimetype = render(os.path.join(start, path))
+        except (IOError, OSError) as filenotfound:
+            start_response('404 File not found',
+                           [('Content-type', 'text/html')])
+            return '<h1>No such page: %s</h1>' % str(filenotfound)
     start_response('200 groovy', [('Content-type', mimetype)])
     return page
 
@@ -77,7 +82,7 @@ def render(pagename, standalone=True):
             MIMETYPES.get(os.path.splitext(pagename)[1], 'text/plain'))
     else:
         logging.error('not standalone, and no match for filetype')
-        return '', None
+        raise OSError('File not found: %s' % pagename)
 
 def read(filename):
     '''
