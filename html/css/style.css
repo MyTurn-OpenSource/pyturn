@@ -22,9 +22,6 @@ body {
   text-align: center;
   display: table-cell;
 }
-.newgroup, .groupform {
-  display: table-row;
-}
 .inputrow {
   display: table-row;
 }
