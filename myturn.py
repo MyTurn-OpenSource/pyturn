@@ -23,7 +23,7 @@ logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 # so we can see that sys.argv and PWD are useless for uwsgi operation
 HOMEDIR = pwd.getpwuid(os.getuid()).pw_dir
 THISDIR = os.path.dirname(uwsgi.opt['wsgi-file'])
-DATADIR = uwsgi.opt.get('check_static', os.path.join(THISDIR, 'html'))
+APPDIR = uwsgi.opt.get('check_static', os.path.join(THISDIR, 'html'))
 logging.debug('HOMEDIR: %s' % HOMEDIR)
 logging.debug('USER_SITE: %s' % site.USER_SITE)
 USER_CONFIG = os.path.join(HOMEDIR, 'etc', 'myturn')
@@ -31,13 +31,16 @@ PRIVATE_KEY = os.path.join(USER_CONFIG, 'myturn.private.pem')
 PUBLIC_KEY = os.path.join(USER_CONFIG, 'myturn.public.pem')
 MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
              'jpeg': 'image/jpeg',}
+DATA = {
+    'groups': {}
+}
 
 def server(env = None, start_response = None):
     '''
     primary server process, sends page with current groups list
     '''
     logging.debug('env: %s' % repr(env))
-    start = DATADIR
+    start = APPDIR
     logging.debug('start: %s' % start)
     path = env.get('HTTP_PATH')
     logging.debug('path, attempt 1: %s', path)
