@@ -49,6 +49,8 @@ def server(env = None, start_response = None):
     path = (path or '/').lstrip('/')
     logging.debug('path should not be None at this point: "%s"', path)
     if not path:
+        if env and env.get('wsgi.input'):
+            logging.debug(env['wsgi.input'].read())
         mimetype = 'text/html'
         page = read(os.path.join(start, 'index.html'))
         # FIXME: must load groups into page before returning it
