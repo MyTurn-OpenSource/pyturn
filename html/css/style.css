@@ -60,6 +60,7 @@ input[name=help] {
   display: table;
   border: 1px solid #dddddd;
   border-radius: 10px;
+  overflow: hidden;  /* prevents element corners from covering rounded edges
 }
 .submitbuttons {
   margin-top: 10px;

@@ -33,5 +33,5 @@ accesslog:
 	tail -n 50 /var/log/nginx/access.log /var/log/nginx/myturn-access.log
 newlogs:
 	sudo rm -f /var/log/nginx/*log
-wsgilog:
+wsgilog applog:
 	sudo tail -n 50 /var/log/uwsgi/app/myturn.log
