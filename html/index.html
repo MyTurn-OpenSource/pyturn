@@ -1,4 +1,10 @@
 <!doctype html>
+<!-- notes on coding:
+ * use hyphens in id names to avoid cluttering window namespace
+ * add IDs and classes liberally in case they're needed
+ * make class names representative of what look or function they are to achieve
+ * use prefixes on ID names like "joinform-" to group elements together
+-->
 <html lang="en">
 <head>
  <meta charset="utf-8">
@@ -13,67 +19,76 @@
  <div class="body">
   <a name="loadindicator"><span>&nbsp;</span></a>
   <div id="loadindicator">
+   <!-- don't mess with these loading indicator IDs, the code is complicated
+    and you might have hours of debugging to do. a few camelCased `id`
+    elements are going to kill anybody
+   -->
    <div id="appLoadingTitle">
     <p>The application is loading, this can take up to a minute...</p>
    </div>
-   <div id="appLoadingIndicator">
+   <div id="appLoadingIndicator"><!-- must remain ID, not class -->
     <div></div><!-- these 3 empty divs must remain for loading indicator -->
     <div></div>
     <div></div>
    </div>
-  </div>
- </div>
- <div class="body">
-  <a name="inputform"><span>&nbsp;</span></a>
-  <div id="wrapper"><!-- contents centered horizontally and vertically -->
-   <div id="box"><!-- container for inputform and submitbuttons -->
-    <div id="inputform"><!-- has rounded border -->
-     <form id="groupform" method="post">
-      <div id="formfields">
-       <div id="selectgroup" class="inputrow">
-        <label for="group">Group</label>
-        <select name="group">
-         <option selected value="">(Create new group)</option>
-        </select>
-       </div>
-       <div id="entername" class="inputrow">
-        <label for="name">Name</label>
-        <input type="text" name="name" required></input>
-       </div>
-      </div>
-      <div id="submitbuttons"><!-- buttons outside rounded border -->
-       <input type="submit" name="submit" value="Join"></input>
-       <input type="submit" name="help" value="Help" formnovalidate></input>
-      </div>
-     </form>
-    </div><!-- inputform -->
-   </div><!-- box -->
-  </div><!-- wrapper -->
+  </div><!-- loadindicator -->
  </div><!-- body -->
- <div class="body">
+ <div id="joinform-body" class="body">
+  <a name="joinform"><span>&nbsp;</span></a>
+  <!-- pagewrapper table-cell styled, centering horizontally and vertically -->
+  <div id="joinform-wrapper" class="pagewrapper">
+   <!-- box contains both form and buttons to be centered in page -->
+   <!-- the "box" styling centers the content within the pagewrapper -->
+   <div id="joinform-box" class="box">
+    <form id="joinform" method="post">
+     <!-- formfields has rounded corners -->
+     <div class="formfields">
+      <div class="inputrow">
+       <label for="group">Group</label>
+       <select name="group">
+        <option selected value="">(Create new group)</option>
+       </select>
+      </div>
+      <div class="inputrow">
+       <label for="name">Name</label>
+       <input type="text" name="name" required></input>
+      </div>
+     </div>
+     <!-- buttons outside rounded border -->
+     <div id="joinform-buttons" class="submitbuttons">
+      <input type="submit" name="submit" value="Join"></input>
+      <input type="submit" name="help" value="Help" formnovalidate></input>
+     </div>
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
+ </div><!-- body -->
+ <div id="grouform-body" class="body">
   <a name="groupform"><p>&nbsp;</p></a>
-  <div class="groupform"><!-- enter a new group -->
-   <form name="creategroup" method="post">
-    <div class="groupinputs">
-     <div class="inputrow">
-      <label for="name">Name</label>
-      <input type="text" name="name" required></input>
+  <div id="groupform-wrapper" class="pagewrapper">
+   <div id="groupform-box" class="box">
+    <form name="groupform" method="post">
+     <div class="groupinputs">
+      <div class="inputrow">
+       <label for="name">Name</label>
+       <input type="text" name="name" required></input>
+      </div>
+      <div class="inputrow">
+       <label for="total">Total (min)</label>
+       <input type="number" name="total" required></input>
+      </div>
+      <div class="inputrow">
+       <label for="turn">Turn (sec)</label>
+       <input type="number" name="turn" required></input>
+      </div>
      </div>
-     <div class="inputrow">
-      <label for="total">Total (min)</label>
-      <input type="number" name="total" required></input>
+     <div class="groupsubmit">
+      <input type="submit" name="submit" value="Submit"></input>
+      <input type="submit" name="cancel" value="Cancel"></input>
      </div>
-     <div class="inputrow">
-      <label for="turn">Turn (sec)</label>
-      <input type="number" name="turn" required></input>
-     </div>
-    </div>
-    <div class="groupsubmit">
-     <input type="submit" name="submit" value="Submit"></input>
-     <input type="submit" name="cancel" value="Cancel"></input>
-    </div>
-   </form>
-  </div><!-- groupform -->
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
  </div><!-- body -->
 </body>
 </html>

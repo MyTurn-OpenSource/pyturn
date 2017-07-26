@@ -17,12 +17,12 @@ div.body {
 body {
   width: 100%;
 }
-#wrapper {
+.pagewrapper {
   vertical-align: middle;
   text-align: center;
   display: table-cell;
 }
-#newgroup, .groupform {
+.newgroup, .groupform {
   display: table-row;
 }
 .inputrow {
@@ -45,8 +45,8 @@ input, select {
 label, input {
   padding: 5px;
 }
-#inputform {
-  margin: auto;  /* required to center form in #wrapper td */
+.box {
+  margin: auto;  /* required to center form in .pagewrapper td */
 }
 input[type=submit] {
   border-radius: 5px;
@@ -59,12 +59,12 @@ input[name=help] {
   background-color: blue;
   color: white;
 }
-#formfields {
+.formfields {
   display: table;
   border: 1px solid #dddddd;
-  border-radius: 5px;
+  border-radius: 10px;
 }
-#submitbuttons {
+.submitbuttons {
   margin-top: 10px;
 }  
 /*
