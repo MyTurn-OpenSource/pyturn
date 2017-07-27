@@ -12,6 +12,8 @@ must first mate a local IP address with the name `myturn` in /etc/hosts, e.g.:
 '''
 from __future__ import print_function
 import sys, os, urllib2, logging, pwd, subprocess, site, cgi, errno
+from lxml import html
+from lxml.html import builder
 try:  # command-line testing won't have module available
     import uwsgi
 except ImportError:
@@ -49,11 +51,28 @@ def server(env = None, start_response = None):
     path = (path or '/').lstrip('/')
     logging.debug('path should not be None at this point: "%s"', path)
     if not path:
-        if env and env.get('wsgi.input'):
-            logging.debug('POST: %s', cgi.parse_qsl(env['wsgi.input'].read()))
         mimetype = 'text/html'
         page = read(os.path.join(start, 'index.html'))
-        # FIXME: must load groups into page before returning it
+        parsed = html.fromstring(page)
+        if env and env.get('wsgi.input'):
+            logging.debug('POST: %s', cgi.parse_qsl(env['wsgi.input'].read()))
+            timestamp = datetime.datetime.utcnow()
+        grouplist = parsed.xpath('//select[@name=group]')
+        logging.debug('grouplist: %s', grouplist)
+        grouplist = grouplist[0]
+        # sorting a dict gives you a list of keys
+        groups = sorted(DATA['groups'], key=lambda g: g['timestamp'])
+        for group in groups:
+            newgroup = builder.OPTION(group, value=group)
+            grouplist.append(newgroup)
+        # make newest group the "selected" one
+        for group in grouplist.getchildren():
+            try:
+                del group.attrib['selected']
+            except:
+                pass
+        grouplist[-1].set('selected', 'selected')
+        page = html.tostring(parsed)
     else:
         try:
             page, mimetype = render(os.path.join(start, path))
