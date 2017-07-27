@@ -57,7 +57,7 @@ def server(env = None, start_response = None):
         if env and env.get('wsgi.input'):
             logging.debug('POST: %s', cgi.parse_qsl(env['wsgi.input'].read()))
             timestamp = datetime.datetime.utcnow()
-        grouplist = parsed.xpath('//select[@name=group]')
+        grouplist = parsed.xpath('//select[@name="group"]')
         logging.debug('grouplist: %s', grouplist)
         grouplist = grouplist[0]
         # sorting a dict gives you a list of keys
@@ -69,7 +69,7 @@ def server(env = None, start_response = None):
         for group in grouplist.getchildren():
             try:
                 del group.attrib['selected']
-            except:
+            except KeyError:
                 pass
         grouplist[-1].set('selected', 'selected')
         page = html.tostring(parsed)
