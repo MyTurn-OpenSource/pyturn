@@ -11,7 +11,7 @@ must first mate a local IP address with the name `myturn` in /etc/hosts, e.g.:
 127.0.1.125 myturn
 '''
 from __future__ import print_function
-import sys, os, urllib2, logging, pwd, subprocess, site, cgi, errno
+import sys, os, urllib2, logging, pwd, subprocess, site, cgi, datetime
 from lxml import html
 from lxml.html import builder
 try:  # command-line testing won't have module available
