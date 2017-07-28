@@ -19,3 +19,15 @@ As indicated under "Responsiveness", a complete test suite should run at
 page load, testing everything that will possibly done with JavaScript during
 the execution of the app. If any test fails, an alert should be given and
 the pure HTML restored.
+
+## Race conditions
+
+An app, even one as simple as this one, has numerous possibilities of race
+conditions: a resource being changed, added, or deleted between accesses
+because another thread modified it. Some of the issues and possible
+solutions are discussed 
+[here](http://effbot.org/zone/thread-synchronization.htm). I started out
+with the "atomic operation" approach but quickly decided it was overly
+complex. I'm going with the thread.Lock method now.
+
+John Comeau <jc@unternet.net> 2017-07

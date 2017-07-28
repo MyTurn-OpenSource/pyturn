@@ -12,6 +12,9 @@ must first mate a local IP address with the name `myturn` in /etc/hosts, e.g.:
 '''
 from __future__ import print_function
 import sys, os, urllib2, logging, pwd, subprocess, site, cgi, datetime
+import urlparse, threading, copy
+from collections import defaultdict, OrderedDict
+from StringIO import StringIO
 from lxml import html
 from lxml.html import builder
 try:  # command-line testing won't have module available
@@ -34,8 +37,9 @@ PUBLIC_KEY = os.path.join(USER_CONFIG, 'myturn.public.pem')
 MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
              'jpeg': 'image/jpeg',}
 DATA = {
-    'groups': {}
+    'groups': {},
 }
+EXPECTED_ERRORS = (NotImplementedError, ValueError, KeyError, IndexError)
 
 def server(env = None, start_response = None):
     '''
@@ -54,14 +58,16 @@ def server(env = None, start_response = None):
         mimetype = 'text/html'
         page = read(os.path.join(start, 'index.html'))
         parsed = html.fromstring(page)
-        if env and env.get('wsgi.input'):
-            logging.debug('POST: %s', cgi.parse_qsl(env['wsgi.input'].read()))
-            timestamp = datetime.datetime.utcnow()
+        try:
+            data = handle_post(env.get('wsgi.input'))
+        except EXPECTED_ERRORS as failed:
+            start_response('500 Server Error', [('Content-type', 'text/html')])
+            return cgi.escape(str(failed))
         grouplist = parsed.xpath('//select[@name="group"]')
         logging.debug('grouplist: %s', grouplist)
         grouplist = grouplist[0]
         # sorting a dict gives you a list of keys
-        groups = sorted(DATA['groups'], key=lambda g: g['timestamp'])
+        groups = sorted(data['groups'], key=lambda g: g['timestamp'])
         for group in groups:
             newgroup = builder.OPTION(group, value=group)
             grouplist.append(newgroup)
@@ -80,8 +86,56 @@ def server(env = None, start_response = None):
             start_response('404 File not found',
                            [('Content-type', 'text/html')])
             return '<h1>No such page: %s</h1>' % str(filenotfound)
-    start_response('200 groovy', [('Content-type', mimetype)])
+    start_response('200 OK', [('Content-type', mimetype)])
     return page
+
+def handle_post(formdata):
+    '''
+    process the form submission
+
+    note what dict(parse_qsl(formdata)) does:
+
+    >>> from urlparse import parse_qsl
+    >>> parse_qsl('a=b&b=c&a=d&a=e')
+    [('a', 'b'), ('b', 'c'), ('a', 'd'), ('a', 'e')]
+    >>> OrderedDict(_)
+    {'a': 'e', 'b': 'c'}
+    >>>
+
+    so only use it where you know that no key will have more than
+    one value.
+    '''
+    with threading.Lock():  # lock access to DATA global
+        if formdata is None:
+            return copy.deepcopy(DATA)
+        posted = urlparse.parse_qsl(formdata.read())
+        postdict = dict(posted)
+        logging.debug('posted: %s, postdict: %s', posted, postdict)
+        # [name, total, turn] and submit=Submit if group creation
+        # [name, group] and submit=Join if joining a group
+        timestamp = datetime.datetime.utcnow()
+        postdict['timestamp'] = timestamp
+        buttonvalue = postdict.pop('submit')
+        if buttonvalue == 'Join':
+            # name being added to group
+            # don't allow if name already in group
+            raise NotImplementedError('Join not yet implemented')
+        elif buttonvalue == 'Submit':
+            # group name, total (time), turn (time) being added to groups
+            # don't allow if group name already being used
+            groups = DATA['groups']
+            group = postdict['name']
+            if not group in groups:
+                groups[group] = postdict
+                return copy.deepcopy(DATA)
+            else:
+                raise ValueError((
+                    'Group {group[name]} already exists with total time '
+                    '{group[total]} minutes and turn time '
+                    '{group[turn]} seconds')
+                    .format(group=groups[group]))
+        else:
+            raise ValueError('Unknown form submitted')
 
 def render(pagename, standalone=True):
     '''
