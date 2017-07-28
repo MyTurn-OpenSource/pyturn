@@ -17,11 +17,15 @@ from collections import defaultdict, OrderedDict
 from StringIO import StringIO
 from lxml import html
 from lxml.html import builder
+logging.basicConfig(level = logging.DEBUG if __debug__ else logging.INFO)
+LOCK = threading.Lock()
 try:  # command-line testing won't have module available
     import uwsgi
+    logging.debug('uwsgi: %s', dir(uwsgi))
 except ImportError:
     uwsgi = type('uwsgi', (), {'opt': {}})  # object with empty opt attribute
-logging.basicConfig(level = logging.DEBUG if __debug__ else logging.INFO)
+    uwsgi.lock = LOCK.acquire
+    uwsgi.unlock = LOCK.release
 logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('sys.argv: %s', sys.argv)  # only shows [uwsgi]
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
@@ -59,7 +63,7 @@ def server(env = None, start_response = None):
         page = read(os.path.join(start, 'index.html'))
         parsed = html.fromstring(page)
         try:
-            data = handle_post(env.get('wsgi.input'))
+            data = handle_post(env)
         except EXPECTED_ERRORS as failed:
             start_response('500 Server Error', [('Content-type', 'text/html')])
             return cgi.escape(str(failed))
@@ -89,7 +93,7 @@ def server(env = None, start_response = None):
     start_response('200 OK', [('Content-type', mimetype)])
     return page
 
-def handle_post(formdata):
+def handle_post(env):
     '''
     process the form submission
 
@@ -105,8 +109,9 @@ def handle_post(formdata):
     so only use it where you know that no key will have more than
     one value.
     '''
-    with threading.Lock():  # lock access to DATA global
-        if formdata is None:
+    uwsgi.lock()  # lock access to DATA global
+    try:
+        if env.get('REQUEST_METHOD') != 'POST':
             return copy.deepcopy(DATA)
         posted = urlparse.parse_qsl(formdata.read())
         postdict = dict(posted)
@@ -115,11 +120,14 @@ def handle_post(formdata):
         # [name, group] and submit=Join if joining a group
         timestamp = datetime.datetime.utcnow()
         postdict['timestamp'] = timestamp
-        buttonvalue = postdict.pop('submit')
+        try:
+            buttonvalue = postdict.pop('submit')
+        except KeyError:
+            raise(ValueError('No "submit" button found'))
         if buttonvalue == 'Join':
             # name being added to group
             # don't allow if name already in group
-            raise NotImplementedError('Join not yet implemented')
+            raise(NotImplementedError('Join not yet implemented'))
         elif buttonvalue == 'Submit':
             # group name, total (time), turn (time) being added to groups
             # don't allow if group name already being used
@@ -129,13 +137,15 @@ def handle_post(formdata):
                 groups[group] = postdict
                 return copy.deepcopy(DATA)
             else:
-                raise ValueError((
+                raise(ValueError((
                     'Group {group[name]} already exists with total time '
                     '{group[total]} minutes and turn time '
                     '{group[turn]} seconds')
-                    .format(group=groups[group]))
+                    .format(group=groups[group])))
         else:
-            raise ValueError('Unknown form submitted')
+            raise(ValueError('Unknown form submitted'))
+    finally:
+        uwsgi.unlock()
 
 def render(pagename, standalone=True):
     '''
@@ -155,7 +165,7 @@ def render(pagename, standalone=True):
             MIMETYPES.get(os.path.splitext(pagename)[1], 'text/plain'))
     else:
         logging.error('not standalone, and no match for filetype')
-        raise OSError('File not found: %s' % pagename)
+        raise(OSError('File not found: %s' % pagename))
 
 def read(filename):
     '''
