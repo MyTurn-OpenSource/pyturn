@@ -12,7 +12,7 @@ must first mate a local IP address with the name `myturn` in /etc/hosts, e.g.:
 '''
 from __future__ import print_function
 import sys, os, urllib2, logging, pwd, subprocess, site, cgi, datetime
-import urlparse, threading, copy
+import urlparse, threading, copy, json
 from collections import defaultdict, OrderedDict
 from StringIO import StringIO
 from lxml import html
@@ -45,9 +45,9 @@ DATA = {
 }
 EXPECTED_ERRORS = (NotImplementedError, ValueError, KeyError, IndexError)
 
-def server(env = None, start_response = None):
+def findpath(env):
     '''
-    primary server process, sends page with current groups list
+    locate directory where files are stored, and requested file
     '''
     logging.debug('env: %s' % repr(env))
     start = APPDIR
@@ -58,41 +58,54 @@ def server(env = None, start_response = None):
     logging.debug('path, attempt 2: %s', path)
     path = (path or '/').lstrip('/')
     logging.debug('path should not be None at this point: "%s"', path)
-    if not path:
-        mimetype = 'text/html'
-        page = read(os.path.join(start, 'index.html'))
-        parsed = html.fromstring(page)
+    return start, path
+
+def loadpage(webpage, data):
+    '''
+    input template and populate the HTML with data array
+    '''
+    parsed = html.fromstring(webpage)
+    grouplist = parsed.xpath('//select[@name="group"]')
+    logging.debug('grouplist: %s', grouplist)
+    grouplist = grouplist[0]
+    # sorting a dict gives you a list of keys
+    groups = sorted(data['groups'],
+                    key=lambda g: data['groups'][g]['timestamp'])
+    for group in groups:
+        newgroup = builder.OPTION(group, value=group)
+        grouplist.append(newgroup)
+    # make newest group the "selected" one
+    for group in grouplist.getchildren():
         try:
-            data = handle_post(env)
-            logging.debug('data: %s', data)
-        except EXPECTED_ERRORS as failed:
-            start_response('500 Server Error', [('Content-type', 'text/html')])
-            return cgi.escape(str(failed))
-        grouplist = parsed.xpath('//select[@name="group"]')
-        logging.debug('grouplist: %s', grouplist)
-        grouplist = grouplist[0]
-        # sorting a dict gives you a list of keys
-        groups = sorted(data['groups'],
-                        key=lambda g: data['groups'][g]['timestamp'])
-        for group in groups:
-            newgroup = builder.OPTION(group, value=group)
-            grouplist.append(newgroup)
-        # make newest group the "selected" one
-        for group in grouplist.getchildren():
+            del group.attrib['selected']
+        except KeyError:
+            pass
+    grouplist[-1].set('selected', 'selected')
+    return html.tostring(parsed)
+
+def server(env = None, start_response = None):
+    '''
+    primary server process, sends page with current groups list
+    '''
+    status_code, mimetype, page = '500 Server error', 'text/html', '(Unknown)'
+    start, path = findpath(env)
+    try:
+        data = handle_post(env)
+        logging.debug('data: %s', data)
+        if not path:
+            page = loadpage(read(os.path.join(start, 'index.html')), data)
+        elif path == 'status':
+            page = cgi.escape(json.dumps(data))
+        else:
             try:
-                del group.attrib['selected']
-            except KeyError:
-                pass
-        grouplist[-1].set('selected', 'selected')
-        page = html.tostring(parsed)
-    else:
-        try:
-            page, mimetype = render(os.path.join(start, path))
-        except (IOError, OSError) as filenotfound:
-            start_response('404 File not found',
-                           [('Content-type', 'text/html')])
-            return '<h1>No such page: %s</h1>' % str(filenotfound)
-    start_response('200 OK', [('Content-type', mimetype)])
+                page, mimetype = render(os.path.join(start, path))
+            except (IOError, OSError) as filenotfound:
+                status_code = '404 File not found'
+                page = '<h1>No such page: %s</h1>' % str(filenotfound)
+    except EXPECTED_ERRORS as failed:
+        status_code = '500 Server Error'
+        page = cgi.escape(str(failed))
+    start_response(status_code, [('Content-type', mimetype)])
     return page
 
 def handle_post(env):
@@ -120,7 +133,7 @@ def handle_post(env):
         logging.debug('posted: %s, postdict: %s', posted, postdict)
         # [name, total, turn] and submit=Submit if group creation
         # [name, group] and submit=Join if joining a group
-        timestamp = datetime.datetime.utcnow()
+        timestamp = datetime.datetime.utcnow().isoformat()
         postdict['timestamp'] = timestamp
         try:
             buttonvalue = postdict.pop('submit')
