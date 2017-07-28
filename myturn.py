@@ -64,6 +64,7 @@ def server(env = None, start_response = None):
         parsed = html.fromstring(page)
         try:
             data = handle_post(env)
+            logging.debug('data: %s', data)
         except EXPECTED_ERRORS as failed:
             start_response('500 Server Error', [('Content-type', 'text/html')])
             return cgi.escape(str(failed))
@@ -71,7 +72,8 @@ def server(env = None, start_response = None):
         logging.debug('grouplist: %s', grouplist)
         grouplist = grouplist[0]
         # sorting a dict gives you a list of keys
-        groups = sorted(data['groups'], key=lambda g: g['timestamp'])
+        groups = sorted(data['groups'],
+                        key=lambda g: data['groups'][g]['timestamp'])
         for group in groups:
             newgroup = builder.OPTION(group, value=group)
             grouplist.append(newgroup)
