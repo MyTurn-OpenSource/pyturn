@@ -113,7 +113,7 @@ def handle_post(env):
     try:
         if env.get('REQUEST_METHOD') != 'POST':
             return copy.deepcopy(DATA)
-        posted = urlparse.parse_qsl(formdata.read())
+        posted = urlparse.parse_qsl(env['wsgi.input'].read())
         postdict = dict(posted)
         logging.debug('posted: %s, postdict: %s', posted, postdict)
         # [name, total, turn] and submit=Submit if group creation
