@@ -22,12 +22,10 @@ LOCK = threading.Lock()
 try:  # command-line testing won't have module available
     import uwsgi
     logging.debug('uwsgi: %s', dir(uwsgi))
-    WORKER_ID = uwsgi.worker_id()
 except ImportError:
     uwsgi = type('uwsgi', (), {'opt': {}})  # object with empty opt attribute
     uwsgi.lock = LOCK.acquire
     uwsgi.unlock = LOCK.release
-    WORKER_ID = None
 logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('sys.argv: %s', sys.argv)  # only shows [uwsgi]
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
@@ -129,7 +127,8 @@ def handle_post(env):
     one value.
     '''
     uwsgi.lock()  # lock access to DATA global
-    DATA['handler'] = env.get('uwsgi.core')
+    worker = getattr(uwsgi, 'worker_id', lambda *args: None)()
+    DATA['handler'] = (worker, env.get('uwsgi.core'))
     try:
         if env.get('REQUEST_METHOD') != 'POST':
             return copy.deepcopy(DATA)
