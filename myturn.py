@@ -44,11 +44,8 @@ MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
              'jpeg': 'image/jpeg',}
 DATA = {
     'groups': {},
-    'initialized': []  # for diagnosing threading problems
 }
 EXPECTED_ERRORS = (NotImplementedError, ValueError, KeyError, IndexError)
-DATA['initialized'].append(
-    ['worker: %s' % WORKER_ID, datetime.datetime.now().isoformat()])
 
 def findpath(env):
     '''
@@ -132,6 +129,7 @@ def handle_post(env):
     one value.
     '''
     uwsgi.lock()  # lock access to DATA global
+    DATA['handler'] = env.get('uwsgi.core')
     try:
         if env.get('REQUEST_METHOD') != 'POST':
             return copy.deepcopy(DATA)
