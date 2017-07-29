@@ -146,7 +146,19 @@ def handle_post(env):
         if buttonvalue == 'Join':
             # name being added to group
             # don't allow if name already in group
-            raise(NotImplementedError('Join not yet implemented'))
+            groups = DATA['groups']
+            name, group = postdict.get('name', ''), postdict.get('group', '')
+            if not name:
+                raise(ValueError('Name field cannot be empty'))
+            elif group not in groups:
+                # FIXME: should be redirecting to create group form here
+                raise(ValueError('Cannot join nonexistent group "%s"' % group))
+            elif name in groups[group]['participants']:
+                raise(ValueError('"%s" is already a member of %s' % (
+                                 name, group)))
+            else:
+                groups[group]['participants'][name] = {'timestamp': timestamp}
+                return copy.deepcopy(DATA)
         elif buttonvalue == 'Submit':
             # group name, total (time), turn (time) being added to groups
             # don't allow if group name already being used
@@ -154,6 +166,7 @@ def handle_post(env):
             group = postdict['name']
             if not group in groups:
                 groups[group] = postdict
+                groups[group]['participants'] = {}
                 return copy.deepcopy(DATA)
             else:
                 raise(ValueError((
