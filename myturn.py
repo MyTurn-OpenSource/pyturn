@@ -22,10 +22,12 @@ LOCK = threading.Lock()
 try:  # command-line testing won't have module available
     import uwsgi
     logging.debug('uwsgi: %s', dir(uwsgi))
+    WORKER_ID = uwsgi.worker_id()
 except ImportError:
     uwsgi = type('uwsgi', (), {'opt': {}})  # object with empty opt attribute
     uwsgi.lock = LOCK.acquire
     uwsgi.unlock = LOCK.release
+    WORKER_ID = None
 logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('sys.argv: %s', sys.argv)  # only shows [uwsgi]
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
@@ -42,8 +44,11 @@ MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
              'jpeg': 'image/jpeg',}
 DATA = {
     'groups': {},
+    'initialized': []  # for diagnosing threading problems
 }
 EXPECTED_ERRORS = (NotImplementedError, ValueError, KeyError, IndexError)
+DATA['initialized'].append(
+    ['worker: %s' % WORKER_ID, datetime.datetime.now().isoformat()])
 
 def findpath(env):
     '''
@@ -94,16 +99,18 @@ def server(env = None, start_response = None):
         logging.debug('data: %s', data)
         if not path:
             page = loadpage(read(os.path.join(start, 'index.html')), data)
+            status_code = '200 OK'
         elif path == 'status':
             page = cgi.escape(json.dumps(data))
+            status_code = '200 OK'
         else:
             try:
                 page, mimetype = render(os.path.join(start, path))
+                status_code = '200 OK'
             except (IOError, OSError) as filenotfound:
                 status_code = '404 File not found'
                 page = '<h1>No such page: %s</h1>' % str(filenotfound)
     except EXPECTED_ERRORS as failed:
-        status_code = '500 Server Error'
         page = cgi.escape(str(failed))
     start_response(status_code, [('Content-type', mimetype)])
     return page
