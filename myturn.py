@@ -60,7 +60,7 @@ def findpath(env):
     logging.debug('path should not be None at this point: "%s"', path)
     return start, path
 
-def loadpage(webpage, data):
+def loadpage(webpage, path, data):
     '''
     input template and populate the HTML with data array
     '''
@@ -75,13 +75,28 @@ def loadpage(webpage, data):
         newgroup = builder.OPTION(group, value=group)
         grouplist.append(newgroup)
     # make newest group the "selected" one
+    # FIXME: for someone who just created a group, mark *that* one selected
     for group in grouplist.getchildren():
         try:
             del group.attrib['selected']
         except KeyError:
             pass
     grouplist[-1].set('selected', 'selected')
+    if path == '':
+        hide_except('loading', parsed)
+    else:
+        refresh = (parsed.xpath('//meta[@http-equiv="refresh"]') or [None])[0]
+        refresh.getparent().remove(refresh)
+        hide_except(['joinform', 'groupform'][not groups], parsed)
     return html.tostring(parsed)
+
+def hide_except(keep, tree):
+    '''
+    set "display: none" for all sections of the page we don't want to see
+    '''
+    for page in tree.xpath('//div[@class="body"]'):
+        if not page.get('id').startswith(keep):
+            page.set('style', 'display: none')
 
 def server(env = None, start_response = None):
     '''
@@ -92,8 +107,8 @@ def server(env = None, start_response = None):
     try:
         data = handle_post(env)
         logging.debug('data: %s', data)
-        if not path:
-            page = loadpage(read(os.path.join(start, 'index.html')), data)
+        if path in ('', 'noscript', 'app'):
+            page = loadpage(read(os.path.join(start, 'index.html')), path, data)
             status_code = '200 OK'
         elif path == 'status':
             page = cgi.escape(json.dumps(data))
