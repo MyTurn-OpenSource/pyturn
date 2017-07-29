@@ -13,6 +13,10 @@ in the case of pressing the MyTurn button, could say that the function
 is unsupported for the user's platform. Adding or joining a group should
 still work.
 
+Another way to increase responsiveness, in script-capable browsers, is to
+deliver all the possible "pages" in the same HTML glob, and let JavaScript 
+hide/unhide sections as required.
+
 ## Tests
 
 As indicated under "Responsiveness", a complete test suite should run at
