@@ -2,7 +2,7 @@
 '''
 implement local website http://myturn/
 
-Copyright 2015-2016 John Otis Comeau <jc@unternet.net>
+Copyright 2017 John Otis Comeau <jc@unternet.net>
 distributed under the terms of the GNU General Public License Version 3
 (see COPYING)
 
@@ -12,7 +12,7 @@ must first mate a local IP address with the name `myturn` in /etc/hosts, e.g.:
 '''
 from __future__ import print_function
 import sys, os, urllib2, logging, pwd, subprocess, site, cgi, datetime
-import urlparse, threading, copy, json
+import urlparse, threading, copy, json, uuid
 from collections import defaultdict, OrderedDict
 from StringIO import StringIO
 from lxml import html
@@ -123,7 +123,7 @@ def server(env = None, start_response = None):
     except EXPECTED_ERRORS as failed:
         page = cgi.escape(str(failed))
     start_response(status_code, [('Content-type', mimetype)])
-    return page
+    return [page]
 
 def handle_post(env):
     '''
@@ -201,7 +201,7 @@ def render(pagename, standalone=True):
     logging.debug('render(%s, %s) called', pagename, standalone)
     if pagename.endswith('.html'):
         logging.debug('rendering static HTML content')
-        return read(pagename), 'text/html'
+        return (read(pagename), 'text/html')
     elif not pagename.endswith(('.png', '.ico', '.jpg', '.jpeg')):
         # assume plain text
         logging.warn('app is serving %s instead of nginx', pagename)
