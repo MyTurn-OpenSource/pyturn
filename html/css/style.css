@@ -37,7 +37,7 @@ label {
   font-weight: bold;
   border-bottom: 1px solid #dddddd;
 }
-input, select {
+input:not([type=submit]), select {
   text-align: left;
   display: table-cell;
   border: none;
