@@ -63,8 +63,35 @@ def findpath(env):
 def loadpage(webpage, path, data):
     '''
     input template and populate the HTML with data array
+
+    eventually client-side JavaScript will perform many of these functions.
     '''
     parsed = html.fromstring(webpage)
+    if 'groups' in data:
+        groups = populate_grouplist(parsed, data)
+    else:
+        groups = None
+    if path == '':
+        hide_except('loading', parsed)
+        return html.tostring(parsed)
+    else:
+        refresh = (parsed.xpath('//meta[@http-equiv="refresh"]') or [None])[0]
+        refresh.getparent().remove(refresh)
+    if 'text' in data:
+        parsed.xpath('//div[@id="error-text"]')[0].append(data['text'])
+        hide_except('error', parsed)
+    elif 'joined' in data:
+        hide_except('session', parsed)
+    elif groups:
+        hide_except('joinform', parsed)
+    else:
+        hide_except('groupform', parsed)
+    return html.tostring(parsed)
+
+def populate_grouplist(parsed, data):
+    '''
+    fill in 'select' element with options for each available group
+    '''
     grouplist = parsed.xpath('//select[@name="group"]')
     logging.debug('grouplist: %s', grouplist)
     grouplist = grouplist[0]
@@ -82,13 +109,7 @@ def loadpage(webpage, path, data):
         except KeyError:
             pass
     grouplist[-1].set('selected', 'selected')
-    if path == '':
-        hide_except('loading', parsed)
-    else:
-        refresh = (parsed.xpath('//meta[@http-equiv="refresh"]') or [None])[0]
-        refresh.getparent().remove(refresh)
-        hide_except(['joinform', 'groupform'][not groups], parsed)
-    return html.tostring(parsed)
+    return groups
 
 def hide_except(keep, tree):
     '''
@@ -97,6 +118,8 @@ def hide_except(keep, tree):
     for page in tree.xpath('//div[@class="body"]'):
         if not page.get('id').startswith(keep):
             page.set('style', 'display: none')
+        elif 'style' in page.attrib:
+            del page.attrib['style']
 
 def server(env = None, start_response = None):
     '''
@@ -121,7 +144,8 @@ def server(env = None, start_response = None):
                 status_code = '404 File not found'
                 page = '<h1>No such page: %s</h1>' % str(filenotfound)
     except EXPECTED_ERRORS as failed:
-        page = cgi.escape(str(failed))
+        page = loadpage(read(os.path.join(start, 'index.html')), path,
+                        {'error': builder.SPAN(cgi.escape(str(failed)))})
     start_response(status_code, [('Content-type', mimetype)])
     return [page]
 
@@ -140,6 +164,8 @@ def handle_post(env):
 
     so only use it where you know that no key will have more than
     one value.
+
+    parse_qs will instead return a dict of lists.
     '''
     uwsgi.lock()  # lock access to DATA global
     worker = getattr(uwsgi, 'worker_id', lambda *args: None)()
