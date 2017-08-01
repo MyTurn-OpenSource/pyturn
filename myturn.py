@@ -49,15 +49,15 @@ def findpath(env):
     '''
     locate directory where files are stored, and requested file
     '''
-    logging.debug('env: %s' % repr(env))
+    #logging.debug('env: %s' % repr(env))
     start = APPDIR
-    logging.debug('start: %s' % start)
+    logging.debug('findpath: start: %s' % start)
     path = env.get('HTTP_PATH')
-    logging.debug('path, attempt 1: %s', path)
+    #logging.debug('path, attempt 1: %s', path)
     path = path or env.get('REQUEST_URI')
-    logging.debug('path, attempt 2: %s', path)
+    #logging.debug('path, attempt 2: %s', path)
     path = (path or '/').lstrip('/')
-    logging.debug('path should not be None at this point: "%s"', path)
+    logging.debug('findpath: should not be None at this point: "%s"', path)
     return start, path
 
 def loadpage(webpage, path, data):
@@ -71,12 +71,14 @@ def loadpage(webpage, path, data):
         groups = populate_grouplist(parsed, data)
     else:
         groups = None
+    # only show load indicator if no path specified;
+    # get rid of meta refresh if path has already been chosen
     if path == '':
         hide_except('loading', parsed)
         return html.tostring(parsed)
     else:
-        refresh = (parsed.xpath('//meta[@http-equiv="refresh"]') or [None])[0]
-        refresh.getparent().remove(refresh)
+        for tag in parsed.xpath('//meta[@http-equiv="refresh"]'):
+            tag.getparent().remove(tag)
     if 'text' in data:
         parsed.xpath('//div[@id="error-text"]')[0].append(data['text'])
         hide_except('error', parsed)
@@ -93,7 +95,7 @@ def populate_grouplist(parsed, data):
     fill in 'select' element with options for each available group
     '''
     grouplist = parsed.xpath('//select[@name="group"]')
-    logging.debug('grouplist: %s', grouplist)
+    logging.debug('populate_grouplist: %s', grouplist)
     grouplist = grouplist[0]
     # sorting a dict gives you a list of keys
     groups = sorted(data['groups'],
@@ -129,7 +131,7 @@ def server(env = None, start_response = None):
     start, path = findpath(env)
     try:
         data = handle_post(env)
-        logging.debug('data: %s', data)
+        logging.debug('server: data: %s', data)
         if path in ('', 'noscript', 'app'):
             page = loadpage(read(os.path.join(start, 'index.html')), path, data)
             status_code = '200 OK'
@@ -145,7 +147,7 @@ def server(env = None, start_response = None):
                 page = '<h1>No such page: %s</h1>' % str(filenotfound)
     except EXPECTED_ERRORS as failed:
         page = loadpage(read(os.path.join(start, 'index.html')), path,
-                        {'error': builder.SPAN(cgi.escape(str(failed)))})
+                        {'text': builder.SPAN(cgi.escape(str(failed)))})
     start_response(status_code, [('Content-type', mimetype)])
     return [page]
 
@@ -175,7 +177,7 @@ def handle_post(env):
             return copy.deepcopy(DATA)
         posted = urlparse.parse_qsl(env['wsgi.input'].read())
         postdict = dict(posted)
-        logging.debug('posted: %s, postdict: %s', posted, postdict)
+        logging.debug('handle_post: %s, postdict: %s', posted, postdict)
         # [name, total, turn] and submit=Submit if group creation
         # [name, group] and submit=Join if joining a group
         timestamp = datetime.datetime.utcnow().isoformat()
@@ -244,7 +246,7 @@ def read(filename):
     '''
     Return contents of a file
     '''
-    logging.debug('returning contents of %s', filename)
+    logging.debug('read: returning contents of %s', filename)
     with open(filename) as infile:
         return infile.read()
 
