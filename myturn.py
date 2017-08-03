@@ -1,4 +1,4 @@
-#!/usr/bin/python -OO
+#!/usr/bin/python3 -OO
 '''
 implement local website http://myturn/
 
@@ -11,10 +11,10 @@ must first mate a local IP address with the name `myturn` in /etc/hosts, e.g.:
 127.0.1.125 myturn
 '''
 from __future__ import print_function
-import sys, os, urllib2, logging, pwd, subprocess, site, cgi, datetime
-import urlparse, threading, copy, json, uuid
+import sys, os, urllib.request, urllib.error, urllib.parse, logging, pwd
+import subprocess, site, cgi, datetime, urllib.parse, threading, copy, json
+import uuid
 from collections import defaultdict, OrderedDict
-from StringIO import StringIO
 from lxml import html
 from lxml.html import builder
 logging.basicConfig(level = logging.DEBUG if __debug__ else logging.INFO)
@@ -195,7 +195,7 @@ def handle_post(env):
         try:
             buttonvalue = postdict.pop('submit')
         except KeyError:
-            raise(ValueError('No "submit" button found'))
+            raise ValueError('No "submit" button found')
         if buttonvalue == 'Join':
             # name being added to group
             # don't allow if name already in group
@@ -203,10 +203,10 @@ def handle_post(env):
             name, group = postdict.get('name', ''), postdict.get('group', '')
             postdict['success'] = False  # assume a problem
             if not name:
-                raise(ValueError('Name field cannot be empty'))
+                raise ValueError('Name field cannot be empty')
             elif name in groups[group]['participants']:
-                raise(ValueError('"%s" is already a member of %s' % (
-                                 name, group)))
+                raise ValueError('"%s" is already a member of %s' % (
+                                 name, group))
             elif group in groups:
                 groups[group]['participants'][name] = {'timestamp': timestamp}
                 if 'session' not in groups[group]:
@@ -226,18 +226,18 @@ def handle_post(env):
                 groups[group]['participants'] = {}
                 return copy.deepcopy(DATA)
             else:
-                raise(ValueError((
+                raise ValueError((
                     'Group {group[name]} already exists with total time '
                     '{group[total]} minutes and turn time '
                     '{group[turn]} seconds')
-                    .format(group=groups[group])))
+                    .format(group=groups[group]))
         elif buttonvalue == 'OK':
             # affirming receipt of error message or Help screen
             return copy.deepcopy(DATA)
         elif buttonvalue == 'Help':
-            raise(UserWarning('Help requested'))
+            raise UserWarning('Help requested')
         else:
-            raise(ValueError('Unknown form submitted'))
+            raise ValueError('Unknown form submitted')
     finally:
         uwsgi.unlock()
 
@@ -259,7 +259,7 @@ def render(pagename, standalone=True):
             MIMETYPES.get(os.path.splitext(pagename)[1], 'text/plain'))
     else:
         logging.error('not standalone, and no match for filetype')
-        raise(OSError('File not found: %s' % pagename))
+        raise OSError('File not found: %s' % pagename)
 
 def read(filename):
     '''
