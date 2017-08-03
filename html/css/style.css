@@ -21,6 +21,8 @@ body {
   width: 100%;
 }
 .pagewrapper {
+  height: 100%;
+  width: 100%;
   vertical-align: middle;
   text-align: center;
   display: table-cell;

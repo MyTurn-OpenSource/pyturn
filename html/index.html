@@ -20,7 +20,6 @@
 </head>
 <body>
  <div id="loading-body" class="body">
-  <a id="loading"><span> </span></a>
   <div id="loadindicator">
    <!-- don't mess with these loading indicator IDs, the code is complicated
     and you might have hours of debugging to do. a few camelCased `id`
@@ -37,7 +36,6 @@
   </div><!-- loadindicator -->
  </div><!-- body -->
  <div id="joinform-body" class="body">
-  <a id="join"><span> </span></a>
   <!-- pagewrapper table-cell styled, centering horizontally and vertically -->
   <div id="joinform-wrapper" class="pagewrapper">
    <!-- box contains both form and buttons to be centered in page -->
@@ -67,7 +65,6 @@
   </div><!-- pagewrapper -->
  </div><!-- body -->
  <div id="groupform-body" class="body">
-  <a id="group"><span> </span></a>
   <div id="groupform-wrapper" class="pagewrapper">
    <div id="groupform-box" class="box">
     <form name="groupform" method="post">
@@ -94,27 +91,25 @@
   </div><!-- pagewrapper -->
  </div><!-- body -->
  <div id="session-body" class="body">
-  <a id="session"><span> </span></a>
-  <form name="talk" method="post">
-   <div id="session-wrapper" class="pagewrapper">
-    <div id="session-box" class="box">
+  <div id="session-wrapper" class="pagewrapper">
+   <div id="session-box" class="box">
+    <form name="talk" method="post">
      <input type="submit" name="submit" value="My Turn"></input>
-    </div><!-- box -->
-   </div><!-- pagewrapper -->
-  </form>
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
  </div><!-- body -->
  <div id="error-body" class="body">
-  <a id="error"><span> </span></a>
-  <form name="error" method="post">
-   <div id="error-wrapper" class="pagewrapper">
-    <div id="error-box" class="box">
+  <div id="error-wrapper" class="pagewrapper">
+   <div id="error-box" class="box">
+    <form name="error" method="post">
      <div id="error-text"></div>
      <div id="error-buttons" class="submitbuttons">
       <input type="submit" name="submit" value="OK"></input>
      </div>
-    </div><!-- box -->
-   </div><!-- pagewrapper -->
-  </form>
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
  </div><!-- body -->
 </body>
 </html>
