@@ -83,7 +83,12 @@ def loadpage(webpage, path, data):
         parsed.xpath('//div[@id="error-text"]')[0].append(data['text'])
         hide_except('error', parsed)
     elif 'joined' in data:
-        hide_except('session', parsed)
+        if data['joined']['success']:
+            logging.debug('%s joined %s',
+                          data['joined']['name'], data['joined']['group'])
+            hide_except('session', parsed)
+        else:
+            hide_except('groupform', parsed)
     elif groups:
         hide_except('joinform', parsed)
     else:
@@ -145,6 +150,11 @@ def server(env = None, start_response = None):
             except (IOError, OSError) as filenotfound:
                 status_code = '404 File not found'
                 page = '<h1>No such page: %s</h1>' % str(filenotfound)
+    except UserWarning as request:
+        if str(request) == 'Help requested':
+            text = read(os.path.join(start, 'README.md'))
+        page = loadpage(read(os.path.join(start, 'index.html')), path,
+                        {'text': builder.SPAN(cgi.escape(text))})
     except EXPECTED_ERRORS as failed:
         page = loadpage(read(os.path.join(start, 'index.html')), path,
                         {'text': builder.SPAN(cgi.escape(str(failed)))})
@@ -191,17 +201,21 @@ def handle_post(env):
             # don't allow if name already in group
             groups = DATA['groups']
             name, group = postdict.get('name', ''), postdict.get('group', '')
+            postdict['success'] = False  # assume a problem
             if not name:
                 raise(ValueError('Name field cannot be empty'))
-            elif group not in groups:
-                # FIXME: should be redirecting to create group form here
-                raise(ValueError('Cannot join nonexistent group "%s"' % group))
             elif name in groups[group]['participants']:
                 raise(ValueError('"%s" is already a member of %s' % (
                                  name, group)))
-            else:
+            elif group in groups:
                 groups[group]['participants'][name] = {'timestamp': timestamp}
-                return copy.deepcopy(DATA)
+                if 'session' not in groups[group]:
+                    groups[group]['session'] = {'start': timestamp}
+                postdict['success'] = True
+            # else group not in groups, no problem, return to add group form
+            data = copy.deepcopy(DATA)
+            data['joined'] = postdict
+            return data
         elif buttonvalue == 'Submit':
             # group name, total (time), turn (time) being added to groups
             # don't allow if group name already being used
@@ -217,6 +231,11 @@ def handle_post(env):
                     '{group[total]} minutes and turn time '
                     '{group[turn]} seconds')
                     .format(group=groups[group])))
+        elif buttonvalue == 'OK':
+            # affirming receipt of error message or Help screen
+            return copy.deepcopy(DATA)
+        elif buttonvalue == 'Help':
+            raise(UserWarning('Help requested'))
         else:
             raise(ValueError('Unknown form submitted'))
     finally:
