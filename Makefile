@@ -42,4 +42,4 @@ logs:
 edit: myturn.py html/index.html html/css/style.css
 	-vi $+
 	# now test:
-	./$<
+	python3 $<

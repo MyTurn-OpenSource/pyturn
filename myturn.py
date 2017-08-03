@@ -31,8 +31,9 @@ logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
 # so we can see that sys.argv and PWD are useless for uwsgi operation
 HOMEDIR = pwd.getpwuid(os.getuid()).pw_dir
-THISDIR = os.path.dirname(uwsgi.opt.get('wsgi-file', ''))
-APPDIR = uwsgi.opt.get('check_static', os.path.join(THISDIR, 'html'))
+THISDIR = os.path.dirname(uwsgi.opt.get('wsgi-file', b'').decode('utf8'))
+APPDIR = (uwsgi.opt.get('check_static', b'').decode('utf8') or
+          os.path.join(THISDIR, 'html'))
 logging.debug('HOMEDIR: %s' % HOMEDIR)
 logging.debug('USER_SITE: %s' % site.USER_SITE)
 USER_CONFIG = os.path.join(HOMEDIR, 'etc', 'myturn')
@@ -75,7 +76,7 @@ def loadpage(webpage, path, data):
     # get rid of meta refresh if path has already been chosen
     if path == '':
         hide_except('loading', parsed)
-        return html.tostring(parsed)
+        return html.tostring(parsed).decode('utf8')
     else:
         for tag in parsed.xpath('//meta[@http-equiv="refresh"]'):
             tag.getparent().remove(tag)
@@ -93,7 +94,7 @@ def loadpage(webpage, path, data):
         hide_except('joinform', parsed)
     else:
         hide_except('groupform', parsed)
-    return html.tostring(parsed)
+    return html.tostring(parsed).decode('utf8')
 
 def populate_grouplist(parsed, data):
     '''
@@ -152,14 +153,15 @@ def server(env = None, start_response = None):
                 page = '<h1>No such page: %s</h1>' % str(filenotfound)
     except UserWarning as request:
         if str(request) == 'Help requested':
-            text = read(os.path.join(start, 'README.md'))
+            text = read(os.path.join(THISDIR, 'README.md'))
         page = loadpage(read(os.path.join(start, 'index.html')), path,
                         {'text': builder.SPAN(cgi.escape(text))})
     except EXPECTED_ERRORS as failed:
         page = loadpage(read(os.path.join(start, 'index.html')), path,
                         {'text': builder.SPAN(cgi.escape(str(failed)))})
     start_response(status_code, [('Content-type', mimetype)])
-    return [page]
+    logging.debug('page: %s', page[:128])
+    return [page.encode('utf8')]
 
 def handle_post(env):
     '''
@@ -167,7 +169,7 @@ def handle_post(env):
 
     note what dict(parse_qsl(formdata)) does:
 
-    >>> from urlparse import parse_qsl
+    >>> from urllib.parse import parse_qsl
     >>> parse_qsl('a=b&b=c&a=d&a=e')
     [('a', 'b'), ('b', 'c'), ('a', 'd'), ('a', 'e')]
     >>> OrderedDict(_)
@@ -185,7 +187,7 @@ def handle_post(env):
     try:
         if env.get('REQUEST_METHOD') != 'POST':
             return copy.deepcopy(DATA)
-        posted = urlparse.parse_qsl(env['wsgi.input'].read())
+        posted = urllib.parse.parse_qsl(env['wsgi.input'].read())
         postdict = dict(posted)
         logging.debug('handle_post: %s, postdict: %s', posted, postdict)
         # [name, total, turn] and submit=Submit if group creation
@@ -267,7 +269,9 @@ def read(filename):
     '''
     logging.debug('read: returning contents of %s', filename)
     with open(filename) as infile:
-        return infile.read()
+        data = infile.read()
+        logging.debug('data: %s', data[:128])
+        return data
 
 if __name__ == '__main__':
     print(server(os.environ, lambda *args: None))
