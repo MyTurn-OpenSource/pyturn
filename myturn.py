@@ -31,8 +31,8 @@ logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
 # so we can see that sys.argv and PWD are useless for uwsgi operation
 HOMEDIR = pwd.getpwuid(os.getuid()).pw_dir
-THISDIR = os.path.dirname(uwsgi.opt.get('wsgi-file', b'').decode('utf8'))
-APPDIR = (uwsgi.opt.get('check_static', b'').decode('utf8') or
+THISDIR = os.path.dirname(uwsgi.opt.get('wsgi-file', b'').decode())
+APPDIR = (uwsgi.opt.get('check_static', b'').decode() or
           os.path.join(THISDIR, 'html'))
 logging.debug('HOMEDIR: %s' % HOMEDIR)
 logging.debug('USER_SITE: %s' % site.USER_SITE)
@@ -76,7 +76,7 @@ def loadpage(webpage, path, data):
     # get rid of meta refresh if path has already been chosen
     if path == '':
         hide_except('loading', parsed)
-        return html.tostring(parsed).decode('utf8')
+        return html.tostring(parsed).decode()
     else:
         for tag in parsed.xpath('//meta[@http-equiv="refresh"]'):
             tag.getparent().remove(tag)
@@ -94,7 +94,7 @@ def loadpage(webpage, path, data):
         hide_except('joinform', parsed)
     else:
         hide_except('groupform', parsed)
-    return html.tostring(parsed).decode('utf8')
+    return html.tostring(parsed).decode()
 
 def populate_grouplist(parsed, data):
     '''
@@ -187,7 +187,7 @@ def handle_post(env):
     try:
         if env.get('REQUEST_METHOD') != 'POST':
             return copy.deepcopy(DATA)
-        posted = urllib.parse.parse_qsl(env['wsgi.input'].read())
+        posted = urllib.parse.parse_qsl(env['wsgi.input'].read().decode())
         postdict = dict(posted)
         logging.debug('handle_post: %s, postdict: %s', posted, postdict)
         # [name, total, turn] and submit=Submit if group creation
