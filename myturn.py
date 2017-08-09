@@ -30,15 +30,9 @@ logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('sys.argv: %s', sys.argv)  # only shows [uwsgi]
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
 # so we can see that sys.argv and PWD are useless for uwsgi operation
-HOMEDIR = pwd.getpwuid(os.getuid()).pw_dir
 THISDIR = os.path.dirname(uwsgi.opt.get('wsgi-file', b'').decode())
 APPDIR = (uwsgi.opt.get('check_static', b'').decode() or
           os.path.join(THISDIR, 'html'))
-logging.debug('HOMEDIR: %s' % HOMEDIR)
-logging.debug('USER_SITE: %s' % site.USER_SITE)
-USER_CONFIG = os.path.join(HOMEDIR, 'etc', 'myturn')
-PRIVATE_KEY = os.path.join(USER_CONFIG, 'myturn.private.pem')
-PUBLIC_KEY = os.path.join(USER_CONFIG, 'myturn.public.pem')
 MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
              'jpeg': 'image/jpeg',}
 DATA = {
