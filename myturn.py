@@ -204,10 +204,10 @@ def handle_post(env):
             postdict['success'] = False  # assume a problem
             if not name:
                 raise ValueError('Name field cannot be empty')
-            elif name in groups[group]['participants']:
-                raise ValueError('"%s" is already a member of %s' % (
-                                 name, group))
             elif group in groups:
+                if name in groups[group]['participants']:
+                    raise ValueError('"%s" is already a member of %s' % (
+                                     name, group))
                 groups[group]['participants'][name] = {'timestamp': timestamp}
                 if 'session' not in groups[group]:
                     groups[group]['session'] = {'start': timestamp}
