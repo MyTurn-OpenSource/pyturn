@@ -147,10 +147,12 @@ def server(env = None, start_response = None):
                 page = '<h1>No such page: %s</h1>' % str(filenotfound)
     except UserWarning as request:
         if str(request) == 'Help requested':
+            logging.debug('displaying help screen')
             text = read(os.path.join(THISDIR, 'README.md'))
-        page = loadpage(read(os.path.join(start, 'index.html')), path,
-                        {'text': builder.SPAN(cgi.escape(text))})
+            page = loadpage(read(os.path.join(start, 'index.html')), path,
+                            {'text': builder.SPAN(cgi.escape(text))})
     except EXPECTED_ERRORS as failed:
+        logging.debug('displaying error: "%s"', failed)
         page = loadpage(read(os.path.join(start, 'index.html')), path,
                         {'text': builder.SPAN(cgi.escape(str(failed)))})
     start_response(status_code, [('Content-type', mimetype)])
