@@ -78,6 +78,7 @@ def loadpage(webpage, path, data):
         parsed.xpath('//div[@id="error-text"]')[0].append(data['text'])
         hide_except('error', parsed)
     elif 'joined' in data:
+        logging.debug('found "joined": %s', data['joined'])
         if data['joined']['success']:
             logging.debug('%s joined %s',
                           data['joined']['name'], data['joined']['group'])
@@ -198,6 +199,7 @@ def handle_post(env):
             # name being added to group
             # don't allow if name already in group
             groups = DATA['groups']
+            logging.debug('processing Join: %s', postdict)
             name, group = postdict.get('name', ''), postdict.get('group', '')
             postdict['success'] = False  # assume a problem
             if not name:
