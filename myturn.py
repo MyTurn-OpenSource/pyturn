@@ -153,9 +153,9 @@ def server(env = None, start_response = None):
             page = loadpage(read(os.path.join(start, 'index.html')), path,
                             {'text': builder.SPAN(cgi.escape(text))})
     except EXPECTED_ERRORS as failed:
-        logging.debug('displaying error: "%s"', failed)
+        logging.debug('displaying error: "%r"', failed)
         page = loadpage(read(os.path.join(start, 'index.html')), path,
-                        {'text': builder.SPAN(cgi.escape(str(failed)))})
+                        {'text': builder.SPAN(cgi.escape(repr(failed)))})
     start_response(status_code, [('Content-type', mimetype)])
     logging.debug('page: %s', page[:128])
     return [page.encode('utf8')]
