@@ -4,9 +4,6 @@ html, body {
   margin: 0;  /* eliminate scrollbars */
   font-family: Arial, Helvetica, sans-serif;
 }
-#loading-body {
-  background-color: #1985d0;
-}
 div {
   margin: auto;  /* for left-right margins to center */
 }
