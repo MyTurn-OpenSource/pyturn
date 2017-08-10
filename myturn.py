@@ -139,6 +139,8 @@ def server(env = None, start_response = None):
         elif path == 'status':
             page = cgi.escape(json.dumps(data))
             status_code = '200 OK'
+        elif path == 'socket.io':
+            logging.debug('websocket request ignored')
         else:
             try:
                 page, mimetype = render(os.path.join(start, path))
