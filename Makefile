@@ -39,7 +39,7 @@ logs:
 	sudo tail -n 200 -f /var/log/uwsgi/app/myturn.log \
 	 /var/log/nginx/myturn-error.log
 	# /var/log/nginx/myturn-access.log
-edit: myturn.py html/index.html html/css/style.css
+edit: myturn.py html/index.html html/css/style.css myturn.ini myturn.conf
 	-vi $+
 	# now test:
 	python3 $<
