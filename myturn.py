@@ -142,9 +142,11 @@ def server(env = None, start_response = None):
             status_code = '200 OK'
         elif path == 'socket.io':
             logging.debug('websocket request received')
-            thread = threading.Thread(target=session)
-            thread.daemon = True
-            thread.start()
+            session = uwsgi.websocket_handshake()
+            logging.debug('session: %s', session)
+            while True:
+                message = uwsgi.websocket_recv()
+                uwsgi.websocket_send('received: %s' % message)
         else:
             try:
                 page, mimetype = render(os.path.join(start, path))
@@ -276,16 +278,6 @@ def read(filename):
         data = infile.read()
         logging.debug('data: %s', data[:128])
         return data
-
-def session():
-    '''
-    maintain a websocket session
-    '''
-    session = uwsgi.websocket_handshake()
-    logging.debug('session: %s', session)
-    while True:
-        message = uwsgi.websocket_recv()  # silently handles keepalive too
-        uwsgi.websocket_send('received: %s' % message)
 
 if __name__ == '__main__':
     print(server(os.environ, lambda *args: None))
