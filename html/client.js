@@ -2,10 +2,11 @@
 if (typeof(com) == "undefined") var com = {};
 if (typeof(com.jcomeau) == "undefined") com.jcomeau = {};
 com.jcomeau.myturn = {};
-// no need to use `window.` anything, it is implied
+// no need to use `window.` anything; it is implied
 addEventListener("load", function() {
     console.log("onload routine started");
     var cjm = com.jcomeau.myturn;
+    console.log("location: " + JSON.stringify(location));
     console.log("location.path: " + location.path);
     if (location.path != "/noscript") {
         cjm.websocket = new WebSocket("ws:" + location.host + "/socket.io");
