@@ -34,4 +34,12 @@ solutions are discussed
 with the "atomic operation" approach but quickly decided it was overly
 complex. I'm going with the thread.Lock method now.
 
+## Websockets
+
+The `myturnb` app used websockets, and I may have to, but since uwsgi doesn't
+allow websocket API calls except from the primary callable, it ties up the
+`core` thread, meaning I can't service more than 4 clients at a time. So I
+either have to use a different library, or use AJAX calls instead. For now
+I'm going with AJAX.
+
 John Comeau <jc@unternet.net> 2017-07
