@@ -9,7 +9,6 @@ addEventListener("load", function() {
     console.log("location: " + JSON.stringify(location));
     console.log("location.pathname: " + path);
     if (path != "/noscript") {
-        cjm.websocket = new WebSocket("ws:" + location.host + "/socket.io");
         // save this redirect for last, only reached if all other tests pass
         if (path == "/") {
             location.replace(location.href + "app");

@@ -82,7 +82,7 @@ def loadpage(webpage, path, data):
         logging.debug('found "joined": %s', data['joined'])
         if data['joined']['success']:
             logging.debug('%s joined %s',
-                          data['joined']['name'], data['joined']['group'])
+                          data['joined']['username'], data['joined']['group'])
             hide_except('session', parsed)
         else:
             hide_except('groupform', parsed)
@@ -140,13 +140,6 @@ def server(env = None, start_response = None):
         elif path == 'status':
             page = cgi.escape(json.dumps(data))
             status_code = '200 OK'
-        elif path == 'socket.io':
-            logging.debug('websocket request received')
-            session = uwsgi.websocket_handshake()
-            logging.debug('session: %s', session)
-            while True:
-                message = uwsgi.websocket_recv()
-                uwsgi.websocket_send('received: %s' % message)
         else:
             try:
                 page, mimetype = render(os.path.join(start, path))
@@ -195,8 +188,8 @@ def handle_post(env):
         posted = urllib.parse.parse_qsl(env['wsgi.input'].read().decode())
         postdict = dict(posted)
         logging.debug('handle_post: %s, postdict: %s', posted, postdict)
-        # [name, total, turn] and submit=Submit if group creation
-        # [name, group] and submit=Join if joining a group
+        # [groupname, total, turn] and submit=Submit if group creation
+        # [username, group] and submit=Join if joining a group
         timestamp = datetime.datetime.utcnow().isoformat()
         postdict['timestamp'] = timestamp
         try:
@@ -204,19 +197,21 @@ def handle_post(env):
         except KeyError:
             raise ValueError('No "submit" button found')
         if buttonvalue == 'Join':
-            # name being added to group
+            # username being added to group
             # don't allow if name already in group
             groups = DATA['groups']
             logging.debug('processing Join: %s', postdict)
-            name, group = postdict.get('name', ''), postdict.get('group', '')
+            username = postdict.get('username', '')
+            group = postdict.get('group', '')
             postdict['success'] = False  # assume a problem
-            if not name:
+            if not username:
                 raise ValueError('Name field cannot be empty')
             elif group in groups:
-                if name in groups[group]['participants']:
+                if username in groups[group]['participants']:
                     raise ValueError('"%s" is already a member of %s' % (
-                                     name, group))
-                groups[group]['participants'][name] = {'timestamp': timestamp}
+                                     username, group))
+                groups[group]['participants'][username] = {
+                    'timestamp': timestamp}
                 if 'session' not in groups[group]:
                     groups[group]['session'] = {'start': timestamp}
                 postdict['success'] = True
@@ -225,17 +220,17 @@ def handle_post(env):
             data['joined'] = postdict
             return data
         elif buttonvalue == 'Submit':
-            # group name, total (time), turn (time) being added to groups
-            # don't allow if group name already being used
+            # groupname, total (time), turn (time) being added to groups
+            # don't allow if groupname already being used
             groups = DATA['groups']
-            group = postdict['name']
+            group = postdict['groupname']
             if not group in groups:
                 groups[group] = postdict
                 groups[group]['participants'] = {}
                 return copy.deepcopy(DATA)
             else:
                 raise ValueError((
-                    'Group {group[name]} already exists with total time '
+                    'Group {group[groupname]} already exists with total time '
                     '{group[total]} minutes and turn time '
                     '{group[turn]} seconds')
                     .format(group=groups[group]))
