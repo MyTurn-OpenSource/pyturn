@@ -239,6 +239,11 @@ def handle_post(env):
             return copy.deepcopy(DATA)
         elif buttonvalue == 'Help':
             raise UserWarning('Help requested')
+        elif buttonvalue == 'My Turn':
+            logging.debug('env: %s', env)
+            raise NotImplementedError(
+                'Browser \'%s\' incompatible with script' %
+                env.get('HTTP_USER_AGENT', '(unknown)'))
         else:
             raise ValueError('Unknown form submitted')
     finally:
