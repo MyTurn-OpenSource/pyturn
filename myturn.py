@@ -38,7 +38,7 @@ MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
 DATA = {
     'groups': {},
 }
-SESSIONS = {}  # websocket threads linked with session keys go here
+SESSIONS = {}  # threads linked with session keys go here
 EXPECTED_ERRORS = (NotImplementedError, ValueError, KeyError, IndexError)
 
 def findpath(env):
@@ -196,6 +196,7 @@ def handle_post(env):
             buttonvalue = postdict.pop('submit')
         except KeyError:
             raise ValueError('No "submit" button found')
+        update_session(postdict)
         if buttonvalue == 'Join':
             # username being added to group
             # don't allow if name already in group
@@ -240,6 +241,9 @@ def handle_post(env):
         elif buttonvalue == 'Help':
             raise UserWarning('Help requested')
         elif buttonvalue == 'My Turn':
+            # attempting to speak in ongoing session
+            # this could only be reached by browser in which JavaScript did
+            # not work properly in taking over default actions
             logging.debug('env: %s', env)
             raise NotImplementedError(
                 'Browser \'%s\' incompatible with script' %
@@ -248,6 +252,33 @@ def handle_post(env):
             raise ValueError('Unknown form submitted')
     finally:
         uwsgi.unlock()
+
+def update_session(postdict):
+    '''
+    simple implementation of sessions
+
+    another thread should go through and remove expired sessions
+    '''
+    # FIXME: this session mechanism can only be somewhat secure with https
+    if 'session_key' in postdict and postdict['session_key']:
+        if 'username' in postdict and postdict['username']:
+            session_key = postdict['session_key']
+            username = postdict['username']
+            if session_key in SESSIONS:
+                if SESSIONS[session_key]['username'] != username:
+                    raise ValueError('Session belongs to "%s"' % username)
+                else:
+                    SESSIONS[session_key]['updated'] = postdict['timestamp']
+            else:
+                SESSIONS[session_key] = {
+                    'timestamp': timestamp,
+                    'updated': timestamp,
+                    'username': username}
+        else:
+            logging.debug('no username yet associated with session %s',
+                          session_key)
+    else:
+        logging.warn('no session_key in POST')
 
 def render(pagename, standalone=True):
     '''
