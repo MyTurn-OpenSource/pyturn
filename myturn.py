@@ -78,14 +78,9 @@ def loadpage(webpage, path, data):
     if 'text' in data:
         parsed.xpath('//div[@id="error-text"]')[0].append(data['text'])
         hide_except('error', parsed)
-    elif 'joined' in data:
-        logging.debug('found "joined": %s', data['joined'])
-        if data['joined']['success']:
-            logging.debug('%s joined %s',
-                          data['joined']['username'], data['joined']['group'])
-            hide_except('session', parsed)
-        else:
-            hide_except('groupform', parsed)
+    elif 'joined' in data.get('postdict', {}):
+        logging.debug('found "joined": %s', data['postdict'])
+        hide_except('session', parsed)
     elif groups:
         hide_except('joinform', parsed)
     else:
@@ -163,7 +158,7 @@ def server(env = None, start_response = None):
 
 def handle_post(env):
     '''
-    process the form submission
+    process the form submission and return data structures
 
     note what dict(parse_qsl(formdata)) does:
 
@@ -182,18 +177,21 @@ def handle_post(env):
     uwsgi.lock()  # lock access to DATA global
     worker = getattr(uwsgi, 'worker_id', lambda *args: None)()
     DATA['handler'] = (worker, env.get('uwsgi.core'))
+    timestamp = datetime.datetime.utcnow().isoformat()
     try:
         if env.get('REQUEST_METHOD') != 'POST':
             return copy.deepcopy(DATA)
         posted = urllib.parse.parse_qsl(env['wsgi.input'].read().decode())
-        postdict = dict(posted)
+        DATA['postdict'] = postdict = dict(posted)
         logging.debug('handle_post: %s, postdict: %s', posted, postdict)
         # [groupname, total, turn] and submit=Submit if group creation
         # [username, group] and submit=Join if joining a group
-        timestamp = datetime.datetime.utcnow().isoformat()
         postdict['timestamp'] = timestamp
+        if not postdict.get('session_key'):
+            postdict['session_key'] = uuid.uuid4()
+            logging.debug('set session_key = %s', postdict['session_key'])
         try:
-            buttonvalue = postdict.pop('submit')
+            buttonvalue = postdict['submit']
         except KeyError:
             raise ValueError('No "submit" button found')
         update_session(postdict)
@@ -215,10 +213,9 @@ def handle_post(env):
                     'timestamp': timestamp}
                 if 'session' not in groups[group]:
                     groups[group]['session'] = {'start': timestamp}
-                postdict['success'] = True
+                postdict['joined'] = True
             # else group not in groups, no problem, return to add group form
             data = copy.deepcopy(DATA)
-            data['joined'] = postdict
             return data
         elif buttonvalue == 'Submit':
             # groupname, total (time), turn (time) being added to groups
@@ -255,14 +252,18 @@ def handle_post(env):
 
 def update_session(postdict):
     '''
-    simple implementation of sessions
+    simple implementation of user sessions
+
+    this is for keeping state between client and server, this is *not*
+    the same as discussion sessions!
 
     another thread should go through and remove expired sessions
     '''
     # FIXME: this session mechanism can only be somewhat secure with https
+    timestamp = postdict['timestamp']
     if 'session_key' in postdict and postdict['session_key']:
+        session_key = postdict['session_key']
         if 'username' in postdict and postdict['username']:
-            session_key = postdict['session_key']
             username = postdict['username']
             if session_key in SESSIONS:
                 if SESSIONS[session_key]['username'] != username:
@@ -275,8 +276,7 @@ def update_session(postdict):
                     'updated': timestamp,
                     'username': username}
         else:
-            logging.debug('no username yet associated with session %s',
-                          session_key)
+            logging.debug('no username associated with session %s', session_key)
     else:
         logging.warn('no session_key in POST')
 
