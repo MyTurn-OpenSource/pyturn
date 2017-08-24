@@ -188,7 +188,7 @@ def handle_post(env):
         # [username, group] and submit=Join if joining a group
         postdict['timestamp'] = timestamp
         if not postdict.get('session_key'):
-            postdict['session_key'] = uuid.uuid4()
+            postdict['session_key'] = uuid.uuid4().hex
             logging.debug('set session_key = %s', postdict['session_key'])
         try:
             buttonvalue = postdict['submit']
