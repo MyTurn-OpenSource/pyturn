@@ -202,7 +202,6 @@ def handle_post(env):
             logging.debug('processing Join: %s', postdict)
             username = postdict.get('username', '')
             group = postdict.get('group', '')
-            postdict['success'] = False  # assume a problem
             if not username:
                 raise ValueError('Name field cannot be empty')
             elif group in groups:
