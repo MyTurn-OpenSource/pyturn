@@ -64,7 +64,7 @@ def loadpage(webpage, path, data):
     '''
     parsed = html.fromstring(webpage)
     postdict = data.get('postdict', {})
-    set_values(parsed, postdict, ['username', 'session_key'])
+    set_values(parsed, postdict, ['username', 'groupname', 'session_key'])
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
     else:
@@ -93,13 +93,17 @@ def set_values(parsed, postdict, fieldlist):
     '''
     pre-set form input values from postdict
     '''
+    logging.debug('setting values of %s from %s', fieldlist, postdict)
     for fieldname in fieldlist:
         value = postdict.get(fieldname, '')
         if not value:
+            logging.debug('skipping %s, no value found', fieldname)
             continue
         elements = parsed.xpath('//input[@name="%s"]' % fieldname)
         for element in elements:
+            logging.debug('before: %s', html.tostring(element))
             element.set('value', value)
+            logging.debug('after: %s', html.tostring(element))
 
 def populate_grouplist(parsed, data):
     '''
