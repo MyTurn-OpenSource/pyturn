@@ -63,6 +63,8 @@ def loadpage(webpage, path, data):
     eventually client-side JavaScript will perform many of these functions.
     '''
     parsed = html.fromstring(webpage)
+    postdict = data.get('postdict', {})
+    set_values(parsed, postdict, ['username', 'session_key'])
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
     else:
@@ -78,7 +80,7 @@ def loadpage(webpage, path, data):
     if 'text' in data:
         parsed.xpath('//div[@id="error-text"]')[0].append(data['text'])
         hide_except('error', parsed)
-    elif 'joined' in data.get('postdict', {}):
+    elif 'joined' in postdict:
         logging.debug('found "joined": %s', data['postdict'])
         hide_except('session', parsed)
     elif groups:
@@ -86,6 +88,18 @@ def loadpage(webpage, path, data):
     else:
         hide_except('groupform', parsed)
     return html.tostring(parsed).decode()
+
+def set_values(parsed, postdict, fieldlist):
+    '''
+    pre-set form input values from postdict
+    '''
+    for fieldname in fieldlist:
+        value = postdict.get(fieldname, '')
+        if not value:
+            continue
+        elements = parsed.xpath('//input[@name="%s"]' % fieldname)
+        for element in elements:
+            element.set('value', value)
 
 def populate_grouplist(parsed, data):
     '''
@@ -148,6 +162,7 @@ def server(env = None, start_response = None):
             text = read(os.path.join(THISDIR, 'README.md'))
             page = loadpage(read(os.path.join(start, 'index.html')), path,
                             {'text': builder.SPAN(cgi.escape(text))})
+            status_code = '200 OK'
     except EXPECTED_ERRORS as failed:
         logging.debug('displaying error: "%r"', failed)
         page = loadpage(read(os.path.join(start, 'index.html')), path,
