@@ -77,8 +77,9 @@ def loadpage(webpage, path, data):
     else:
         for tag in parsed.xpath('//meta[@http-equiv="refresh"]'):
             tag.getparent().remove(tag)
-    if 'text' in data:
-        parsed.xpath('//div[@id="error-text"]')[0].append(data['text'])
+    if 'text' in postdict:
+        span = builder.SPAN(cgi.escape(postdict['text']))
+        parsed.xpath('//div[@id="error-text"]')[0].append(span)
         hide_except('error', parsed)
     elif 'joined' in postdict:
         logging.debug('found "joined": %s', data['postdict'])
@@ -144,34 +145,21 @@ def server(env = None, start_response = None):
     '''
     status_code, mimetype, page = '500 Server error', 'text/html', '(Unknown)'
     start, path = findpath(env)
-    try:
-        data = handle_post(env)
-        logging.debug('server: data: %s', data)
-        if path in ('', 'noscript', 'app'):
-            page = loadpage(read(os.path.join(start, 'index.html')), path, data)
+    data = handle_post(env)
+    logging.debug('server: data: %s', data)
+    if path in ('', 'noscript', 'app'):
+        page = loadpage(read(os.path.join(start, 'index.html')), path, data)
+        status_code = '200 OK'
+    elif path == 'status':
+        page = cgi.escape(json.dumps(data))
+        status_code = '200 OK'
+    else:
+        try:
+            page, mimetype = render(os.path.join(start, path))
             status_code = '200 OK'
-        elif path == 'status':
-            page = cgi.escape(json.dumps(data))
-            status_code = '200 OK'
-        else:
-            try:
-                page, mimetype = render(os.path.join(start, path))
-                status_code = '200 OK'
-            except (IOError, OSError) as filenotfound:
-                status_code = '404 File not found'
-                page = '<h1>No such page: %s</h1>' % str(filenotfound)
-    except UserWarning as request:
-        if str(request) == 'Help requested':
-            logging.debug('displaying help screen')
-            text = read(os.path.join(THISDIR, 'README.md'))
-            page = loadpage(read(os.path.join(start, 'index.html')), path,
-                            {'text': builder.SPAN(cgi.escape(text))})
-            status_code = '200 OK'
-    except EXPECTED_ERRORS as failed:
-        logging.debug('displaying error: "%r"', failed)
-        status_code = '200 Trapped error'
-        page = loadpage(read(os.path.join(start, 'index.html')), path,
-                        {'text': builder.SPAN(cgi.escape(repr(failed)))})
+        except (IOError, OSError) as filenotfound:
+            status_code = '404 File not found'
+            page = '<h1>No such page: %s</h1>' % str(filenotfound)
     start_response(status_code, [('Content-type', mimetype)])
     logging.debug('page: %s', page[:128])
     return [page.encode('utf8')]
@@ -235,8 +223,7 @@ def handle_post(env):
                     groups[group]['session'] = {'start': timestamp}
                 postdict['joined'] = True
             # else group not in groups, no problem, return to add group form
-            data = copy.deepcopy(DATA)
-            return data
+            return copy.deepcopy(DATA)
         elif buttonvalue == 'Submit':
             # groupname, total (time), turn (time) being added to groups
             # don't allow if groupname already being used
@@ -267,6 +254,15 @@ def handle_post(env):
                 env.get('HTTP_USER_AGENT', '(unknown)'))
         else:
             raise ValueError('Unknown form submitted')
+    except UserWarning as request:
+        if str(request) == 'Help requested':
+            logging.debug('displaying help screen')
+            DATA['postdict']['text'] = read(os.path.join(THISDIR, 'README.md'))
+            return copy.deepcopy(DATA)
+    except EXPECTED_ERRORS as failed:
+        logging.debug('displaying error: "%r"', failed)
+        DATA['postdict']['text'] = repr(failed)
+        return copy.deepcopy(DATA)
     finally:
         uwsgi.unlock()
 
