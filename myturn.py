@@ -224,6 +224,7 @@ def handle_post(env):
             if not username:
                 raise ValueError('Name field cannot be empty')
             elif group in groups:
+                postdict['groupname'] = group
                 if username in groups[group]['participants']:
                     raise ValueError('"%s" is already a member of %s' % (
                                      username, group))
