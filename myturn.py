@@ -169,6 +169,7 @@ def server(env = None, start_response = None):
             status_code = '200 OK'
     except EXPECTED_ERRORS as failed:
         logging.debug('displaying error: "%r"', failed)
+        status_code = '200 Trapped error'
         page = loadpage(read(os.path.join(start, 'index.html')), path,
                         {'text': builder.SPAN(cgi.escape(repr(failed)))})
     start_response(status_code, [('Content-type', mimetype)])
