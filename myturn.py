@@ -1,12 +1,15 @@
 #!/usr/bin/python3 -OO
 '''
-implement local website http://myturn/
+implementing David Stodolsky's meeting facilitation application
+
+Python backend and JavaScript frontend
 
 Copyright 2017 John Otis Comeau <jc@unternet.net>
 distributed under the terms of the GNU General Public License Version 3
 (see COPYING)
 
-must first mate a local IP address with the name `myturn` in /etc/hosts, e.g.:
+for testing with local host http://myturn/, must first mate a local IP 
+address with the name `myturn` in /etc/hosts, e.g.:
 
 127.0.1.125 myturn
 '''
