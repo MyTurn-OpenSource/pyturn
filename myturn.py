@@ -281,6 +281,9 @@ def update_session(postdict):
         session_key = postdict['session_key']
         if 'username' in postdict and postdict['username']:
             username = postdict['username']
+            if postdict.get('groupname'):
+                # both username and groupname filled out means "in session"
+                postdict['joined'] = True
             if session_key in SESSIONS:
                 if SESSIONS[session_key]['username'] != username:
                     raise ValueError('Session belongs to "%s"' % username)
