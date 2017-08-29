@@ -1,0 +1,22 @@
+{
+  "name": "myturn",
+  "version": "0.0.0",
+  "description": "David Stodolsky's meeting facilitation app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jcomeauictx/myturn.git"
+  },
+  "keywords": [
+    "meetings"
+  ],
+  "author": "John Comeau",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/jcomeauictx/myturn/issues"
+  },
+  "homepage": "https://github.com/jcomeauictx/myturn#readme"
+}
