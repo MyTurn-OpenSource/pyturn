@@ -6,15 +6,22 @@
 *
 * (stolen from myturnb; I have no idea how this works -- jc@unternet.net)
 */
+
 .centered-cell {
   text-align: center;
 }
+
 .touchgridpanel .x-list-item:nth-child(odd) {
   background-color: #fff;
 }
-html.loading, body.loading {
+
+#loading-body {
   height: 100%;
   background-color: #1985D0
+}
+
+#loading-body p {
+  margin: 1em;
 }
 
 #appLoadingTitle {

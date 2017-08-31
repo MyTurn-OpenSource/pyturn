@@ -1,0 +1,128 @@
+<!doctype html>
+<!-- notes on coding:
+ * use hyphens in id names to avoid cluttering window namespace
+ * add IDs and classes liberally in case they're needed
+ * make class names representative of what look or function they are to achieve
+ * use prefixes on ID names like "joinform-" to group elements together
+-->
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="mobile-web-app-capable" content="yes">
+ <!-- trap javascript failure 2 ways: with noscript tag and with timeout -->
+ <noscript><meta http-equiv="refresh" content="0; url=./noscript"></noscript>
+ <!-- timeout triggered if javascript fails on a particular browser -->
+ <meta http-equiv="refresh" content="60; url=./noscript">
+ <title>My Turn</title>
+ <link rel="stylesheet" type="text/css" href="css/style.css">
+ <link rel="stylesheet" type="text/css" href="css/loading.css">
+ <script src="client.js"></script>
+</head>
+<body>
+ <div id="loading-body" class="body">
+  <div id="loadindicator">
+   <!-- don't mess with these loading indicator IDs, the code is complicated
+    and you might have hours of debugging to do. a few camelCased `id`
+    elements aren't going to kill anybody
+   -->
+   <div id="appLoadingTitle">
+    <p>The application is loading, this can take up to a minute...</p>
+   </div>
+   <div id="appLoadingIndicator"><!-- must remain ID, not class -->
+    <div></div><!-- these 3 empty divs must remain for loading indicator -->
+    <div></div>
+    <div></div>
+   </div>
+  </div><!-- loadindicator -->
+ </div><!-- body -->
+ <div id="joinform-body" class="body">
+  <!-- pagewrapper table-cell styled, centering horizontally and vertically -->
+  <div id="joinform-wrapper" class="pagewrapper">
+   <!-- box contains both form and buttons to be centered in page -->
+   <!-- the "box" styling centers the content within the pagewrapper -->
+   <div id="joinform-box" class="box">
+    <form id="joinform" method="post">
+     <!-- formfields has rounded corners -->
+     <div class="formfields">
+      <div class="inputrow">
+       <label for="group">Group</label>
+       <select name="group">
+        <option selected value="">(Create new group)</option>
+       </select>
+      </div>
+      <div class="inputrow">
+       <label for="username">Your name</label>
+       <input type="text" name="username" required></input>
+      </div>
+     </div>
+     <!-- buttons outside rounded border -->
+     <div id="joinform-buttons" class="submitbuttons">
+      <input type="submit" name="submit" value="Join"></input>
+      <input type="submit" name="submit" value="Help" formnovalidate></input>
+     </div>
+     <input type="hidden" name="session_key" value="">
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
+ </div><!-- body -->
+ <div id="groupform-body" class="body">
+  <div id="groupform-wrapper" class="pagewrapper">
+   <div id="groupform-box" class="box">
+    <form name="groupform" method="post">
+     <div class="formfields">
+      <div class="inputrow">
+       <label for="groupname">Group name</label>
+       <input type="text" name="groupname" required></input>
+      </div>
+      <div class="inputrow">
+       <label for="total">Total (min)</label>
+       <input type="number" name="total" required></input>
+      </div>
+      <div class="inputrow">
+       <label for="turn">Turn (sec)</label>
+       <input type="number" name="turn" required></input>
+      </div>
+     </div>
+     <input type="hidden" name="session_key" value="">
+     <input type="hidden" name="username" value="">
+     <div class="submitbuttons">
+      <input type="submit" name="submit" value="Submit"></input>
+      <input type="submit" name="cancel" value="Cancel"></input>
+     </div>
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
+ </div><!-- body -->
+ <div id="session-body" class="body">
+  <div id="session-wrapper" class="pagewrapper">
+   <div id="session-box" class="box">
+    <form name="talk" method="post">
+     <input type="submit" name="submit" value="My Turn"></input>
+     <input type="hidden" name="session_key" value="">
+     <input type="hidden" name="username" value="">
+     <input type="hidden" name="groupname" value="">
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
+ </div><!-- body -->
+ <div id="error-body" class="body">
+  <div id="error-wrapper" class="pagewrapper">
+   <div id="error-box" class="box">
+    <form name="error" method="post">
+     <input type="hidden" name="session_key" value="">
+     <input type="hidden" name="username" value="">
+     <input type="hidden" name="groupname" value="">
+     <div id="error-text"></div>
+     <div id="error-buttons" class="submitbuttons">
+      <input type="submit" name="submit" value="OK"></input>
+     </div>
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
+ </div><!-- body -->
+</body>
+</html>
+<!--
+# vim: tabstop=8 expandtab shiftwidth=1 softtabstop=1
+-->

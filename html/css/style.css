@@ -1,19 +1,28 @@
 html, body {
   height: 100%;
-  background: #eeeeee;
+  background: green;  /* should never be seen with 0 margin */
+  margin: 0;  /* eliminate scrollbars */
   font-family: Arial, Helvetica, sans-serif;
 }
 div {
   margin: auto;  /* for left-right margins to center */
 }
-body {
+div.body {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  background: #eeeeee;
   display: table;
+}
+body {
   width: 100%;
 }
-#wrapper {
+.pagewrapper {
+  height: 100%;
+  width: 100%;
   vertical-align: middle;
   text-align: center;
-  display: none;  /* changed by script to "table-cell" after loading */
+  display: table-cell;
 }
 .inputrow {
   display: table-row;
@@ -27,7 +36,7 @@ label {
   font-weight: bold;
   border-bottom: 1px solid #dddddd;
 }
-input, select {
+input:not([type=submit]), select {
   text-align: left;
   display: table-cell;
   border: none;
@@ -35,8 +44,8 @@ input, select {
 label, input {
   padding: 5px;
 }
-#inputform {
-  margin: auto;  /* required to center form in #wrapper td */
+.box {
+  margin: auto;  /* required to center form in .pagewrapper td */
 }
 input[type=submit] {
   border-radius: 5px;
@@ -45,16 +54,17 @@ input[type=submit] {
   border: 1px solid #999999;
   background-color: #cccccc;
 }
-input[name=help] {
+input[value=Help] {
   background-color: blue;
   color: white;
 }
-#formfields {
+.formfields {
   display: table;
   border: 1px solid #dddddd;
-  border-radius: 5px;
+  border-radius: 10px;
+  overflow: hidden;  /* prevents element corners from covering rounded edges */
 }
-#submitbuttons {
+.submitbuttons {
   margin-top: 10px;
 }  
 /*
