@@ -43,3 +43,5 @@ edit: $(APP).py html/index.html html/css/*.css html/client.js \
 	-vi $+
 	# now test:
 	python3 $<
+install: install.mk
+	$(MAKE) -f $<

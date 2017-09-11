@@ -28,3 +28,58 @@ TIMESTAMP := $(shell date +%Y%m%d%H%M%S)
 DRYRUN ?= --dry-run  # for rsync
 DELETE ?= --delete
 export
+set env:
+	$@
+install: /etc/systemd/system/myturn@$(BRANCH).service $(SITE_ACTIVE) \
+ restart_$(BACKEND) restart_nginx
+/etc/systemd/system/%: /tmp/%
+	mv -f $< $@
+/tmp/myturn@%.service: myturn@.service .FORCE
+	cp -f $< $@
+	sed -i "s/$(LEGACY_PORT)/$(SERVER_PORT)/" $@
+siteinstall: | $(SITE_ROOT)
+	cd .. && rsync -avcz $(DRYRUN) $(DELETE) \
+	 --exclude=configuration --exclude='.git*' \
+	 . $(SITE_ROOT)/
+$(SITE_ROOT):
+	mkdir -p $@
+$(SITE_ACTIVE): $(SITE_CONFIG)
+	cd $(dir $@) && ln -sf ../sites-available/$(notdir $<) .
+/tmp/$(SERVICE).nginx: myturn.nginx .FORCE
+	cp -f $< $@
+	sed -i -e "s/$(LEGACY_PORT)/$(SERVER_PORT)/" \
+	 -e "s/legacy/$(BRANCH)/g" \
+	 $@
+ifeq (release,$(BRANCH))
+	if [ -f /etc/nginx/sites-enabled/default ]; then \
+	 echo WARNING: Removing old default configuration >&2; \
+	 rm -f /etc/nginx/sites-enabled/default; \
+	fi
+	if [ -f /etc/nginx/sites-enabled/myturn ]; then \
+	 echo WARNING: Removing old myturn configuration >&2; \
+	 rm -f /etc/nginx/sites-enabled/myturn; \
+	fi
+	# make new default a redirect to the release
+	@echo WARNING: Redirecting default to release.myturn.mobi >&2
+	cp -f default.nginx /etc/nginx/sites-available/myturn-default
+	cd /etc/nginx/sites-enabled && \
+	 ln -s ../sites-available/myturn-default .
+endif
+$(SITE_CONFIG): /tmp/$(SERVICE).nginx .FORCE
+	if [ -e "$@" ]; then \
+	 if diff -q $< $@; then \
+	  echo $@ unchanged >&2; \
+	 else \
+	  echo Saving $@ to $@.$(TIMESTAMP) >&2; \
+	  mv $@ $@.$(TIMESTAMP); \
+	 fi; \
+	fi
+	[ -e "$@" ] || mv $< $@
+restart_%:
+	-systemctl stop $*
+	systemctl daemon-reload  # in case configuration changed
+	systemctl enable $*
+	systemctl start $*
+diff:
+	diff -r -x '.git*' .. /var/www/$(SERVICE)
+.FORCE:
