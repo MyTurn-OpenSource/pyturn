@@ -1,4 +1,4 @@
-APP := myturn
+APP := pyturn
 PORT := 5678
 export
 default: test
@@ -9,7 +9,7 @@ restart:
 	sudo /etc/init.d/uwsgi restart
 	sudo /etc/init.d/nginx restart
 fetch:
-	-wget --tries=1 --output-document=- http://$(APP):$(LEGACY_PORT)/
+	-wget --tries=1 --output-document=- http://$(APP):$(PORT)/
 enable:
 	# remember to use parens around each line if running from command line
 	# GNU Make runs each in a subprocess so it's not necessary here
@@ -44,4 +44,4 @@ edit: $(APP).py html/index.html html/css/*.css html/client.js \
 	# now test:
 	python3 $<
 install: install.mk
-	$(MAKE) -f $<
+	$(MAKE) DRYRUN= -f $< siteinstall install
