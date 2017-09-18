@@ -35,7 +35,7 @@ To install this on a DigitalOcean droplet running Debian, first install
 needed packages:
 
 - `sudo apt-get update`
-- `sudo apt-get install uwsgi npm nginx`
+- `sudo apt-get install git uwsgi npm nginx`
 
 Then do one of the following, depending on which version you want. The default 
 version is "master", generally the most stable:
