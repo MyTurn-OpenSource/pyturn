@@ -31,9 +31,14 @@ http://doc.myturn.mobi
 
 Check for errors under `/var/log/nginx/myturn-error.log`, and using right-click Inspect under Chromium, or similar JavaScript console functionality under other browsers.
 
-To install this on a DigitalOcean droplet running Debian, do one of the 
-following, depending on which version you want. The default version is "master",
-generally the most stable:
+To install this on a DigitalOcean droplet running Debian, first install
+needed packages:
+
+- `sudo apt-get update`
+- `sudo apt-get install uwsgi npm nginx`
+
+Then do one of the following, depending on which version you want. The default 
+version is "master", generally the most stable:
 
 - `sudo npm install --global --unsafe jcomeauictx/myturn`
 - `sudo npm install --global --unsafe jcomeauictx/myturn#beta`
