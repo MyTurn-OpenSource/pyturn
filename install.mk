@@ -1,9 +1,9 @@
 SHELL := /bin/bash
-NODE_ENV := $(shell node -e \
+NODE_ENV := $(shell nodejs -e \
  'process.stdout.write(JSON.stringify(process.env))')
-NPM_CONFIG_ARGV := $(shell node -e \
+NPM_CONFIG_ARGV := $(shell nodejs -e \
  'process.stdout.write(process.env.npm_config_argv)')
-PACKAGE := $(shell node -e \
+PACKAGE := $(shell nodejs -e \
  'process.stdout.write(JSON.parse(process.env.npm_config_argv)["remain"][0])')
 BRANCH := $(shell echo $(PACKAGE) | cut -d\# -f2)
 # we're only interested in specially named branches, to determine port number
@@ -14,11 +14,14 @@ endif
 APP := pyturn
 SERVICE := $(APP)-$(BRANCH)
 BACKEND := $(APP)@$(BRANCH)
+# ports are even numbers so we can have a status port at port+1
 ALPHA_PORT := 5684
 BETA_PORT := 5682
 RELEASE_PORT := 5680
 LEGACY_PORT := 5678
+LEGACY_STATUS_PORT := 5679
 SERVER_PORT := $($(shell echo $(BRANCH) | tr a-z A-Z)_PORT)
+STATUS_PORT := $(shell echo $$(($(SERVER_PORT) + 1)))
 NGINX_CONFIG := /etc/nginx
 SITE_ROOT := /var/www/$(SERVICE)
 SITE_CONFIG := $(NGINX_CONFIG)/sites-available/$(SERVICE)
@@ -48,6 +51,7 @@ $(SITE_ACTIVE): $(SITE_CONFIG)
 	cp -f $< $@
 	sed -i -e "s/$(LEGACY_PORT)/$(SERVER_PORT)/" \
 	 -e "s/legacy/$(BRANCH)/g" \
+	 -e "s/$(LEGACY_STATUS_PORT)/$(STATUS_PORT)/" \
 	 $@
 ifeq (release,$(BRANCH))
 	if [ -f /etc/nginx/sites-enabled/default ]; then \
