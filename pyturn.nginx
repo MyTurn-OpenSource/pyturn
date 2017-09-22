@@ -1,7 +1,7 @@
 # nginx configuration for websockets
 
 server {
-  server_name ~^(www\.)?(.+)$;
+  server_name uwsgi-legacy.myturn.*;
   access_log /var/log/nginx/pyturn-access.log;
   # can get lots of vebosity by appending "debug" just before semicolon below
   error_log /var/log/nginx/pyturn-error.log;
