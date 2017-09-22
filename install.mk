@@ -13,7 +13,6 @@ ifeq ($(strip $(BRANCH)),)
 endif
 APP := pyturn
 SERVICE := $(APP)-$(BRANCH)
-BACKEND := $(APP)@$(BRANCH)
 # ports are even numbers so we can have a status port at port+1
 ALPHA_PORT := 5684
 BETA_PORT := 5682
@@ -23,7 +22,7 @@ LEGACY_STATUS_PORT := 5679
 SERVER_PORT := $($(shell echo $(BRANCH) | tr a-z A-Z)_PORT)
 STATUS_PORT := $(shell echo $$(($(SERVER_PORT) + 1)))
 NGINX_CONFIG := /etc/nginx
-SITE_ROOT := /var/www/$(SERVICE)
+SITE_ROOT := /usr/local/jcomeauictx/$(SERVICE)
 SITE_CONFIG := $(NGINX_CONFIG)/sites-available/$(SERVICE)
 SITE_ACTIVE := $(NGINX_CONFIG)/sites-enabled/$(SERVICE)
 TIMESTAMP := $(shell date +%Y%m%d%H%M%S)
@@ -32,13 +31,7 @@ DELETE ?= --delete
 export
 set env:
 	$@
-install: /etc/systemd/system/$(APP)@$(BRANCH).service $(SITE_ACTIVE) \
- restart_$(BACKEND) restart_nginx
-/etc/systemd/system/%: /tmp/%
-	mv -f $< $@
-/tmp/$(APP)@%.service: $(APP)@.service .FORCE
-	cp -f $< $@
-	sed -i "s/$(LEGACY_PORT)/$(SERVER_PORT)/" $@
+install: $(SITE_ACTIVE) restart_uwsgi restart_nginx
 siteinstall: | $(SITE_ROOT)
 	rsync -avcz $(DRYRUN) $(DELETE) \
 	 --exclude=configuration --exclude='.git*' \
@@ -79,10 +72,5 @@ $(SITE_CONFIG): /tmp/$(SERVICE).nginx .FORCE
 	fi
 	[ -e "$@" ] || mv $< $@
 restart_%:
-	-systemctl stop $*
-	systemctl daemon-reload  # in case configuration changed
-	systemctl enable $*
-	systemctl start $*
-diff:
-	diff -r -x '.git*' .. /var/www/$(SERVICE)
+	/etc/init.d/$* restart
 .FORCE:
