@@ -22,16 +22,19 @@ LEGACY_STATUS_PORT := 5679
 SERVER_PORT := $($(shell echo $(BRANCH) | tr a-z A-Z)_PORT)
 STATUS_PORT := $(shell echo $$(($(SERVER_PORT) + 1)))
 NGINX_CONFIG := /etc/nginx
+UWSGI_CONFIG := /etc/uwsgi
 SITE_ROOT := /usr/local/jcomeauictx/$(SERVICE)
 SITE_CONFIG := $(NGINX_CONFIG)/sites-available/$(SERVICE)
 SITE_ACTIVE := $(NGINX_CONFIG)/sites-enabled/$(SERVICE)
+APP_CONFIG := $(UWSGI_CONFIG)/apps-available/$(SERVICE)
+APP_ACTIVE := $(UWSGI_CONFIG)/apps-enabled/$(SERVICE)
 TIMESTAMP := $(shell date +%Y%m%d%H%M%S)
 DRYRUN ?= --dry-run  # for rsync
 DELETE ?= --delete
 export
 set env:
 	$@
-install: $(SITE_ACTIVE) restart_uwsgi restart_nginx
+install: $(APP_ACTIVE) $(SITE_ACTIVE) restart_uwsgi restart_nginx
 siteinstall: | $(SITE_ROOT)
 	rsync -avcz $(DRYRUN) $(DELETE) \
 	 --exclude=configuration --exclude='.git*' \
@@ -39,8 +42,10 @@ siteinstall: | $(SITE_ROOT)
 $(SITE_ROOT):
 	mkdir -p $@
 $(SITE_ACTIVE): $(SITE_CONFIG)
-	cd $(dir $@) && ln -sf ../sites-available/$(notdir $<) .
-/tmp/$(SERVICE).nginx: $(APP).nginx .FORCE
+	ln -sf $< $@
+$(APP_ACTIVE): $(APP_CONFIG)
+	ln -sf $< $@
+/tmp/$(SERVICE).%: $(APP).% .FORCE
 	cp -f $< $@
 	sed -i -e "s/$(LEGACY_PORT)/$(SERVER_PORT)/" \
 	 -e "s/legacy/$(BRANCH)/g" \
@@ -62,6 +67,16 @@ ifeq (release,$(BRANCH))
 	 ln -s ../sites-available/$(APP)-default .
 endif
 $(SITE_CONFIG): /tmp/$(SERVICE).nginx .FORCE
+	if [ -e "$@" ]; then \
+	 if diff -q $< $@; then \
+	  echo $@ unchanged >&2; \
+	 else \
+	  echo Saving $@ to $@.$(TIMESTAMP) >&2; \
+	  mv $@ $@.$(TIMESTAMP); \
+	 fi; \
+	fi
+	[ -e "$@" ] || mv $< $@
+$(APP_CONFIG): /tmp/$(SERVICE).uwsgi .FORCE
 	if [ -e "$@" ]; then \
 	 if diff -q $< $@; then \
 	  echo $@ unchanged >&2; \
