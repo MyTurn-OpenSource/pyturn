@@ -50,6 +50,7 @@ $(APP_ACTIVE): $(APP_CONFIG)
 	sed -i -e "s/$(LEGACY_PORT)/$(SERVER_PORT)/" \
 	 -e "s/legacy/$(BRANCH)/g" \
 	 -e "s/$(LEGACY_STATUS_PORT)/$(STATUS_PORT)/" \
+	 -e "s%/jcomeauictx/myturn/%/jcomeauictx/$(SERVICE)/%" \
 	 $@
 ifeq (release,$(BRANCH))
 	if [ -f /etc/nginx/sites-enabled/default ]; then \
