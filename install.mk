@@ -62,10 +62,11 @@ ifeq (release,$(BRANCH))
 	 rm -f /etc/nginx/sites-enabled/$(APP); \
 	fi
 	# make new default a redirect to the release
-	@echo WARNING: Redirecting default to release.myturn.mobi >&2
+	@echo WARNING: Redirecting default to uwsgi-release.myturn.mobi >&2
 	cp -f default.nginx /etc/nginx/sites-available/$(APP)-default
 	cd /etc/nginx/sites-enabled && \
 	 ln -s ../sites-available/$(APP)-default .
+	@echo WARNING: If you have another default, nginx will not start >&2
 endif
 $(SITE_CONFIG): /tmp/$(SERVICE).nginx .FORCE
 	if [ -e "$@" ]; then \
