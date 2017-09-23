@@ -1,0 +1,5 @@
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	rewrite ^/(.*)$ http://uwsgi-release.myturn.mobi/$1 permanent;
+}
