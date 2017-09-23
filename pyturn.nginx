@@ -1,10 +1,10 @@
 # nginx configuration for websockets
 
 server {
-  server_name ~^(www\.)?(.+)$;
-  access_log /var/log/nginx/myturn-access.log;
+  server_name uwsgi-legacy.myturn.*;
+  access_log /var/log/nginx/pyturn-access.log;
   # can get lots of vebosity by appending "debug" just before semicolon below
-  error_log /var/log/nginx/myturn-error.log;
+  error_log /var/log/nginx/pyturn-error.log;
   rewrite_log on;
   # no index, wsgi handles "/"
   location / {
@@ -20,6 +20,6 @@ server {
   }
   location @proxy {
     include uwsgi_params;
-    uwsgi_pass myturn:5678;
+    uwsgi_pass localhost:5678;
   }
 }

@@ -1,12 +1,12 @@
 [uwsgi]
 # symlink this under /etc/uwsgi/apps-enabled/ (Debian)
-socket = myturn:5678
+socket = localhost:5678
 stats-http
-stats-server = myturn:5679
+stats-server = localhost:5679
 plugin = python3
-wsgi-file = /usr/src/jcomeauictx/myturn/myturn.py
+wsgi-file = /usr/local/jcomeauictx/myturn/myturn.py
 callable = server
-uid = jcomeau
+uid = www-data
 threads = 4
 processes = 1
 # guide to "magic" variables:
