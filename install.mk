@@ -53,16 +53,17 @@ $(APP_ACTIVE): $(APP_CONFIG)
 	 -e "s%/jcomeauictx/myturn/%/jcomeauictx/$(SERVICE)/%" \
 	 $@
 ifeq (release,$(BRANCH))
+	# make default a redirect to the release
 	if [ -f /etc/nginx/sites-enabled/default ]; then \
 	 echo WARNING: Removing old default configuration >&2; \
 	 rm -f /etc/nginx/sites-enabled/default; \
-	 # make new default a redirect to the release
-	 @echo WARNING: Redirecting default to uwsgi-release.myturn.* >&2
-	 cp -f default.nginx /etc/nginx/sites-available/$(APP)-default
+	 echo WARNING: Redirecting default to uwsgi-release.myturn.* >&2; \
+	 cp -f default.nginx /etc/nginx/sites-available/$(APP)-default; \
 	 cd /etc/nginx/sites-enabled && \
-	  ln -sf ../sites-available/$(APP)-default .
-	 @echo WARNING: If you have another default, nginx will not start >&2
+	  ln -sf ../sites-available/$(APP)-default .; \
+	 echo WARNING: If you have another default, nginx will not start >&2; \
 	fi
+	# remove obsolete version configuration
 	if [ -f /etc/nginx/sites-enabled/$(APP) ]; then \
 	 echo WARNING: Removing old $(APP) configuration >&2; \
 	 rm -f /etc/nginx/sites-enabled/$(APP); \
