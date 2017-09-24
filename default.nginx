@@ -1,5 +1,10 @@
 server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
-	rewrite ^/(.*)$ http://uwsgi-release.myturn.mobi/$1 permanent;
+	# a hostname of myturn.* is redireced to uwsgi-release.myturn.*
+	if $host ~* \.(myturn\..*) {
+		return 301 $scheme://uwsgi-release.$1/$uri;
+	}
+	# numeric IP or any other hostname just gives Page Not Found
+	return 404;
 }
