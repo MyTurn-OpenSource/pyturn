@@ -5,7 +5,8 @@ com.jcomeau.myturn = {};
 // no need to use `window.` anything; it is implied
 addEventListener("load", function() {
     console.log("onload routine started");
-    var cjm = com.jcomeau.myturn, path = location.pathname;
+    var cjm = com.jcomeau.myturn;
+    var path = location.pathname.replace(/\/+/, "/");
     console.log("location: " + JSON.stringify(location));
     console.log("location.pathname: " + path);
     if (path != "/noscript") {
