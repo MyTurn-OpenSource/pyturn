@@ -56,17 +56,17 @@ ifeq (release,$(BRANCH))
 	if [ -f /etc/nginx/sites-enabled/default ]; then \
 	 echo WARNING: Removing old default configuration >&2; \
 	 rm -f /etc/nginx/sites-enabled/default; \
+	 # make new default a redirect to the release
+	 @echo WARNING: Redirecting default to uwsgi-release.myturn.* >&2
+	 cp -f default.nginx /etc/nginx/sites-available/$(APP)-default
+	 cd /etc/nginx/sites-enabled && \
+	  ln -sf ../sites-available/$(APP)-default .
+	 @echo WARNING: If you have another default, nginx will not start >&2
 	fi
 	if [ -f /etc/nginx/sites-enabled/$(APP) ]; then \
 	 echo WARNING: Removing old $(APP) configuration >&2; \
 	 rm -f /etc/nginx/sites-enabled/$(APP); \
 	fi
-	# make new default a redirect to the release
-	@echo WARNING: Redirecting default to uwsgi-release.myturn.mobi >&2
-	cp -f default.nginx /etc/nginx/sites-available/$(APP)-default
-	cd /etc/nginx/sites-enabled && \
-	 ln -s ../sites-available/$(APP)-default .
-	@echo WARNING: If you have another default, nginx will not start >&2
 endif
 $(SITE_CONFIG): /tmp/$(SERVICE).nginx .FORCE
 	if [ -e "$@" ]; then \
