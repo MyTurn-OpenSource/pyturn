@@ -42,4 +42,15 @@ allow websocket API calls except from the primary callable, it ties up the
 either have to use a different library, or use AJAX calls instead. For now
 I'm going with AJAX.
 
-John Comeau <jc@unternet.net> 2017-07
+## Sessions
+
+A `session`, in MyTurn, is an active Group that has at least one participant.
+But this meaning conflicts with the webapp concept of `session`, which keeps
+state for a user of the app. I would use `connection` for the latter, except
+that that would conflict with the term used with databases, and it's highly
+likely this app will eventually use a database.
+
+I will be using `httpsession` and `talksession`, or something similar, to
+disambiguate the two meanings.
+
+John Comeau <jc@unternet.net>, first draft 2017-07
