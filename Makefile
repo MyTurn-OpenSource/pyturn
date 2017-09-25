@@ -45,3 +45,9 @@ edit: $(APP).py html/index.html html/css/*.css html/client.js \
 	python3 $<
 install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
+%.ssh:
+	ssh-keygen -f "/home/jcomeau/.ssh/known_hosts" -R droplet
+	sudo sed -i \
+	 's/^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\s\(droplet.*\)/$* \1/' \
+	 /etc/hosts
+	ssh root@droplet
