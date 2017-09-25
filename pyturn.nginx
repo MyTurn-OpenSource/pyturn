@@ -4,7 +4,7 @@ server {
   server_name ~"^uwsgi-(?<version>[a-z]+)\.myturn\..*$";
   access_log /var/log/nginx/pyturn-access.log;
   # can get lots of vebosity by appending "debug" just before semicolon below
-  error_log /var/log/nginx/pyturn-error.log;
+  error_log /var/log/nginx/pyturn-error.log debug;
   rewrite_log on;
   # no index, wsgi handles "/"
   location / {
