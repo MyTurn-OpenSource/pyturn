@@ -2,8 +2,10 @@ server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
 	# a hostname of myturn.* is redireced to uwsgi-release.myturn.*
+	# problem with using 301 (permanent) is that then cache cleaning
+	# of the users' browsers is necessary if you want to change it.
 	if ($host ~* "\b(myturn\..*)") {
-		return 301 $scheme://uwsgi-release.$1$uri;
+		return 302 $scheme://uwsgi-release.$1$uri;
 	}
 	# numeric IP or any other hostname just gives Page Not Found
 	return 404;
