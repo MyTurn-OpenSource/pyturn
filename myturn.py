@@ -41,7 +41,7 @@ MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
 DATA = {
     'groups': {},
 }
-SESSIONS = {}  # threads linked with session keys go here
+HTTPSESSIONS = {}  # threads linked with session keys go here
 EXPECTED_ERRORS = (NotImplementedError, ValueError, KeyError, IndexError)
 
 def findpath(env):
@@ -67,7 +67,7 @@ def loadpage(webpage, path, data):
     '''
     parsed = html.fromstring(webpage)
     postdict = data.get('postdict', {})
-    set_values(parsed, postdict, ['username', 'groupname', 'session_key'])
+    set_values(parsed, postdict, ['username', 'groupname', 'httpsession_key'])
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
     else:
@@ -86,7 +86,7 @@ def loadpage(webpage, path, data):
         hide_except('error', parsed)
     elif 'joined' in postdict:
         logging.debug('found "joined": %s', data['postdict'])
-        hide_except('session', parsed)
+        hide_except('talksession', parsed)
     elif groups:
         hide_except('joinform', parsed)
     else:
@@ -198,14 +198,15 @@ def handle_post(env):
         # [groupname, total, turn] and submit=Submit if group creation
         # [username, group] and submit=Join if joining a group
         postdict['timestamp'] = timestamp
-        if not postdict.get('session_key'):
-            postdict['session_key'] = uuid.uuid4().hex
-            logging.debug('set session_key = %s', postdict['session_key'])
+        if not postdict.get('httpsession_key'):
+            postdict['httpsession_key'] = uuid.uuid4().hex
+            logging.debug('set httpsession_key = %s',
+                          postdict['httpsession_key'])
         try:
             buttonvalue = postdict['submit']
         except KeyError:
             raise ValueError('No "submit" button found')
-        update_session(postdict)
+        update_httpsession(postdict)
         if buttonvalue == 'Join':
             # username being added to group
             # don't allow if name already in group
@@ -222,8 +223,8 @@ def handle_post(env):
                                      username, group))
                 groups[group]['participants'][username] = {
                     'timestamp': timestamp}
-                if 'session' not in groups[group]:
-                    groups[group]['session'] = {'start': timestamp}
+                if 'talksession' not in groups[group]:
+                    groups[group]['talksession'] = {'start': timestamp}
                 postdict['joined'] = True
             # else group not in groups, no problem, return to add group form
             return copy.deepcopy(DATA)
@@ -269,38 +270,38 @@ def handle_post(env):
     finally:
         uwsgi.unlock()
 
-def update_session(postdict):
+def update_httpsession(postdict):
     '''
-    simple implementation of user sessions
+    simple implementation of user (http) sessions
 
     this is for keeping state between client and server, this is *not*
-    the same as discussion sessions!
+    the same as discussion (talk) sessions!
 
-    another thread should go through and remove expired sessions
+    another thread should go through and remove expired httpsessions
     '''
     # FIXME: this session mechanism can only be somewhat secure with https
     timestamp = postdict['timestamp']
-    if 'session_key' in postdict and postdict['session_key']:
-        session_key = postdict['session_key']
+    if 'httpsession_key' in postdict and postdict['httpsession_key']:
+        session_key = postdict['httpsession_key']
         if 'username' in postdict and postdict['username']:
             username = postdict['username']
             if postdict.get('groupname'):
                 # both username and groupname filled out means "in session"
                 postdict['joined'] = True
-            if session_key in SESSIONS:
-                if SESSIONS[session_key]['username'] != username:
+            if session_key in HTTPSESSIONS:
+                if HTTPSESSIONS[session_key]['username'] != username:
                     raise ValueError('Session belongs to "%s"' % username)
                 else:
-                    SESSIONS[session_key]['updated'] = postdict['timestamp']
+                    HTTPSESSIONS[session_key]['updated'] = postdict['timestamp']
             else:
-                SESSIONS[session_key] = {
+                HTTPSESSIONS[session_key] = {
                     'timestamp': timestamp,
                     'updated': timestamp,
                     'username': username}
         else:
             logging.debug('no username associated with session %s', session_key)
     else:
-        logging.warn('no session_key in POST')
+        logging.warn('no httpsession_key in POST')
 
 def render(pagename, standalone=True):
     '''
