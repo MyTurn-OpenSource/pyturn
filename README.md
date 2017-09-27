@@ -31,7 +31,7 @@ http://doc.myturn.mobi
 
 Check for errors:
 - `/var/log/nginx/pyturn-error.log`
-- `/var/log/uwsgi/app/pyturn*`
+- `/var/log/uwsgi/app/pyturn-*.log`
 - using right-click Inspect under Chromium, or similar JavaScript console
   functionality under other browsers.  
 
