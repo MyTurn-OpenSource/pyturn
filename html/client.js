@@ -13,7 +13,8 @@ addEventListener("load", function() {
     console.log("location.pathname: " + path);
     if (path != "/noscript") {
         cjm.state = "loading";
-        cjm.pages = document.evaluate("//div[@class=body]");
+        cjm.pages = document.evaluate("//div[@class=body]", document, null,
+                                      XPathResult.ANY_TYPE, null);
         console.log("pages: " + cjm.pages);
         // save this redirect for last, only reached if all other tests pass
         if (path == "/") location.replace(location.href + "app");
