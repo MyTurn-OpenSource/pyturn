@@ -29,7 +29,11 @@ http://doc.myturn.mobi
 
 ## For developers
 
-Check for errors under `/var/log/nginx/myturn-error.log`, and using right-click Inspect under Chromium, or similar JavaScript console functionality under other browsers.
+Check for errors:
+- `/var/log/nginx/pyturn-error.log`
+- `/var/log/uwsgi/app/pyturn*`
+- using right-click Inspect under Chromium, or similar JavaScript console
+  functionality under other browsers.  
 
 To install this on a DigitalOcean droplet running Debian, first install
 needed packages:
@@ -40,9 +44,9 @@ needed packages:
 Then do one of the following, depending on which version you want. The default 
 version is "master", generally the most stable:
 
-- `sudo npm install --global --unsafe jcomeauictx/myturn`
-- `sudo npm install --global --unsafe jcomeauictx/myturn#beta`
-- `sudo npm install --global --unsafe jcomeauictx/myturn#alpha`
+- `sudo npm install --global --unsafe jcomeauictx/pyturn`
+- `sudo npm install --global --unsafe jcomeauictx/pyturn#beta`
+- `sudo npm install --global --unsafe jcomeauictx/pyturn#alpha`
 
 When forking this project, or merging a pull request, make sure to change the
 references to the repository owner (jcomeauictx in my case) to your own in this

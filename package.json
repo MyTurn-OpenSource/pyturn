@@ -1,5 +1,5 @@
 {
-  "name": "myturn",
+  "name": "pyturn",
   "version": "0.0.0",
   "description": "David Stodolsky's meeting facilitation app",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jcomeauictx/myturn.git"
+    "url": "git+https://github.com/jcomeauictx/pyturn.git"
   },
   "keywords": [
     "meetings"
@@ -16,7 +16,7 @@
   "author": "John Comeau",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/jcomeauictx/myturn/issues"
+    "url": "https://github.com/jcomeauictx/pyturn/issues"
   },
-  "homepage": "https://github.com/jcomeauictx/myturn#readme"
+  "homepage": "https://github.com/jcomeauictx/pyturn#readme"
 }
