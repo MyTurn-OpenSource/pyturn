@@ -9,7 +9,7 @@ com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
 // no need to use `window.` anything; it is implied
 com.jcomeau.myturn.poll = function() {
-    var request = XMLHttpRequest();  // not supporting IE
+    var request = new XMLHttpRequest();  // not supporting IE
     request.open("GET", "/ajax");
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
