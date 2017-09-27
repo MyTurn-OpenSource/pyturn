@@ -8,9 +8,9 @@ com.jcomeau.myturn.page = null;
 com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
 // no need to use `window.` anything; it is implied
-com.jcomeau.myturn.poll = function() {
+com.jcomeau.myturn.poll = function(uri) {
     var request = new XMLHttpRequest();  // not supporting IE
-    request.open("GET", "/ajax");
+    request.open("GET", uri);
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
                     request.response + "(" + request.responseText + ")");
@@ -37,7 +37,8 @@ addEventListener("load", function() {
                 cjm.page = page;
             }
         }
-        cjm.poller = setInterval(cjm.poll, 10000); // FIXME set to 500 (1/2 s)
+        cjm.poller = setInterval(function() {cjm.poll("/groups")},
+                                 10000); // FIXME set to 500 (1/2 s)
         // save this redirect for last, only reached if all other tests pass
         if (path == "/") location.replace(location.href + "app");
         cjm.state = "loaded";

@@ -150,7 +150,9 @@ def server(env = None, start_response = None):
     start, path = findpath(env)
     data = handle_post(env)
     logging.debug('server: data: %s', data)
-    if path in ('', 'noscript', 'app'):
+    if path.startswith('groups'):
+        return json.dumps({'groups': DATA['groups'].keys()})
+    elif path in ('', 'noscript', 'app'):
         page = loadpage(read(os.path.join(start, 'index.html')), path, data)
         status_code = '200 OK'
     elif path == 'status':
