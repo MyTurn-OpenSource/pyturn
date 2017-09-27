@@ -13,7 +13,7 @@ com.jcomeau.myturn.poll = function(uri) {
     request.open("GET", uri);
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
-                    request.response + "(" + request.responseText + ")");
+                    request.response + " (" + request.responseText + ")");
     };
     request.send();
 }
