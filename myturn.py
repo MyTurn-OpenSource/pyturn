@@ -59,7 +59,7 @@ def findpath(env):
     logging.debug('findpath: should not be None at this point: "%s"', path)
     return start, path
 
-def loadpage(webpage, path, data):
+def loadpage(webpage, path, data=DATA):
     '''
     input template and populate the HTML with data array
 
@@ -109,27 +109,30 @@ def set_values(parsed, postdict, fieldlist):
             element.set('value', value)
             logging.debug('after: %s', html.tostring(element))
 
-def populate_grouplist(parsed, data):
+def populate_grouplist(parsed=None, data=DATA):
     '''
     fill in 'select' element with options for each available group
+
+    if called with parsed=None, just return list of groups, oldest first
     '''
-    grouplist = parsed.xpath('//select[@name="group"]')
-    logging.debug('populate_grouplist: %s', grouplist)
-    grouplist = grouplist[0]
     # sorting a dict gives you a list of keys
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
-    for group in groups:
-        newgroup = builder.OPTION(group, value=group)
-        grouplist.append(newgroup)
-    # make newest group the "selected" one
-    # FIXME: for someone who just created a group, mark *that* one selected
-    for group in grouplist.getchildren():
-        try:
-            del group.attrib['selected']
-        except KeyError:
-            pass
-    grouplist[-1].set('selected', 'selected')
+    if parsed:
+        grouplist = parsed.xpath('//select[@name="group"]')
+        logging.debug('populate_grouplist: %s', grouplist)
+        grouplist = grouplist[0]
+        for group in groups:
+            newgroup = builder.OPTION(group, value=group)
+            grouplist.append(newgroup)
+        # make newest group the "selected" one
+        # FIXME: for someone who just created a group, mark *that* one selected
+        for group in grouplist.getchildren():
+            try:
+                del group.attrib['selected']
+            except KeyError:
+                pass
+        grouplist[-1].set('selected', 'selected')
     return groups
 
 def hide_except(keep, tree):
@@ -151,7 +154,7 @@ def server(env = None, start_response = None):
     data = handle_post(env)
     logging.debug('server: data: %s', data)
     if path.startswith('groups'):
-        page = json.dumps({'groups': list(DATA['groups'].keys())})
+        page = json.dumps({'groups': populate_grouplist()})
         status_code = '200 OK'
     elif path in ('', 'noscript', 'app'):
         page = loadpage(read(os.path.join(start, 'index.html')), path, data)
