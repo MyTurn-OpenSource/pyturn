@@ -1,5 +1,7 @@
 APP := pyturn
 PORT := 5678
+# set npm_config_argv to "alpha" for local (test) installation
+npm_config_argv ?= {"remain": ["alpha"]}
 export
 default: test
 ngrep:
@@ -10,23 +12,7 @@ restart:
 	sudo /etc/init.d/nginx restart
 fetch:
 	-wget --tries=1 --output-document=- http://$(APP):$(PORT)/
-enable:
-	# remember to use parens around each line if running from command line
-	# GNU Make runs each in a subprocess so it's not necessary here
-	if [ -z "$$(readlink -e /var/www/$(APP))" ]; then \
-	 ln -sf $(PWD) /var/www/$(APP); \
-	fi
-	if [ "$$(readlink -e /var/www/$(APP))" != "$(PWD)" ]; then \
-	 echo Fix /var/www/$(APP) to point to this directory! >&2; \
-	 false; \
-	fi
-	sudo ln -sf $(PWD)/$(APP).ini /etc/uwsgi/apps-available
-	cd /etc/uwsgi/apps-enabled && \
-	  sudo ln -sf ../apps-available/$(APP).ini .
-	sudo ln -sf $(PWD)/$(APP).conf /etc/nginx/sites-available
-	cd /etc/nginx/sites-enabled/ && \
-	  sudo ln -sf ../sites-available/$(APP).conf .
-reload: newlogs enable restart
+reload: newlogs restart
 errorlog:
 	tail -n 50 /var/log/nginx/error.log /var/log/nginx/$(APP)-error.log
 accesslog:
@@ -45,9 +31,12 @@ edit: $(APP).py html/index.html html/css/*.css html/client.js \
 	python3 $<
 install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
+	$(MAKE) restart
 %.ssh:
 	ssh-keygen -f "/home/jcomeau/.ssh/known_hosts" -R droplet
 	sudo sed -i \
 	 's/^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\s\(droplet.*\)/$* \1/' \
 	 /etc/hosts
 	ssh root@droplet
+env set:
+	$(MAKE) -f install.mk $@

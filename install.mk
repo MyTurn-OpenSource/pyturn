@@ -34,7 +34,7 @@ DELETE ?= --delete
 export
 set env:
 	$@
-install: $(APP_ACTIVE) $(SITE_ACTIVE) restart_uwsgi restart_nginx
+install: $(APP_ACTIVE) $(SITE_ACTIVE)
 siteinstall: | $(SITE_ROOT)
 	rsync -avcz $(DRYRUN) $(DELETE) \
 	 --exclude=configuration --exclude='.git*' \
@@ -89,6 +89,4 @@ $(APP_CONFIG): /tmp/$(SERVICE).uwsgi .FORCE
 	 fi; \
 	fi
 	[ -e "$@" ] || mv $< $@
-restart_%:
-	/etc/init.d/$* restart
 .FORCE:
