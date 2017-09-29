@@ -22,7 +22,7 @@ newlogs:
 wsgilog applog:
 	sudo tail -n 50 /var/log/uwsgi/app/$(APP)*.log
 logs:
-	sudo tail -n 200 -f /var/log/uwsgi/app/$(APP).log \
+	sudo tail -n 200 -f /var/log/uwsgi/app/$(APP)*.log \
 	 /var/log/nginx/$(APP)-error.log
 edit: myturn.py html/index.html html/css/*.css html/client.js \
 	$(APP).uwsgi $(APP).nginx
