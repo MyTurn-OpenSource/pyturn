@@ -33,7 +33,13 @@ install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
 	$(MAKE) restart
 %.ssh:
-	ssh-keygen -f "/home/jcomeau/.ssh/known_hosts" -R droplet
+	# must first set up ~/.ssh/config:
+	# Host droplet
+	# User root
+	# StrictHostKeyChecking no
+	# UserKnownHostsFile /dev/null
+	# and put an entry for droplet in /etc/hosts, e.g.:
+	# 12.34.56.78 droplet
 	sudo sed -i \
 	 's/^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\s\(droplet.*\)/$* \1/' \
 	 /etc/hosts
