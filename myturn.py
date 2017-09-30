@@ -229,8 +229,10 @@ def handle_post(env):
                 if username in groups[group]['participants']:
                     raise ValueError('"%s" is already a member of %s' % (
                                      username, group))
-                groups[group]['participants'][username] = {
-                    'timestamp': timestamp}
+                groups[group]['participants'][username] = defaultdict(
+                    int,
+                    {'timestamp': timestamp}
+                )
                 postdict['joined'] = True
                 if 'talksession' not in groups[group]:
                     groups[group]['talksession'] = {'start': timestamp}
@@ -265,6 +267,11 @@ def handle_post(env):
             # this could only be reached by browser in which JavaScript did
             # not work properly in taking over default actions
             logging.debug('env: %s', env)
+            groups = DATA['groups']
+            group = postdict['groupname']
+            username = postdict['username']
+            groups[group]['participants'][username]['request'] = timestamp
+            groups[group]['participants'][username]['spoke'] += 0
             raise NotImplementedError(
                 'Browser \'%s\' incompatible with script' %
                 env.get('HTTP_USER_AGENT', '(unknown)'))
