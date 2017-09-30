@@ -16,7 +16,7 @@ address with the name `myturn` in /etc/hosts, e.g.:
 from __future__ import print_function
 import sys, os, urllib.request, urllib.error, urllib.parse, logging, pwd
 import subprocess, site, cgi, datetime, urllib.parse, threading, copy, json
-import uuid
+import uuid, time
 from collections import defaultdict, OrderedDict
 from lxml import html
 from lxml.html import builder
@@ -39,7 +39,8 @@ APPDIR = (uwsgi.opt.get('check_static', b'').decode() or
 MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
              'jpeg': 'image/jpeg',}
 DATA = {
-    'groups': {},
+    'groups': {},  # active groups
+    'finished': {},  # inactive groups (for "Report" page)
 }
 HTTPSESSIONS = {}  # threads linked with session keys go here
 EXPECTED_ERRORS = (NotImplementedError, ValueError, KeyError, IndexError)
@@ -229,9 +230,13 @@ def handle_post(env):
                                      username, group))
                 groups[group]['participants'][username] = {
                     'timestamp': timestamp}
+                postdict['joined'] = True
                 if 'talksession' not in groups[group]:
                     groups[group]['talksession'] = {'start': timestamp}
-                postdict['joined'] = True
+                    threading.Thread(
+                        target=countdown,
+                        name=group,
+                        args=(group, int(groups[group]['total']))).start()
             # else group not in groups, no problem, return to add group form
             return copy.deepcopy(DATA)
         elif buttonvalue == 'Submit':
@@ -273,6 +278,19 @@ def handle_post(env):
         logging.debug('displaying error: "%r"', failed)
         DATA['postdict']['text'] = repr(failed)
         return copy.deepcopy(DATA)
+    finally:
+        uwsgi.unlock()
+
+def countdown(group, minutes):
+    '''
+    expire the talksession after `minutes`
+    '''
+    time.sleep(minutes * 60)
+    uwsgi.lock()
+    try:
+        DATA['finished'][group] = DATA['groups'].pop(group)
+    except KeyError:
+        logging.error('countdown: no such group %s', group)
     finally:
         uwsgi.unlock()
 

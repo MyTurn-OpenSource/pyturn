@@ -53,4 +53,27 @@ likely this app will eventually use a database.
 I will be using `httpsession` and `talksession`, or something similar, to
 disambiguate the two meanings.
 
+## Layout
+
+### Discussion page
+
+When the talksession starts, the top left of the page should show "Waiting
+for New Speaker" only. Once someone starts speaking, the line below should
+start showing time remaining; `myturnb` shows that number rounded down 
+(e.g. for one minute shows 00:00:59). Then when a speaker is active, the 
+top line reads "Current speaker is `speakername`". At the middle of the
+page is the `My Turn` button.
+
+### Report page
+
+At the end of a talksession, the app should automatically switch to the
+report page. It has two centered columns, with headers "Name" and
+"Elapsed Time".
+
+### Other design notes
+
+At the bottom center of the Discussion and Report pages should be 
+`Home` | `Discussion` | `Report`, links which show the Join page, 
+the Discussion page, and the Report page.
+
 John Comeau <jc@unternet.net>, first draft 2017-07
