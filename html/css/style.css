@@ -12,10 +12,11 @@ div.body {
   height: 100%;
   width: 100%;
   background: #eeeeee;
-  display: table;
+  display: table-row;
 }
 body {
   width: 100%;
+  display: table;
 }
 .pagewrapper {
   height: 100%;
