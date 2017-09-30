@@ -272,9 +272,9 @@ def handle_post(env):
             username = postdict['username']
             groups[group]['participants'][username]['request'] = timestamp
             groups[group]['participants'][username]['spoke'] += 0
-            raise NotImplementedError(
-                'Browser \'%s\' incompatible with script' %
-                env.get('HTTP_USER_AGENT', '(unknown)'))
+            return copy.deepcopy(DATA)
+        elif buttonvalue == 'Check status':
+            return copy.deepcopy(DATA)
         else:
             raise ValueError('Unknown form submitted')
     except UserWarning as request:
