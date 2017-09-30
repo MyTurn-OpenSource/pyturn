@@ -198,6 +198,7 @@ def handle_post(env):
     timestamp = datetime.datetime.utcnow().isoformat()
     try:
         if env.get('REQUEST_METHOD') != 'POST':
+            DATA['postdict'] = {}
             return copy.deepcopy(DATA)
         posted = urllib.parse.parse_qsl(env['wsgi.input'].read().decode())
         DATA['postdict'] = postdict = dict(posted)
