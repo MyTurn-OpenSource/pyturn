@@ -15,6 +15,7 @@ th, td {
 th {
   background: #333366;
   color: white;
+  height: 2em;
 }
 div {
   margin: auto;  /* for left-right margins to center */
@@ -36,6 +37,9 @@ body {
   vertical-align: middle;
   text-align: center;
   display: table-cell;
+}
+.top {
+  vertical-align: top;
 }
 .inputrow {
   display: table-row;
