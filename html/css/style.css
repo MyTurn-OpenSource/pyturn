@@ -31,12 +31,21 @@ body {
   width: 100%;
   display: table;
 }
+.timestatus {
+  position: absolute;
+  top: 1em;
+}
+.speakerstatus {
+  position: absolute;
+  top: 0em;
+}
 .pagewrapper {
   height: 100%;
   width: 100%;
   vertical-align: middle;
   text-align: center;
   display: table-cell;
+  position: relative;
 }
 .top {
   vertical-align: top;

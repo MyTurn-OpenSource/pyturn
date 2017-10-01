@@ -103,12 +103,26 @@ def loadpage(webpage, path, data=DATA):
             else:
                 hide_except('report', parsed)
         else:
+            set_text(parsed, ['talksession-time'], ['00:00:00'])
             hide_except('talksession', parsed)
     elif groups:
         hide_except('joinform', parsed)
     else:
         hide_except('groupform', parsed)
     return html.tostring(parsed).decode()
+
+def set_text(parsed, idlist, values):
+    '''
+    pre-set page text
+    '''
+    logging.debug('setting values of %s from %s', idlist, values)
+    for index in range(len(idlist)):
+        elementid = idlist[index]
+        value = values[index]
+        element = parsed.xpath('//*[@id="%s"]' % elementid)[0]
+        logging.debug('before: %s', html.tostring(element))
+        element.text = value
+        logging.debug('after: %s', html.tostring(element))
 
 def set_values(parsed, postdict, fieldlist):
     '''
