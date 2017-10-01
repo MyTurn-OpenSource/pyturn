@@ -4,6 +4,14 @@ html, body {
   margin: 0;  /* eliminate scrollbars */
   font-family: Arial, Helvetica, sans-serif;
 }
+th, td {
+  font-weight: bold;
+  text-align: center;
+}
+th {
+  background: #333366;
+  color: white;
+}
 div {
   margin: auto;  /* for left-right margins to center */
 }

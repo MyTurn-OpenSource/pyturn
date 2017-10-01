@@ -43,7 +43,13 @@ DATA = {
     'finished': {},  # inactive groups (for "Report" page)
 }
 HTTPSESSIONS = {}  # threads linked with session keys go here
-EXPECTED_ERRORS = (NotImplementedError, ValueError, KeyError, IndexError)
+EXPECTED_ERRORS = (
+    NotImplementedError,
+    ValueError,
+    KeyError,
+    IndexError,
+    SystemError,
+)
 
 def findpath(env):
     '''
@@ -270,8 +276,11 @@ def handle_post(env):
             groups = DATA['groups']
             group = postdict['groupname']
             username = postdict['username']
-            groups[group]['participants'][username]['request'] = timestamp
-            groups[group]['participants'][username]['spoke'] += 0
+            try:
+                groups[group]['participants'][username]['request'] = timestamp
+                groups[group]['participants'][username]['spoke'] += 0
+            except KeyError:
+                raise SystemError('Group %s is no longer active' % group)
             return copy.deepcopy(DATA)
         elif buttonvalue == 'Check status':
             return copy.deepcopy(DATA)
