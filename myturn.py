@@ -78,7 +78,7 @@ def loadpage(webpage, path, data=DATA):
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
     else:
-        groups = None
+        groups = []
     # only show load indicator if no path specified;
     # get rid of meta refresh if path has already been chosen
     if path == '':
@@ -93,7 +93,17 @@ def loadpage(webpage, path, data=DATA):
         hide_except('error', parsed)
     elif 'joined' in postdict:
         logging.debug('found "joined": %s', data['postdict'])
-        hide_except('talksession', parsed)
+        group = postdict['groupname']
+        if not group in groups:
+            if not group in data['finished']:
+                if groups:
+                    hide_except('joinform', parsed)
+                else:
+                    hide_except('groupform', parsed)
+            else:
+                hide_except('report', parsed)
+        else:
+            hide_except('talksession', parsed)
     elif groups:
         hide_except('joinform', parsed)
     else:
