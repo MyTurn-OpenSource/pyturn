@@ -214,7 +214,7 @@ def handle_post(env):
     >>> parse_qsl('a=b&b=c&a=d&a=e')
     [('a', 'b'), ('b', 'c'), ('a', 'd'), ('a', 'e')]
     >>> OrderedDict(_)
-    {'a': 'e', 'b': 'c'}
+    OrderedDict([('a', 'e'), ('b', 'c')])
     >>>
 
     so only use it where you know that no key will have more than
@@ -260,7 +260,7 @@ def handle_post(env):
                     raise ValueError('"%s" is already a member of %s' % (
                                      username, group))
                 groups[group]['participants'][username] = defaultdict(
-                    int,
+                    float,  # for `speaking` and `spoke` times
                     {'timestamp': timestamp}
                 )
                 postdict['joined'] = True
@@ -269,7 +269,7 @@ def handle_post(env):
                     threading.Thread(
                         target=countdown,
                         name=group,
-                        args=(group, int(groups[group]['total']))).start()
+                        args=(group,)).start()
             # else group not in groups, no problem, return to add group form
             return copy.deepcopy(DATA)
         elif buttonvalue == 'Submit':
@@ -280,6 +280,7 @@ def handle_post(env):
             if not group in groups:
                 groups[group] = postdict
                 groups[group]['participants'] = {}
+                groups[group]['speaker'] = None
                 return copy.deepcopy(DATA)
             else:
                 raise ValueError((
@@ -322,18 +323,89 @@ def handle_post(env):
     finally:
         uwsgi.unlock()
 
-def countdown(group, minutes):
+def most_eligible_speaker(group, data=DATA):
+    '''
+    participant who first requested to speak who has spoken least
+
+    >>> data = {
+    ...  'groups': {
+    ...   'test': {
+    ...    'participants': {
+    ...     'alice': {'spoke': 3, 'request': '2017-10-01T14:21:37.024529'},
+    ...     'bob': {'spoke': 2, 'request': '2017-10-01T14:21:37.024531'},
+    ...     'chuck': {'spoke': 3, 'request': '2017-10-01T14:21:37.024530'}}}}}
+    >>> most_eligible_speaker('test', data)
+    'bob'
+    >>> data = {
+    ...  'groups': {
+    ...   'test': {
+    ...    'participants': {
+    ...     'alice': {'spoke': 2, 'request': '2017-10-01T14:21:37.024531'},
+    ...     'bob': {'spoke': 2, 'request': '2017-10-01T14:21:37.024531'},
+    ...     'chuck': {'spoke': 2, 'request': '2017-10-01T14:21:37.024530'}}}}}
+    >>> most_eligible_speaker('test', data)
+    'chuck'
+    '''
+    groupdata = data['groups'][group]
+    people = groupdata['participants']
+    waiting = filter(lambda p: people[p]['request'], people)
+    speaker_pool = sorted(waiting, key=lambda p:
+                            (people[p]['spoke'], people[p]['request']))
+    return (speaker_pool or [None])[0]
+
+def select_speaker(group, data=DATA):
+    '''
+    let current speaker finish his turn before considering most eligible
+
+    SIDE EFFECTS:
+        when `turn` times is up:
+            sets speaker's `speaking` count to zero in data dict
+            sets speaker to new speaker
+    
+    NOTE: not using uwsgi.lock for this, shouldn't be necessary. no
+    possible race conditions are known at time of coding (jc).
+    '''
+    groupdata = DATA['groups'][group]
+    if groupdata['speaker']:
+        if groupdata['speaker']['speaking'] >= groupdata['turn']:
+            groupdata['speaker']['speaking'] = 0
+            groupdata['speaker'] = most_eligible_speaker(group, data)
+    return groupdata['speaker']
+
+def countdown(group):
     '''
     expire the talksession after `minutes`
+
+    currently only using uwsgi.lock() when moving group to `finished`.
+    may need to reevaluate that (jc).
     '''
-    time.sleep(minutes * 60)
-    uwsgi.lock()
+    groups = DATA['groups']
+    sleeptime = .25  # seconds. app sluggish? decrease
     try:
+        minutes = int(groups[group]['total'])
+        ending = (datetime.datetime.utcfromtimestamp(
+            groups[group]['talksession']['start']) + 
+            datetime.timedelta(minutes=minutes))
+        while True:
+            time.sleep(sleeptime)
+            now = datetime.datetime.utcnow()
+            if now > ending:
+                break
+            speaker = groups[group]['speaker']
+            if speaker:
+                speakerdata = groups[group]['participants'][speaker]
+                speakerdata['speaking'] += sleeptime
+                speakerdata['spoke'] += sleeptime
+        uwsgi.lock()
         DATA['finished'][group] = DATA['groups'].pop(group)
     except KeyError:
         logging.error('countdown: no such group %s', group)
     finally:
-        uwsgi.unlock()
+        try:
+            uwsgi.unlock()
+        except Exception as nosuchlock:
+            logging.debug('ignoring uwsgi.unlock() error: %s', nosuchlock)
+            pass
 
 def update_httpsession(postdict):
     '''
