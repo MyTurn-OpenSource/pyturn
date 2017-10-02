@@ -24,11 +24,19 @@ wsgilog applog:
 logs:
 	sudo tail -n 200 -f /var/log/uwsgi/app/$(APP)*.log \
 	 /var/log/nginx/$(APP)-error.log
-edit: myturn.py html/index.html html/css/*.css html/client.js \
+edit_all: myturn.py html/index.html html/css/style.css html/client.js \
 	$(APP).uwsgi $(APP).nginx
 	-vi $+
 	# now test:
 	python3 $<
+	python3 -m doctest $<
+	pylint3 $<
+edit: myturn.py html/index.html html/css/style.css
+	-vi $+
+	# now test:
+	python3 $<
+	python3 -m doctest $<
+	pylint3 $<
 install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
 	$(MAKE) restart
