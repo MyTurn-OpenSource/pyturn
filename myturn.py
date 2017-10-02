@@ -225,7 +225,7 @@ def handle_post(env):
     uwsgi.lock()  # lock access to DATA global
     worker = getattr(uwsgi, 'worker_id', lambda *args: None)()
     DATA['handler'] = (worker, env.get('uwsgi.core'))
-    timestamp = datetime.datetime.utcnow().isoformat()
+    timestamp = datetime.datetime.utcnow().timestamp()
     try:
         if env.get('REQUEST_METHOD') != 'POST':
             DATA['postdict'] = {}
@@ -372,23 +372,23 @@ def select_speaker(group, data=DATA):
             groupdata['speaker'] = most_eligible_speaker(group, data)
     return groupdata['speaker']
 
-def countdown(group):
+def countdown(group, data=DATA):
     '''
     expire the talksession after `minutes`
 
     currently only using uwsgi.lock() when moving group to `finished`.
     may need to reevaluate that (jc).
     '''
-    groups = DATA['groups']
+    groups = data['groups']
     sleeptime = .25  # seconds. app sluggish? decrease
     try:
         minutes = int(groups[group]['total'])
         ending = (datetime.datetime.utcfromtimestamp(
             groups[group]['talksession']['start']) + 
-            datetime.timedelta(minutes=minutes))
+            datetime.timedelta(minutes=minutes)).timestamp()
         while True:
             time.sleep(sleeptime)
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.utcnow().timestamp()
             if now > ending:
                 break
             speaker = groups[group]['speaker']
@@ -397,9 +397,11 @@ def countdown(group):
                 speakerdata['speaking'] += sleeptime
                 speakerdata['spoke'] += sleeptime
         uwsgi.lock()
-        DATA['finished'][group] = DATA['groups'].pop(group)
-    except KeyError:
-        logging.error('countdown: no such group %s', group)
+        data['finished'][group] = data['groups'].pop(group)
+    except KeyError as error:
+        logging.error('countdown: no such group: %s',
+                      group, error, exc_info=True)
+        logging.info('groups: %s', groups)
     finally:
         try:
             uwsgi.unlock()
