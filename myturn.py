@@ -378,18 +378,28 @@ def countdown(group, data=DATA):
 
     currently only using uwsgi.lock() when moving group to `finished`.
     may need to reevaluate that (jc).
+    
+    >>> data = {'groups': {
+    ...         'test': {
+    ...          'total': '1',
+    ...          'talksession': {'start': 1507096972.041033},
+    ...          'speaker': None,
+    ...         }}}
+    >>> countdown('test', data)
     '''
     groups = data['groups']
     sleeptime = .25  # seconds. app sluggish? decrease
     try:
-        minutes = int(groups[group]['total'])
+        minutes = float(groups[group]['total'])
         ending = (datetime.datetime.utcfromtimestamp(
             groups[group]['talksession']['start']) + 
             datetime.timedelta(minutes=minutes)).timestamp()
+        logging.debug('countdown ending: %.6f', ending)
         while True:
             time.sleep(sleeptime)
             now = datetime.datetime.utcnow().timestamp()
             if now > ending:
+                logging.debug('countdown ended at %.6f', now)
                 break
             speaker = groups[group]['speaker']
             if speaker:
