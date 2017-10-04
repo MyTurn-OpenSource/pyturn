@@ -31,12 +31,15 @@ body {
   width: 100%;
   display: table;
 }
-.timestatus {
+div[class$="status"] {
   position: absolute;
+  font-weight: bold;
+  left: .5em;
+}
+.timestatus {
   top: 1em;
 }
 .speakerstatus {
-  position: absolute;
   top: 0em;
 }
 .pagewrapper {

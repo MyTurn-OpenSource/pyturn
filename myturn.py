@@ -103,6 +103,8 @@ def loadpage(webpage, path, data=DATA):
             else:
                 hide_except('report', parsed)
         else:
+            set_text(parsed, ['talksession-speaker'],
+                     ['Waiting for next speaker'])
             set_text(parsed, ['talksession-time'], ['00:00:00'])
             hide_except('talksession', parsed)
     elif groups:
@@ -379,10 +381,11 @@ def countdown(group, data=DATA):
     currently only using uwsgi.lock() when moving group to `finished`.
     may need to reevaluate that (jc).
     
+    >>> now = datetime.datetime.utcnow().timestamp()
     >>> data = {'finished': {}, 'groups': {
     ...         'test': {
-    ...          'total': '1',
-    ...          'talksession': {'start': 1507096972.041033},
+    ...          'total': '.001',
+    ...          'talksession': {'start': now},
     ...          'speaker': None,
     ...         }}}
     >>> countdown('test', data)
