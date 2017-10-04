@@ -379,7 +379,7 @@ def countdown(group, data=DATA):
     currently only using uwsgi.lock() when moving group to `finished`.
     may need to reevaluate that (jc).
     
-    >>> data = {'groups': {
+    >>> data = {'finished': {}, 'groups': {
     ...         'test': {
     ...          'total': '1',
     ...          'talksession': {'start': 1507096972.041033},
@@ -391,17 +391,19 @@ def countdown(group, data=DATA):
     sleeptime = .25  # seconds. app sluggish? decrease
     try:
         minutes = float(groups[group]['total'])
-        ending = (datetime.datetime.utcfromtimestamp(
+        ending = (datetime.datetime.fromtimestamp(
             groups[group]['talksession']['start']) + 
             datetime.timedelta(minutes=minutes)).timestamp()
         logging.debug('countdown ending: %.6f', ending)
         while True:
             time.sleep(sleeptime)
             now = datetime.datetime.utcnow().timestamp()
+            logging.debug('countdown now: %.6f', now)
             if now > ending:
                 logging.debug('countdown ended at %.6f', now)
                 break
             speaker = groups[group]['speaker']
+            logging.debug('countdown: speaker: %s', speaker)
             if speaker:
                 speakerdata = groups[group]['participants'][speaker]
                 speakerdata['speaking'] += sleeptime
@@ -409,9 +411,9 @@ def countdown(group, data=DATA):
         uwsgi.lock()
         data['finished'][group] = data['groups'].pop(group)
     except KeyError as error:
-        logging.error('countdown: no such group: %s',
+        logging.error('countdown: was group "%s" removed? KeyError: %s',
                       group, error, exc_info=True)
-        logging.info('groups: %s', groups)
+        logging.info('data: %s', data)
     finally:
         try:
             uwsgi.unlock()
