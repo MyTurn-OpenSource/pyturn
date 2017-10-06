@@ -66,12 +66,13 @@ def findpath(env):
     logging.debug('findpath: should not be None at this point: "%s"', path)
     return start, path
 
-def loadpage(webpage, path, data=DATA):
+def loadpage(webpage, path, data=None):
     '''
     input template and populate the HTML with data array
 
     eventually client-side JavaScript will perform many of these functions.
     '''
+    data = data or DATA
     parsed = html.fromstring(webpage)
     postdict = data.get('postdict', {})
     set_values(parsed, postdict, ['username', 'groupname', 'httpsession_key'])
@@ -142,13 +143,14 @@ def set_values(parsed, postdict, fieldlist):
             element.set('value', value)
             logging.debug('after: %s', html.tostring(element))
 
-def populate_grouplist(parsed=None, data=DATA):
+def populate_grouplist(parsed=None, data=None):
     '''
     fill in 'select' element with options for each available group
 
     if called with parsed=None, just return list of groups, oldest first
     '''
     # sorting a dict gives you a list of keys
+    data = data or DATA
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
     if parsed:
@@ -305,7 +307,6 @@ def handle_post(env):
             username = postdict['username']
             try:
                 groups[group]['participants'][username]['request'] = timestamp
-                groups[group]['participants'][username]['spoke'] += 0
             except KeyError:
                 raise SystemError('Group %s is no longer active' % group)
             return copy.deepcopy(DATA)
@@ -325,7 +326,7 @@ def handle_post(env):
     finally:
         uwsgi.unlock()
 
-def most_eligible_speaker(group, data=DATA):
+def most_eligible_speaker(group, data=None):
     '''
     participant who first requested to speak who has spoken least
 
@@ -348,6 +349,7 @@ def most_eligible_speaker(group, data=DATA):
     >>> most_eligible_speaker('test', data)
     'chuck'
     '''
+    data = data or DATA
     groupdata = data['groups'][group]
     people = groupdata['participants']
     waiting = filter(lambda p: people[p]['request'], people)
@@ -355,26 +357,31 @@ def most_eligible_speaker(group, data=DATA):
                             (people[p]['spoke'], people[p]['request']))
     return (speaker_pool or [None])[0]
 
-def select_speaker(group, data=DATA):
+def select_speaker(group, data=None):
     '''
     let current speaker finish his turn before considering most eligible
 
     SIDE EFFECTS:
-        when `turn` times is up:
+        when `turn` time is up or speaker voluntarily relinquishes turn:
             sets speaker's `speaking` count to zero in data dict
             sets speaker to new speaker
     
     NOTE: not using uwsgi.lock for this, shouldn't be necessary. no
     possible race conditions are known at time of coding (jc).
     '''
-    groupdata = DATA['groups'][group]
+    data = data or DATA
+    groupdata = data['groups'][group]
+    turntime = float(groupdata['turn'])
     if groupdata['speaker']:
-        if groupdata['speaker']['speaking'] >= groupdata['turn']:
-            groupdata['speaker']['speaking'] = 0
+        speaker = groupdata['participants'][groupdata['speaker']]
+        if speaker['speaking'] >= turntime or not speaker['request']:
+            speaker['speaking'] = 0
             groupdata['speaker'] = most_eligible_speaker(group, data)
+    else:
+        groupdata['speaker'] = most_eligible_speaker(group, data)
     return groupdata['speaker']
 
-def countdown(group, data=DATA):
+def countdown(group, data=None):
     '''
     expire the talksession after `minutes`
 
@@ -390,10 +397,12 @@ def countdown(group, data=DATA):
     ...         }}}
     >>> countdown('test', data)
     '''
+    data = data or DATA
     groups = data['groups']
     sleeptime = .25  # seconds. app sluggish? decrease
     try:
         minutes = float(groups[group]['total'])
+        groups[group]['remaining'] = minutes * 60
         ending = (datetime.datetime.fromtimestamp(
             groups[group]['talksession']['start']) + 
             datetime.timedelta(minutes=minutes)).timestamp()
@@ -405,12 +414,13 @@ def countdown(group, data=DATA):
             if now > ending:
                 logging.debug('countdown ended at %.6f', now)
                 break
-            speaker = groups[group]['speaker']
+            speaker = select_speaker(group, data)
             logging.debug('countdown: speaker: %s', speaker)
             if speaker:
                 speakerdata = groups[group]['participants'][speaker]
                 speakerdata['speaking'] += sleeptime
                 speakerdata['spoke'] += sleeptime
+            groups[group]['remaining'] -= sleeptime
         uwsgi.lock()
         data['finished'][group] = data['groups'].pop(group)
     except KeyError as error:
