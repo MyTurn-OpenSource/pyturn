@@ -104,9 +104,15 @@ def loadpage(webpage, path, data=None):
             else:
                 hide_except('report', parsed)
         else:
+            groupdata = data['groups'][group]
+            speaker = groupdata['talksession']['speaker']
+            remaining = round(groupdata['talksession']['remaining'])
             set_text(parsed, ['talksession-speaker'],
-                     ['Waiting for next speaker'])
-            set_text(parsed, ['talksession-time'], ['00:00:00'])
+                     ['Current speaker is %s' % speaker if speaker else
+                      'Waiting for next speaker'])
+            set_text(parsed, ['talksession-time'],
+                     '{:0>8}'.format(
+                         str(datetime.timedelta(seconds=remaining))))
             hide_except('talksession', parsed)
     elif groups:
         hide_except('joinform', parsed)
@@ -269,7 +275,10 @@ def handle_post(env):
                 )
                 postdict['joined'] = True
                 if 'talksession' not in groups[group]:
-                    groups[group]['talksession'] = {'start': timestamp}
+                    groups[group]['talksession'] = {
+                        'start': timestamp,
+                        'speaker': None
+                    }
                     threading.Thread(
                         target=countdown,
                         name=group,
@@ -284,7 +293,6 @@ def handle_post(env):
             if not group in groups:
                 groups[group] = postdict
                 groups[group]['participants'] = {}
-                groups[group]['speaker'] = None
                 return copy.deepcopy(DATA)
             else:
                 raise ValueError((
@@ -371,15 +379,16 @@ def select_speaker(group, data=None):
     '''
     data = data or DATA
     groupdata = data['groups'][group]
+    talksession = groupdata['talksession']
     turntime = float(groupdata['turn'])
-    if groupdata['speaker']:
-        speaker = groupdata['participants'][groupdata['speaker']]
+    if talksession['speaker']:
+        speaker = groupdata['participants'][talksession['speaker']]
         if speaker['speaking'] >= turntime or not speaker['request']:
             speaker['speaking'] = 0
-            groupdata['speaker'] = most_eligible_speaker(group, data)
+            talksession['speaker'] = most_eligible_speaker(group, data)
     else:
-        groupdata['speaker'] = most_eligible_speaker(group, data)
-    return groupdata['speaker']
+        talksession['speaker'] = most_eligible_speaker(group, data)
+    return talksession['speaker']
 
 def countdown(group, data=None):
     '''
@@ -392,8 +401,7 @@ def countdown(group, data=None):
     >>> data = {'finished': {}, 'groups': {
     ...         'test': {
     ...          'total': '.001',
-    ...          'talksession': {'start': now},
-    ...          'speaker': None,
+    ...          'talksession': {'start': now, 'speaker': None},
     ...         }}}
     >>> countdown('test', data)
     '''
@@ -402,7 +410,7 @@ def countdown(group, data=None):
     sleeptime = .25  # seconds. app sluggish? decrease
     try:
         minutes = float(groups[group]['total'])
-        groups[group]['remaining'] = minutes * 60
+        groups[group]['talksession']['remaining'] = minutes * 60
         ending = (datetime.datetime.fromtimestamp(
             groups[group]['talksession']['start']) + 
             datetime.timedelta(minutes=minutes)).timestamp()
@@ -420,7 +428,7 @@ def countdown(group, data=None):
                 speakerdata = groups[group]['participants'][speaker]
                 speakerdata['speaking'] += sleeptime
                 speakerdata['spoke'] += sleeptime
-            groups[group]['remaining'] -= sleeptime
+            groups[group]['talksession']['remaining'] -= sleeptime
         uwsgi.lock()
         data['finished'][group] = data['groups'].pop(group)
     except KeyError as error:
