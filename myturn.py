@@ -102,6 +102,7 @@ def loadpage(webpage, path, data=None):
                 else:
                     hide_except('groupform', parsed)
             else:
+                create_report(parsed, group, data)
                 hide_except('report', parsed)
         else:
             groupdata = data['groups'][group]
@@ -122,6 +123,31 @@ def loadpage(webpage, path, data=None):
     else:
         hide_except('groupform', parsed)
     return html.tostring(parsed).decode()
+
+def create_report(parsed, group, data=None):
+    '''
+    show participants with the amount of time each spoke
+
+    >>> parsed = html.fromstring("""
+    ... <div id="report-body" class="body">
+    ...  <div id="report-wrapper" class="pagewrapper top">
+    ...   <div id="report-box" class="box">
+    ...    <table>
+    ...     <tr><th>Name</th><th>Elapsed Time</th></tr>
+    ...     <tr><td>(none)</td><td>00:00:00</td></tr>
+    ...    </table>
+    ...   </div><!-- box -->
+    ...  </div><!-- pagewrapper -->
+    ... </div><!-- body -->
+    ... """)
+    >>> data = json.loads("""{"finished": {"test": {"groupname": "test",
+    ...  "participants": {"jc": {"spoke": 48.5}}}}}""")
+    >>> create_report(parsed, 'test', data)
+    False
+    '''
+    data = data or DATA
+    rows = parsed.xpath('//*[@id="report-body"]//table/tr')
+    logging.debug('rows: %s', rows)
 
 def set_text(parsed, idlist, values):
     '''
