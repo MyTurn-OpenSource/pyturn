@@ -105,14 +105,17 @@ def loadpage(webpage, path, data=None):
                 hide_except('report', parsed)
         else:
             groupdata = data['groups'][group]
-            speaker = groupdata['talksession']['speaker']
+            speaker = select_speaker(group, data)
+            userdata = groupdata['participants'][postdict['username']]
             remaining = round(groupdata['talksession']['remaining'])
             set_text(parsed, ['talksession-speaker'],
                      ['Current speaker is %s' % speaker if speaker else
                       'Waiting for next speaker'])
             set_text(parsed, ['talksession-time'],
-                     '{:0>8}'.format(
-                         str(datetime.timedelta(seconds=remaining))))
+                     ['{:0>8}'.format(
+                         str(datetime.timedelta(seconds=remaining)))])
+            buttonvalue = 'Cancel request' if userdata['request'] else 'My Turn'
+            set_button(parsed, ['myturn-button'], [buttonvalue])
             hide_except('talksession', parsed)
     elif groups:
         hide_except('joinform', parsed)
@@ -125,6 +128,18 @@ def set_text(parsed, idlist, values):
     pre-set page text
     '''
     logging.debug('setting values of %s from %s', idlist, values)
+    for index in range(len(idlist)):
+        elementid = idlist[index]
+        value = values[index]
+        element = parsed.xpath('//*[@id="%s"]' % elementid)[0]
+        logging.debug('before: %s', html.tostring(element))
+        element.text = value
+        logging.debug('after: %s', html.tostring(element))
+
+def set_button(parsed, idlist, values):
+    '''
+    modify button values
+    '''
     for index in range(len(idlist)):
         elementid = idlist[index]
         value = values[index]
@@ -307,14 +322,33 @@ def handle_post(env):
             raise UserWarning('Help requested')
         elif buttonvalue == 'My Turn':
             # attempting to speak in ongoing session
-            # this could only be reached by browser in which JavaScript did
-            # not work properly in taking over default actions
+            # this would normally only be reached by browser in which
+            # JavaScript did not work properly in taking over default actions
             logging.debug('env: %s', env)
             groups = DATA['groups']
             group = postdict['groupname']
             username = postdict['username']
             try:
-                groups[group]['participants'][username]['request'] = timestamp
+                userdata = groups[group]['participants'][username]
+                if not userdata['request']:
+                    userdata['request'] = timestamp
+                else:
+                    logging.warning('ignoring newer request %.6f, '
+                                    'keeping %.6f', userdata['request'],
+                                    timestamp)
+            except KeyError:
+                raise SystemError('Group %s is no longer active' % group)
+            return copy.deepcopy(DATA)
+        elif buttonvalue == 'Cancel request':
+            groups = DATA['groups']
+            group = postdict['groupname']
+            username = postdict['username']
+            try:
+                userdata = groups[group]['participants'][username]
+                if userdata['request']:
+                    userdata['request'] = None
+                else:
+                    logging.error('no speaking request found for %s', username)
             except KeyError:
                 raise SystemError('Group %s is no longer active' % group)
             return copy.deepcopy(DATA)
