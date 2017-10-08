@@ -115,6 +115,7 @@ def loadpage(webpage, path, data=None):
             set_text(parsed, ['talksession-time'], [formatseconds(remaining)])
             logging.debug('userdata[request]: %.6f', userdata['request'])
             buttonvalue = 'Cancel request' if userdata['request'] else 'My Turn'
+            logging.debug('setting buttonvalue to %s', buttonvalue)
             set_button(parsed, ['myturn-button'], [buttonvalue])
             hide_except('talksession', parsed)
     elif groups:
@@ -174,13 +175,18 @@ def set_text(parsed, idlist, values):
 def set_button(parsed, idlist, values):
     '''
     modify button values
+
+    >>> content = html.fromstring('<div><input id="test" value="Test"></div>')
+    >>> set_button(content, ['test'], ['new value'])
+    >>> content.xpath('//*[@id="test"]')[0].get('value')
+    'new value'
     '''
     for index in range(len(idlist)):
         elementid = idlist[index]
         value = values[index]
         element = parsed.xpath('//*[@id="%s"]' % elementid)[0]
         logging.debug('before: %s', html.tostring(element))
-        element.text = value
+        element.set('value', value)
         logging.debug('after: %s', html.tostring(element))
 
 def set_values(parsed, postdict, fieldlist):
