@@ -108,13 +108,12 @@ def loadpage(webpage, path, data=None):
             groupdata = data['groups'][group]
             speaker = select_speaker(group, data)
             userdata = groupdata['participants'][postdict['username']]
-            remaining = round(groupdata['talksession']['remaining'])
+            remaining = groupdata['talksession']['remaining']
             set_text(parsed, ['talksession-speaker'],
                      ['Current speaker is %s' % speaker if speaker else
                       'Waiting for next speaker'])
-            set_text(parsed, ['talksession-time'],
-                     ['{:0>8}'.format(
-                         str(datetime.timedelta(seconds=remaining)))])
+            set_text(parsed, ['talksession-time'], [formatseconds(remaining)])
+            logging.debug('userdata[request]: %.6f', userdata['request'])
             buttonvalue = 'Cancel request' if userdata['request'] else 'My Turn'
             set_button(parsed, ['myturn-button'], [buttonvalue])
             hide_except('talksession', parsed)
@@ -142,12 +141,22 @@ def create_report(parsed, group, data=None):
     ... """)
     >>> data = json.loads("""{"finished": {"test": {"groupname": "test",
     ...  "participants": {"jc": {"spoke": 48.5}}}}}""")
-    >>> create_report(parsed, 'test', data)
-    False
+    >>> create_report(parsed, 'test', data)[:7]
+    b'<table>'
     '''
     data = data or DATA
     rows = parsed.xpath('//*[@id="report-body"]//table/tr')
     logging.debug('rows: %s', rows)
+    template = rows[1]
+    template.getparent().remove(template)
+    participants = data['finished'][group]['participants']
+    speakers = sorted(participants, key=lambda u: participants[u]['spoke'])
+    columns = template.xpath('./td')
+    for speaker in speakers:
+        columns[0].text = speaker
+        columns[1].text = formatseconds(participants[speaker]['spoke'])
+        rows[0].getparent().append(template)
+    return html.tostring(template.getparent())
 
 def set_text(parsed, idlist, values):
     '''
@@ -357,6 +366,8 @@ def handle_post(env):
             try:
                 userdata = groups[group]['participants'][username]
                 if not userdata['request']:
+                    logging.debug("userdata: setting %s's request to %.6f",
+                                  username, timestamp)
                     userdata['request'] = timestamp
                 else:
                     logging.warning('ignoring newer request %.6f, '
@@ -564,6 +575,17 @@ def read(filename):
         data = infile.read()
         logging.debug('data: %s', data[:128])
         return data
+
+def formatseconds(seconds):
+    '''
+    return rounded-up seconds count as HH:MM:SS
+
+    https://stackoverflow.com/a/31946730/493161
+
+    >>> formatseconds(666)
+    '00:11:06'
+    '''
+    return '{:0>8}'.format(str(datetime.timedelta(seconds=round(seconds))))
 
 if __name__ == '__main__':
     print(server(os.environ, lambda *args: None))
