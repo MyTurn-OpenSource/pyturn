@@ -138,26 +138,43 @@ def create_report(parsed, group, data=None):
     ...    </table>
     ...   </div><!-- box -->
     ...  </div><!-- pagewrapper -->
-    ... </div><!-- body -->
-    ... """)
+    ... </div><!-- body -->""")
     >>> data = json.loads("""{"finished": {"test": {"groupname": "test",
-    ...  "participants": {"jc": {"spoke": 48.5}}}}}""")
-    >>> create_report(parsed, 'test', data)[:7]
-    b'<table>'
+    ...  "participants": {"jc": {"spoke": 48.5}, "Ed": {"spoke": 3.25}}}}}""")
+    >>> print(create_report(parsed, 'test', data).decode('utf8'))
+    <table>
+        <tr>
+    <th>Name</th>
+    <th>Elapsed Time</th>
+    </tr>
+        <tr>
+    <td>jc</td>
+    <td>00:00:48</td>
+    </tr>
+       <tr>
+    <td>Ed</td>
+    <td>00:00:03</td>
+    </tr>
+       </table>
+    <BLANKLINE>
     '''
     data = data or DATA
     rows = parsed.xpath('//*[@id="report-body"]//table/tr')
     logging.debug('rows: %s', rows)
     template = rows[1]
-    template.getparent().remove(template)
+    table = template.getparent()
+    table.remove(template)
     participants = data['finished'][group]['participants']
-    speakers = sorted(participants, key=lambda u: participants[u]['spoke'])
+    speakers = sorted(participants, key=lambda u: -participants[u]['spoke'])
     columns = template.xpath('./td')
     for speaker in speakers:
+        logging.debug('adding speaker "%s" to report', speaker)
         columns[0].text = speaker
         columns[1].text = formatseconds(participants[speaker]['spoke'])
-        rows[0].getparent().append(template)
-    return html.tostring(template.getparent())
+        logging.debug('template now: %s', html.tostring(template))
+        table.append(html.fromstring(html.tostring(template)))
+        logging.debug('table now: %s', html.tostring(table))
+    return html.tostring(table, pretty_print=True, with_tail=False)
 
 def set_text(parsed, idlist, values):
     '''
@@ -588,8 +605,8 @@ def formatseconds(seconds):
 
     https://stackoverflow.com/a/31946730/493161
 
-    >>> formatseconds(666)
-    '00:11:06'
+    >>> formatseconds(666.50001)
+    '00:11:07'
     '''
     return '{:0>8}'.format(str(datetime.timedelta(seconds=round(seconds))))
 
