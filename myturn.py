@@ -55,7 +55,6 @@ def findpath(env):
     '''
     locate directory where files are stored, and requested file
     '''
-    #logging.debug('env: %s' % repr(env))
     start = APPDIR
     logging.debug('findpath: start: %s' % start)
     path = env.get('HTTP_PATH')
@@ -160,13 +159,14 @@ def create_report(parsed, group, data=None):
     '''
     data = data or DATA
     rows = parsed.xpath('//*[@id="report-body"]//table/tr')
-    logging.debug('rows: %s', rows)
+    logging.debug('create_report: rows: %s', rows)
     template = rows[1]
     table = template.getparent()
     table.remove(template)
     participants = data['finished'][group]['participants']
     speakers = sorted(participants, key=lambda u: -participants[u]['spoke'])
     columns = template.xpath('./td')
+    logging.debug('create_report: speakers: %s', speakers)
     for speaker in speakers:
         logging.debug('adding speaker "%s" to report', speaker)
         columns[0].text = speaker
