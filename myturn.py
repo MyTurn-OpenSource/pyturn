@@ -352,10 +352,12 @@ def handle_post(env):
                         'start': timestamp,
                         'speaker': None
                     }
-                    threading.Thread(
+                    counter = threading.Thread(
                         target=countdown,
                         name=group,
-                        args=(group,)).start()
+                        args=(group,))
+                    counter.daemon = True  # leave no zombies on exit
+                    counter.start()
             # else group not in groups, no problem, return to add group form
             return copy.deepcopy(DATA)
         elif buttonvalue == 'Submit':
