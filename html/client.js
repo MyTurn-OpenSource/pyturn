@@ -11,9 +11,11 @@ com.jcomeau.myturn.poller = null;
 com.jcomeau.myturn.poll = function(uri) {
     var request = new XMLHttpRequest();  // not supporting IE
     request.open("GET", uri);
+    request.responseType = "json";
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
                     request.response + " (" + request.responseText + ")");
+        console.log("groups: " + request.response.groups);
     };
     request.send();
 }
