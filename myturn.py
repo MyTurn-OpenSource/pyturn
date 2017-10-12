@@ -20,7 +20,7 @@ import uuid, time
 from collections import defaultdict, OrderedDict
 from lxml import html
 from lxml.html import builder
-logging.basicConfig(level = logging.DEBUG if __debug__ else logging.INFO)
+logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 LOCK = threading.Lock()
 try:  # command-line testing won't have module available
     import uwsgi
@@ -259,7 +259,7 @@ def hide_except(keep, tree):
         elif 'style' in page.attrib:
             del page.attrib['style']
 
-def server(env = None, start_response = None):
+def server(env=None, start_response=None):
     '''
     primary server process, sends page with current groups list
     '''
