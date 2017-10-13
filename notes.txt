@@ -1,3 +1,5 @@
 https://colintoh.com/blog/display-table-anti-hero
 https://stackoverflow.com/questions/6873607/socket-io-rooms-difference-between-broadcast-to-and-sockets-in
 http://websockets.readthedocs.io/en/stable/intro.html
+need a good way of testing the app headlessly with multiple users. maybe
+robotframework-xvfb?
