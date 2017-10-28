@@ -16,6 +16,13 @@ com.jcomeau.myturn.poll = function(uri) {
         console.log("response code " + request.readyState + ": " +
                     request.response);
         if (request.response) console.log("groups: " + request.response.groups);
+        if (request.readyState == XMLHttpRequest.DONE &&
+                request.status == 200) {
+            var selector = document.getElementById("group-select");
+            for (var option of selector.children) {
+                console.log(option);
+            }
+        }
     };
     request.send();
 }
