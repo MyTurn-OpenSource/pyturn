@@ -20,7 +20,7 @@ com.jcomeau.myturn.poll = function(uri) {
                 request.status == 200) {
             var selector = document.getElementById("group-select");
             for (var option of selector.children) {
-                console.log(option);
+                console.log(option.textContent);
             }
         }
     };
