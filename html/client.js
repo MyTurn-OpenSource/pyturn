@@ -15,12 +15,18 @@ com.jcomeau.myturn.poll = function(uri) {
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
                     request.response);
-        if (request.response) console.log("groups: " + request.response.groups);
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var selector = document.getElementById("group-select");
-            for (var option of selector.children) {
-                console.log(option.textContent);
+            if (document.activeElement == selector) {
+                console.log("not modifying group-select when active");
+            } else {
+                var previous = selector.value;
+                if (previous) {
+                    console.log("not modifying already selected group-select");
+                } else {
+                    selector.replaceWith(request.response);
+                }
             }
         }
     };

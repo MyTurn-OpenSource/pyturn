@@ -222,7 +222,7 @@ def set_values(parsed, postdict, fieldlist):
             element.set('value', value)
             logging.debug('after: %s', html.tostring(element))
 
-def populate_grouplist(parsed=None, data=None):
+def populate_grouplist(parsed=None, data=None, formatted='list'):
     '''
     fill in 'select' element with options for each available group
 
@@ -233,9 +233,8 @@ def populate_grouplist(parsed=None, data=None):
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
     if parsed:
-        grouplist = parsed.xpath('//select[@name="group"]')
+        grouplist = parsed.xpath('//select[@name="group"]')[0]
         logging.debug('populate_grouplist: %s', grouplist)
-        grouplist = grouplist[0]
         for group in groups:
             newgroup = builder.OPTION(group, value=group)
             grouplist.append(newgroup)
@@ -247,7 +246,7 @@ def populate_grouplist(parsed=None, data=None):
             except KeyError:
                 pass
         grouplist[-1].set('selected', 'selected')
-    return groups
+    return groups if formatted == 'list' else html.tostring(grouplist)
 
 def hide_except(keep, tree):
     '''
@@ -268,7 +267,7 @@ def server(env=None, start_response=None):
     data = handle_post(env)
     logging.debug('server: data: %s', data)
     if path.startswith('groups'):
-        page = json.dumps({'groups': populate_grouplist()})
+        page = populate_grouplist(None, None, formatted='element')
         status_code = '200 OK'
     elif path in ('', 'noscript', 'app'):
         page = loadpage(read(os.path.join(start, 'index.html')), path, data)
