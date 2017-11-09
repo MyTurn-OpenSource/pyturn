@@ -11,7 +11,7 @@ com.jcomeau.myturn.poller = null;
 com.jcomeau.myturn.poll = function(uri) {
     var request = new XMLHttpRequest();  // not supporting IE
     request.open("GET", uri);
-    request.responseType = "json";
+    request.responseType = "document";
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
                     request.response);
