@@ -77,7 +77,8 @@ def loadpage(path, data=None):
     parsed = html.fromstring(PAGE)
     postdict = data.get('postdict', {})
     logging.debug('loadpage: postdict: %s', postdict)
-    set_values(parsed, postdict, ['username', 'groupname', 'httpsession_key'])
+    set_values(parsed, postdict,
+               ['username', 'groupname', 'httpsession_key', 'joined'])
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
     else:
@@ -97,7 +98,7 @@ def loadpage(path, data=None):
         parsed.xpath('//div[@id="error-text"]')[0].append(span)
         logging.debug('showing error page')
         hide_except('error', parsed)
-    elif 'joined' in postdict:
+    elif postdict.get('joined'):
         logging.debug('found "joined": %s', data['postdict'])
         group = postdict['groupname']
         if not group in groups:
@@ -126,7 +127,7 @@ def loadpage(path, data=None):
     elif (postdict.get('submit') == 'Join' and postdict.get('username') and
             postdict.get('group', '') == ''):
         # some browsers won't return `group` in postdict at all if
-        # selected element is empty
+        # selected element is empty (as it is by default in this case)
         logging.debug('showing groupform after joinform')
         hide_except('groupform', parsed)
     else:
@@ -371,7 +372,7 @@ def handle_post(env):
                     float,  # for `speaking` and `spoke` times
                     {'timestamp': timestamp}
                 )
-                postdict['joined'] = True
+                postdict['joined'] = '%s:%s' % (username, group)
                 if 'talksession' not in groups[group]:
                     groups[group]['talksession'] = {
                         'start': timestamp,

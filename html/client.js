@@ -28,9 +28,15 @@ com.jcomeau.myturn.poll = function(uri) {
                 /* setting selected value to what it was before...
                  * in the case that the previous selected group is no longer
                  * active, the Chrome browser will show a blank selection */
+                console.log("setting selected to " + previous);
                 replacement.value = previous;
             }
-            selector.replaceWith(replacement);
+            if (replacement != selector) {
+                console.log("replacing group-select with new copy from server");
+                selector.replaceWith(replacement);
+            } else {
+                console.log("leaving group-select as it was, nothing changed");
+            }
         }
     };
     request.send();
