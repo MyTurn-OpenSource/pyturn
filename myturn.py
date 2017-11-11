@@ -76,12 +76,13 @@ def loadpage(path, data=None):
     data = data or DATA
     parsed = html.fromstring(PAGE)
     postdict = data.get('postdict', {})
-    logging.debug('postdict: %s', postdict)
+    logging.debug('loadpage: postdict: %s', postdict)
     set_values(parsed, postdict, ['username', 'groupname', 'httpsession_key'])
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
     else:
         groups = []
+    logging.debug('loadpage: groups: %s', groups)
     # only show load indicator if no path specified;
     # get rid of meta refresh if path has already been chosen
     if path == '':
@@ -237,27 +238,41 @@ def populate_grouplist(parsed=None, data=None, formatted='list'):
     fill in 'select' element with options for each available group
 
     if `formatted` is 'list', just return list of groups, oldest first
+
+    >>> data = {'groups': {'test': {'timestamp': 0}, 'again': {'timestamp': 1}}}
+    >>> print(populate_grouplist(None, data, 'element'))
+    <select id="group-select" name="group">
+            <option value="">(Create new group)</option>
+           <option value="test">test</option>
+    <option value="again" selected>again</option></select>
+    <BLANKLINE>
+    >>> data['groups']['test']['timestamp'] = 2
+    >>> populate_grouplist(None, data)
+    ['again', 'test']
     '''
     # sorting a dict gives you a list of keys
     data = data or DATA
-    parsed = parsed or PARSED
+    parsed = parsed or html.fromstring(PAGE)
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
-    if formatted == 'element':
-        grouplist = parsed.xpath('//select[@name="group"]')[0]
-        logging.debug('populate_grouplist: %s', grouplist)
-        for group in groups:
-            newgroup = builder.OPTION(group, value=group)
-            grouplist.append(newgroup)
-        # make newest group the "selected" one
-        # FIXME: for someone who just created a group, mark *that* one selected
-        for group in grouplist.getchildren():
-            try:
-                del group.attrib['selected']
-            except KeyError:
-                pass
-        grouplist[-1].set('selected', 'selected')
-    return groups if formatted == 'list' else html.tostring(grouplist).decode()
+    grouplist = parsed.xpath('//select[@name="group"]')[0]
+    logging.debug('populate_grouplist: %s', grouplist)
+    for group in groups:
+        newgroup = builder.OPTION(group, value=group)
+        grouplist.append(newgroup)
+    # make newest group the "selected" one
+    # FIXME: for someone who just created a group, mark *that* one selected
+    for group in grouplist.getchildren():
+        try:
+            del group.attrib['selected']
+        except KeyError:
+            pass
+    grouplist[-1].set('selected', 'selected')
+    if formatted == 'list':
+        return groups
+    else:
+        return (html.tostring(grouplist, pretty_print=True, with_tail=False)
+            .decode())
 
 def hide_except(keep, tree):
     '''
@@ -563,9 +578,6 @@ def update_httpsession(postdict):
         session_key = postdict['httpsession_key']
         if 'username' in postdict and postdict['username']:
             username = postdict['username']
-            if postdict.get('groupname'):
-                # both username and groupname filled out means "in session"
-                postdict['joined'] = True
             if session_key in HTTPSESSIONS:
                 if HTTPSESSIONS[session_key]['username'] != username:
                     raise ValueError('Session belongs to "%s"' % username)
