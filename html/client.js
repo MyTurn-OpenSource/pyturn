@@ -18,16 +18,16 @@ com.jcomeau.myturn.poll = function(uri) {
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var selector = document.getElementById("group-select");
-            if (document.activeElement == selector) {
-                console.log("not modifying group-select when active");
+            var previous = selector.value;
+            if (previous) {
+                console.log("not modifying already selected group-select");
             } else {
-                var previous = selector.value;
-                if (previous) {
-                    console.log("not modifying already selected group-select");
-                } else {
-                    selector.replaceWith(request.response);
-                }
+                /* setting selected value to what it was before...
+                 * in the case that the previous selected group is no longer
+                 * active, the Chrome browser will show a blank selection */
+                request.response.value = previous;
             }
+            selector.replaceWith(request.response);
         }
     };
     request.send();

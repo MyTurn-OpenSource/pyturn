@@ -50,6 +50,8 @@ EXPECTED_ERRORS = (
     IndexError,
     SystemError,
 )
+PARSED = html.parse(os.path.join(APPDIR, 'index.html')).getroot()
+PAGE = html.tostring(PARSED.getroottree())
 
 def findpath(env):
     '''
@@ -65,15 +67,16 @@ def findpath(env):
     logging.debug('findpath: should not be None at this point: "%s"', path)
     return start, path
 
-def loadpage(webpage, path, data=None):
+def loadpage(path, data=None):
     '''
     input template and populate the HTML with data array
 
     eventually client-side JavaScript will perform many of these functions.
     '''
     data = data or DATA
-    parsed = html.fromstring(webpage)
+    parsed = html.fromstring(PAGE)
     postdict = data.get('postdict', {})
+    logging.debug('postdict: %s', postdict)
     set_values(parsed, postdict, ['username', 'groupname', 'httpsession_key'])
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
@@ -82,6 +85,7 @@ def loadpage(webpage, path, data=None):
     # only show load indicator if no path specified;
     # get rid of meta refresh if path has already been chosen
     if path == '':
+        logging.debug('showing load indicator')
         hide_except('loading', parsed)
         return html.tostring(parsed).decode()
     else:
@@ -90,18 +94,18 @@ def loadpage(webpage, path, data=None):
     if 'text' in postdict:
         span = builder.SPAN(cgi.escape(postdict['text']))
         parsed.xpath('//div[@id="error-text"]')[0].append(span)
+        logging.debug('showing error page')
         hide_except('error', parsed)
     elif 'joined' in postdict:
         logging.debug('found "joined": %s', data['postdict'])
         group = postdict['groupname']
         if not group in groups:
             if not group in data['finished']:
-                if groups:
-                    hide_except('joinform', parsed)
-                else:
-                    hide_except('groupform', parsed)
+                logging.debug('nonexistent group, showing joinform again')
+                hide_except('joinform', parsed)
             else:
                 create_report(parsed, group, data)
+                logging.debug('showing report page')
                 hide_except('report', parsed)
         else:
             groupdata = data['groups'][group]
@@ -116,11 +120,17 @@ def loadpage(webpage, path, data=None):
             buttonvalue = 'Cancel request' if userdata['request'] else 'My Turn'
             logging.debug('setting buttonvalue to %s', buttonvalue)
             set_button(parsed, ['myturn-button'], [buttonvalue])
+            logging.debug('showing talk page')
             hide_except('talksession', parsed)
-    elif groups:
-        hide_except('joinform', parsed)
-    else:
+    elif (postdict.get('submit') == 'Join' and postdict.get('username') and
+            postdict.get('group', '') == ''):
+        # some browsers won't return `group` in postdict at all if
+        # selected element is empty
+        logging.debug('showing groupform after joinform')
         hide_except('groupform', parsed)
+    else:
+        logging.debug('showing joinform by default')
+        hide_except('joinform', parsed)
     return html.tostring(parsed).decode()
 
 def create_report(parsed, group, data=None):
@@ -226,13 +236,14 @@ def populate_grouplist(parsed=None, data=None, formatted='list'):
     '''
     fill in 'select' element with options for each available group
 
-    if called with parsed=None, just return list of groups, oldest first
+    if `formatted` is 'list', just return list of groups, oldest first
     '''
     # sorting a dict gives you a list of keys
     data = data or DATA
+    parsed = parsed or PARSED
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
-    if parsed:
+    if formatted == 'element':
         grouplist = parsed.xpath('//select[@name="group"]')[0]
         logging.debug('populate_grouplist: %s', grouplist)
         for group in groups:
@@ -246,7 +257,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list'):
             except KeyError:
                 pass
         grouplist[-1].set('selected', 'selected')
-    return groups if formatted == 'list' else html.tostring(grouplist)
+    return groups if formatted == 'list' else html.tostring(grouplist).decode()
 
 def hide_except(keep, tree):
     '''
@@ -266,11 +277,11 @@ def server(env=None, start_response=None):
     start, path = findpath(env)
     data = handle_post(env)
     logging.debug('server: data: %s', data)
-    if path.startswith('groups'):
-        page = populate_grouplist(None, None, formatted='element')
+    if path in ('groups',):
+        page = populate_grouplist(None, data, formatted='element')
         status_code = '200 OK'
     elif path in ('', 'noscript', 'app'):
-        page = loadpage(read(os.path.join(start, 'index.html')), path, data)
+        page = loadpage(path, data)
         status_code = '200 OK'
     elif path == 'status':
         page = cgi.escape(json.dumps(data))
