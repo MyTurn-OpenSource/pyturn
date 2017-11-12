@@ -234,14 +234,15 @@ def set_values(parsed, postdict, fieldlist):
             element.set('value', value)
             logging.debug('after: %s', html.tostring(element))
 
-def populate_grouplist(parsed=None, data=None, formatted='list'):
+def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     '''
     fill in 'select' element with options for each available group
 
     if `formatted` is 'list', just return list of groups, oldest first
 
+    >>> options = {'pretty_print': True, 'with_tail': False}
     >>> data = {'groups': {'test': {'timestamp': 0}, 'again': {'timestamp': 1}}}
-    >>> print(populate_grouplist(None, data, 'element'))
+    >>> print(populate_grouplist(None, data, 'element', **options))
     <select id="group-select" name="group">
             <option value="">(Create new group)</option>
            <option value="test">test</option>
@@ -272,8 +273,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list'):
     if formatted == 'list':
         return groups
     else:
-        return (html.tostring(grouplist, pretty_print=True, with_tail=False)
-            .decode())
+        return html.tostring(grouplist, **options).decode()
 
 def hide_except(keep, tree):
     '''
