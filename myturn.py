@@ -243,7 +243,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     >>> options = {'pretty_print': True, 'with_tail': False}
     >>> data = {'groups': {'test': {'timestamp': 0}, 'again': {'timestamp': 1}}}
     >>> print(populate_grouplist(None, data, 'element', **options))
-    <select id="group-select" name="group">
+    <select id="group-select" name="group" data-contents=":test:again">
             <option value="">(Create new group)</option>
            <option value="test">test</option>
     <option value="again" selected>again</option></select>
@@ -257,6 +257,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     parsed = parsed or html.fromstring(PAGE)
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
+    contents = ':'.join([''] + groups)
     grouplist = parsed.xpath('//select[@name="group"]')[0]
     logging.debug('populate_grouplist: %s', grouplist)
     for group in groups:
@@ -270,6 +271,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
         except KeyError:
             pass
     grouplist[-1].set('selected', 'selected')
+    grouplist.set("data-contents", contents)
     if formatted == 'list':
         return groups
     else:

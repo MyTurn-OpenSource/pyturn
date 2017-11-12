@@ -22,14 +22,16 @@ com.jcomeau.myturn.poll = function(uri) {
             var replacement = request.response.getElementById("group-select");
             console.log("selector: " + selector);
             console.log("replacement: " + replacement);
-            if (previous) {
+            /* if there are any non-default options, and default is selected,
+             * don't change to the newest group */
+            if (previous || previous.length > 1) {
                 console.log("keeping already selected \""+ previous + "\"");
                 /* setting selected value to what it was before...
                  * in the case that the previous selected group is no longer
                  * active, the Chrome browser will show a blank selection */
                 replacement.value = previous;
             }
-            if (replacement != selector) {
+            if (replacement.dataset.contents != selector.dataset.contents) {
                 console.log("replacing group-select with new copy from server");
                 selector.replaceWith(replacement);
             } else {
