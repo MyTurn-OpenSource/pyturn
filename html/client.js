@@ -23,12 +23,10 @@ com.jcomeau.myturn.poll = function(uri) {
             console.log("selector: " + selector);
             console.log("replacement: " + replacement);
             if (previous) {
-                console.log("not modifying already selected group-select");
-            } else {
+                console.log("keeping already selected \""+ previous + "\"");
                 /* setting selected value to what it was before...
                  * in the case that the previous selected group is no longer
                  * active, the Chrome browser will show a blank selection */
-                console.log("setting selected to " + previous);
                 replacement.value = previous;
             }
             if (replacement != selector) {
