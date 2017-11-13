@@ -5,6 +5,7 @@ com.jcomeau.myturn = {};
 com.jcomeau.myturn.state = null;
 com.jcomeau.myturn.pages = null;
 com.jcomeau.myturn.page = null;
+com.jcomeau.myturn.pagename = null;
 com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
 // no need to use `window.` anything; it is implied
@@ -59,10 +60,14 @@ addEventListener("load", function() {
                 page.style.display = "";
             } else {
                 cjm.page = page;
+                cjm.pagename = page.getAttribute("id");
+                console.log("page loaded: " + cjm.pagename);
             }
         }
-        cjm.poller = setInterval(function() {cjm.poll("/groups")},
-                                 10000); // FIXME set to 500 (1/2 s)
+        if (cjm.pagename == "joinform-body") {
+            cjm.poll("/groups");  /* do it once now to make sure it works */
+            cjm.poller = setInterval(function() {cjm.poll("/groups")}, 500);
+        }
         // save this redirect for last, only reached if all other tests pass
         if (path == "/") location.replace(location.href + "app");
         cjm.state = "loaded";
