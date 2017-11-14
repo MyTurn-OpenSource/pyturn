@@ -9,9 +9,9 @@ com.jcomeau.myturn.pagename = null;
 com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
 // no need to use `window.` anything; it is implied
-com.jcomeau.myturn.poll = function(uri) {
+com.jcomeau.myturn.updateGroups = function() {
     var request = new XMLHttpRequest();  // not supporting IE
-    request.open("GET", uri);
+    request.open("GET", "/groups");
     request.responseType = "document";
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
@@ -65,8 +65,11 @@ addEventListener("load", function() {
             }
         }
         if (cjm.pagename == "joinform-body") {
-            cjm.poll("/groups");  /* do it once now to make sure it works */
-            cjm.poller = setInterval(function() {cjm.poll("/groups")}, 500);
+            cjm.updateGroups();  /* do it once now to make sure it works */
+            cjm.poller = setInterval(cjm.updateGroups, 500);
+        } else if (cjm.pagename == "talksession-body") {
+            /* get rid of "Check status" button, and make "My turn"
+             * button activate on button-down and button-up */
         }
         // save this redirect for last, only reached if all other tests pass
         if (path == "/") location.replace(location.href + "app");
