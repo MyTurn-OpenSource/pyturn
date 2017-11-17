@@ -298,6 +298,10 @@ def server(env=None, start_response=None):
     if path in ('groups',):
         page = populate_grouplist(None, data, formatted='element')
         status_code = '200 OK'
+    elif path.startswith('groups/'):
+        group = path.split('/')[1]
+        page = cgi.escape(json.dumps(data['groups'][group]))
+        status_code = '200 OK'
     elif path in ('', 'noscript', 'app'):
         page = loadpage(path, data)
         status_code = '200 OK'
@@ -562,7 +566,7 @@ def countdown(group, data=None):
     finally:
         try:
             uwsgi.unlock()
-        except Exception as nosuchlock:
+        except Exception as nosuchlock:  # pylint: disable=broad-except
             logging.debug('ignoring uwsgi.unlock() error: %s', nosuchlock)
             pass
 
