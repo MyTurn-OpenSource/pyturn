@@ -8,6 +8,8 @@ com.jcomeau.myturn.page = null;
 com.jcomeau.myturn.pagename = null;
 com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
+com.jcomeau.myturn.username = null;
+com.jcomeau.myturn.groupname = null;
 // no need to use `window.` anything; it is implied
 com.jcomeau.myturn.updateTalkSession = function() {
     var request = new XMLHttpRequest();  // not supporting IE
@@ -15,7 +17,7 @@ com.jcomeau.myturn.updateTalkSession = function() {
     request.responseType = "json";  // returns object
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
-                    request.responseText || request.response);
+                    request.response);
     };
     request.send();
 };
@@ -80,6 +82,10 @@ addEventListener("load", function() {
         } else if (cjm.pagename == "talksession-body") {
             /* get rid of "Check status" button, and make "My turn"
              * button activate on button-down and button-up */
+            cjm.username = document.querySelector(
+                "input[name=username][type=hidden]").value;
+            cjm.groupname = document.querySelector(
+                "input[name=groupname][type=hidden]").value;
             cjm.updateTalkSession(); // do it once now to make sure it works
             cjm.poller = setInterval(cjm.updateTalkSession, 500);
         }
