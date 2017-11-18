@@ -540,8 +540,8 @@ def countdown(group, data=None):
         minutes = float(groups[group]['total'])
         groups[group]['talksession']['remaining'] = minutes * 60
         ending = (datetime.datetime.fromtimestamp(
-            groups[group]['talksession']['start']) + 
-            datetime.timedelta(minutes=minutes)).timestamp()
+            groups[group]['talksession']['start']) +
+                  datetime.timedelta(minutes=minutes)).timestamp()
         logging.debug('countdown ending: %.6f', ending)
         while True:
             time.sleep(sleeptime)
@@ -615,7 +615,7 @@ def render(pagename, standalone=True):
     elif standalone:
         logging.warn('app is serving %s instead of nginx', pagename)
         return (read(pagename),
-            MIMETYPES.get(os.path.splitext(pagename)[1], 'text/plain'))
+                MIMETYPES.get(os.path.splitext(pagename)[1], 'text/plain'))
     else:
         logging.error('not standalone, and no match for filetype')
         raise OSError('File not found: %s' % pagename)
