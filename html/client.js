@@ -17,7 +17,7 @@ com.jcomeau.myturn.updateTalkSession = function() {
     request.responseType = "json";  // returns object
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
-                    request.response);
+                    JSON.stringify(request.response || {}));
     };
     request.send();
 };
