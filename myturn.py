@@ -382,7 +382,8 @@ def handle_post(env):
                 if 'talksession' not in groups[group]:
                     groups[group]['talksession'] = {
                         'start': timestamp,
-                        'speaker': None
+                        'speaker': None,
+                        'tick': 0,
                     }
                     counter = threading.Thread(
                         target=countdown,
@@ -535,7 +536,7 @@ def countdown(group, data=None):
     '''
     data = data or DATA
     groups = data['groups']
-    sleeptime = .25  # seconds. app sluggish? decrease
+    sleeptime = .25  # seconds
     try:
         minutes = float(groups[group]['total'])
         groups[group]['talksession']['remaining'] = minutes * 60
@@ -557,6 +558,7 @@ def countdown(group, data=None):
                 speakerdata['speaking'] += sleeptime
                 speakerdata['spoke'] += sleeptime
             groups[group]['talksession']['remaining'] -= sleeptime
+            groups[group]['talksession']['tick'] += 1
         uwsgi.lock()
         data['finished'][group] = data['groups'].pop(group)
     except KeyError as error:
