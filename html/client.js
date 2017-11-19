@@ -10,14 +10,35 @@ com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
 com.jcomeau.myturn.username = null;
 com.jcomeau.myturn.groupname = null;
+com.jcomeau.myturn.groupdata = {};
 // no need to use `window.` anything; it is implied
 com.jcomeau.myturn.updateTalkSession = function() {
+    var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
-    request.open("GET", "/groups/" + com.jcomeau.myturn.groupname);
+    request.open("GET", "/groups/" + cjm.groupname);
     request.responseType = "json";  // returns object
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
                     JSON.stringify(request.response || {}));
+        var speaker = request.response.talksession.speaker;
+        var remaining = request.response.talksession.remaining;
+        var tick = request.response.talksession.tick;
+        var speakerStatus = document.getElementById("talksession-speaker");
+        speakerStatus.textContent = speaker ? "Current speaker is " + speaker:
+            "Waiting for next speaker";
+        var timeStatus = document.getElementById("talksession-time");
+        /* only update time on page of current speaker, and only at start of
+         * new quantum */
+        if (speaker == cjm.username) {
+            var groupdata = request.response;
+            var previousData = cjm.groupdata || groupdata;
+            var previousTime = 1000;  /* arbitrarily high number */
+            if (previousData.participants[speaker]) 
+                previousTime = previousData.participants[speaker].speaking;
+            if (groupdata.participants[speaker].speaking < previousTime)
+                timeStatus.textContent = new Date(0, 0, 0, 0, 0, remaining)
+                    .toString().split(" ")[4];
+        }
     };
     request.send();
 };
