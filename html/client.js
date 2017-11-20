@@ -10,7 +10,7 @@ com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
 com.jcomeau.myturn.username = null;
 com.jcomeau.myturn.groupname = null;
-com.jcomeau.myturn.groupdata = {};
+com.jcomeau.myturn.groupdata = null;
 // no need to use `window.` anything; it is implied
 com.jcomeau.myturn.updateTalkSession = function() {
     var cjm = com.jcomeau.myturn;
@@ -20,24 +20,30 @@ com.jcomeau.myturn.updateTalkSession = function() {
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
                     JSON.stringify(request.response || {}));
-        var speaker = request.response.talksession.speaker;
-        var remaining = request.response.talksession.remaining;
-        var tick = request.response.talksession.tick;
-        var speakerStatus = document.getElementById("talksession-speaker");
-        speakerStatus.textContent = speaker ? "Current speaker is " + speaker:
-            "Waiting for next speaker";
-        var timeStatus = document.getElementById("talksession-time");
-        /* only update time on page of current speaker, and only at start of
-         * new quantum */
-        if (speaker == cjm.username) {
+        if (request.readyState == XMLHttpRequest.DONE &&
+                request.status == 200) {
             var groupdata = request.response;
-            var previousData = cjm.groupdata || groupdata;
-            var previousTime = 1000;  /* arbitrarily high number */
-            if (previousData.participants[speaker]) 
-                previousTime = previousData.participants[speaker].speaking;
-            if (groupdata.participants[speaker].speaking < previousTime)
-                timeStatus.textContent = new Date(0, 0, 0, 0, 0, remaining)
-                    .toString().split(" ")[4];
+            var speaker = groupdata.talksession.speaker;
+            var remaining = groupdata.talksession.remaining;
+            var tick = groupdata.talksession.tick;
+            var speakerStatus = document.getElementById("talksession-speaker");
+            speakerStatus.textContent = speaker ?
+                "Current speaker is " + speaker:
+                "Waiting for next speaker";
+            var timeStatus = document.getElementById("talksession-time");
+            // only update time at start of new quantum
+            if (speaker) {
+                var previousData = cjm.groupdata || groupdata;
+                console.log("previous data: " + JSON.stringify(previousData));
+                console.log("participants: " + previousData.participants);
+                var previousTime = 1000;  // arbitrarily high number
+                if (previousData.participants[speaker]) 
+                    previousTime = previousData.participants[speaker].speaking;
+                if (groupdata.participants[speaker].speaking < previousTime)
+                    timeStatus.textContent = new Date(
+                        null, 0, 1, 0, 0, remaining).toString().split(" ")[4];
+            }
+            cjm.groupdata = groupdata;
         }
     };
     request.send();
