@@ -300,7 +300,11 @@ def server(env=None, start_response=None):
         status_code = '200 OK'
     elif path.startswith('groups/'):
         group = path.split('/')[1]
-        page = cgi.escape(json.dumps(data['groups'][group]))
+        try:
+            page = cgi.escape(json.dumps(data['groups'][group]))
+        except KeyError as groupname:
+            logging.debug('group "%s" does not exist', groupname)
+            page = '{}'
         status_code = '200 OK'
     elif path in ('', 'noscript', 'app'):
         page = loadpage(path, data)
