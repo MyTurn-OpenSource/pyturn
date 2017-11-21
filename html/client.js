@@ -12,6 +12,28 @@ com.jcomeau.myturn.username = null;
 com.jcomeau.myturn.groupname = null;
 com.jcomeau.myturn.groupdata = null;
 // no need to use `window.` anything; it is implied
+com.jcomeau.myturn.myTurn = function() {
+    var request = new XMLHttpRequest();  // not supporting IE
+    var cjm = com.jcomeau.myturn;
+    request.open("POST", "/groups/" + cjm.groupname);
+    request.setRequestHeader("Content-type",
+                             "application/x-www-form-urlencoded");
+    request.responseType = "json";  // returns object
+    request.onreadystatechange = function() {
+        console.log("response code " + request.readyState + ": " +
+                    JSON.stringify(request.response || {}));
+        if (request.readyState == XMLHttpRequest.DONE &&
+                request.status == 200) {
+           var groupdata = request.response;
+            if (!groupdata.groupname) {
+                console.log("discussion over, code redirect to report page");
+            }
+        }
+    };
+    request.send("submit=My+Turn&username=" + cjm.username + "&groupname=" +
+                 cjm.groupname);
+};
+
 com.jcomeau.myturn.updateTalkSession = function() {
     var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
