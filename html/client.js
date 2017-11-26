@@ -16,6 +16,7 @@ com.jcomeau.myturn.groupdata = null;
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
     var cjm = com.jcomeau.myturn;
+    console.log("My Turn mousedown");
     request.open("POST", "/groups/" + cjm.groupname);
     request.setRequestHeader("Content-type",
                              "application/x-www-form-urlencoded");
@@ -38,6 +39,7 @@ com.jcomeau.myturn.myTurn = function() {
 com.jcomeau.myturn.cancelRequest = function() {
     var request = new XMLHttpRequest();  // not supporting IE
     var cjm = com.jcomeau.myturn;
+    console.log("My Turn mouseup");
     request.open("POST", "/groups/" + cjm.groupname);
     request.setRequestHeader("Content-type",
                              "application/x-www-form-urlencoded");
@@ -163,6 +165,7 @@ addEventListener("load", function() {
             var myturnButton = document.getElementById("myturn-button");
             myturnButton.addEventListener("mousedown", cjm.myTurn);
             myturnButton.addEventListener("mouseup", cjm.cancelRequest);
+            myturnButton.onclick = function() {return false};  // disable click
             var checkStatus = document.getElementById("check-status");
             checkStatus.parentNode.removeChild(checkStatus);
             cjm.poller = setInterval(cjm.updateTalkSession, 500);
