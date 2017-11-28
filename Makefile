@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 APP := pyturn
 PORT := 5678
 # set npm_config_argv to "alpha" for local (test) installation
@@ -54,3 +55,8 @@ install: install.mk
 	ssh root@droplet
 env set:
 	$(MAKE) -f install.mk $@
+unittests:
+	java -jar ~/downloads/selenium-server-standalone-3.7.1.jar & \
+	 echo $$! > /tmp/testserver.pid
+	sleep 5  # wait for Java to start server
+	kill $$(</tmp/testserver.pid)
