@@ -61,5 +61,5 @@ unittests:
 	java -jar ~/Downloads/selenium-server-standalone-3.7.1.jar & \
 	 echo $$! > /tmp/testserver.pid
 	sleep 5  # wait for Java to start server
-	python3 myturn_test.py
+	-python3 myturn_test.py
 	kill $$(</tmp/testserver.pid)
