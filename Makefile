@@ -1,6 +1,8 @@
 SHELL := /bin/bash
 APP := pyturn
 PORT := 5678
+# add location of chromedriver to PATH
+PATH := $(HOME)/Downloads:$(PATH)
 # set npm_config_argv to "alpha" for local (test) installation
 npm_config_argv ?= {"remain": ["alpha"]}
 export
@@ -56,7 +58,8 @@ install: install.mk
 env set:
 	$(MAKE) -f install.mk $@
 unittests:
-	java -jar ~/downloads/selenium-server-standalone-3.7.1.jar & \
+	java -jar ~/Downloads/selenium-server-standalone-3.7.1.jar & \
 	 echo $$! > /tmp/testserver.pid
 	sleep 5  # wait for Java to start server
+	python3 myturn_test.py
 	kill $$(</tmp/testserver.pid)
