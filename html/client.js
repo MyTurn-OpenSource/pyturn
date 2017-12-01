@@ -10,7 +10,7 @@ com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
 com.jcomeau.myturn.username = null;
 com.jcomeau.myturn.groupname = null;
-com.jcomeau.myturn.groupdata = null;
+com.jcomeau.myturn.groupdata = {talksession: {}, participants: {}};
 // no need to use `window.` anything; it is implied
 
 com.jcomeau.myturn.myTurn = function() {
@@ -29,7 +29,6 @@ com.jcomeau.myturn.myTurn = function() {
             var groupdata = request.response;
             if (!groupdata.groupname) {
                 console.log("discussion over, code redirect to report page");
-                alert("The discussion is over");
             }
         }
     };
@@ -53,7 +52,6 @@ com.jcomeau.myturn.cancelRequest = function() {
             var groupdata = request.response;
             if (!groupdata.groupname) {
                 console.log("discussion over, code redirect to report page");
-                alert("The discussion is over");
             }
         }
     };
@@ -87,7 +85,7 @@ com.jcomeau.myturn.updateTalkSession = function() {
             var timeStatus = document.getElementById("talksession-time");
             // only update time at start of new quantum
             if (speaker) {
-                var previousData = cjm.groupdata || groupdata;
+                var previousData = cjm.groupdata;
                 console.log("previous data: " + JSON.stringify(previousData));
                 console.log("participants: " + previousData.participants);
                 var previousTime = 1000;  // arbitrarily high number
