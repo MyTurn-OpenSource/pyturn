@@ -26,9 +26,10 @@ com.jcomeau.myturn.myTurn = function() {
                     JSON.stringify(request.response || {}));
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
-           var groupdata = request.response;
+            var groupdata = request.response;
             if (!groupdata.groupname) {
                 console.log("discussion over, code redirect to report page");
+                alert("The discussion is over");
             }
         }
     };
@@ -49,9 +50,10 @@ com.jcomeau.myturn.cancelRequest = function() {
                     JSON.stringify(request.response || {}));
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
-           var groupdata = request.response;
+            var groupdata = request.response;
             if (!groupdata.groupname) {
                 console.log("discussion over, code redirect to report page");
+                alert("The discussion is over");
             }
         }
     };
@@ -70,6 +72,11 @@ com.jcomeau.myturn.updateTalkSession = function() {
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var groupdata = request.response;
+            if (!groupdata.groupname) {
+                cjm.poller = clearInterval(cjm.poller);
+                console.log("discussion over, code redirect to report page");
+                return;
+            }
             var speaker = groupdata.talksession.speaker;
             var remaining = groupdata.talksession.remaining;
             var tick = groupdata.talksession.tick;
