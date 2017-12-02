@@ -135,7 +135,7 @@ def loadpage(path, data=None):
         hide_except('joinform', parsed)
     return html.tostring(parsed).decode()
 
-def create_report(parsed, group, data=None):
+def create_report(parsed, group, data=None, **formatting):
     '''
     show participants with the amount of time each spoke
 
@@ -152,7 +152,8 @@ def create_report(parsed, group, data=None):
     ... </div><!-- body -->""")
     >>> data = json.loads("""{"finished": {"test": {"groupname": "test",
     ...  "participants": {"jc": {"spoke": 48.5}, "Ed": {"spoke": 3.25}}}}}""")
-    >>> print(create_report(parsed, 'test', data).decode('utf8'))
+    >>> formatting = {'pretty_print': True, 'with_tail': False}
+    >>> print(create_report(parsed, 'test', data, **formatting).decode('utf8'))
     <table>
         <tr>
     <th>Name</th>
@@ -186,7 +187,7 @@ def create_report(parsed, group, data=None):
         logging.debug('template now: %s', html.tostring(template))
         table.append(html.fromstring(html.tostring(template)))
         logging.debug('table now: %s', html.tostring(table))
-    return html.tostring(table, pretty_print=True, with_tail=False)
+    return html.tostring(table, **formatting)
 
 def set_text(parsed, idlist, values):
     '''
