@@ -6,21 +6,38 @@ this one is geared to pyturn
 '''
 import sys, os, unittest, time, logging
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
-CHROME_OPTIONS = Options()
-CHROME_OPTIONS.add_argument('--headless')
-WEBDRIVER = webdriver.Chrome(chrome_options=CHROME_OPTIONS)
 
-class TestMyturnLoad(unittest.TestCase):
+class TestMyturnApp(unittest.TestCase):
     '''
-    Make sure JavaScript runs in headless browser
+    Various tests of app functionality
     '''
+
+    def setUp(self):
+        '''
+        Initialize test environment
+        '''
+        self.driver = webdriver.Remote(
+            desired_capabilities=webdriver.DesiredCapabilities.HTMLUNITWITHJS)
+
     def test_load(self):
-        WEBDRIVER.get('http://uwsgi-alpha.myturn.local')
+        '''
+        Make sure JavaScript runs in headless browser
+        '''
+        self.driver.get('http://uwsgi-alpha.myturn.local')
         time.sleep(1)  # enough time for redirect
-        logging.debug('current URL: %s', WEBDRIVER.current_url)
-        self.assertTrue(WEBDRIVER.current_url.endswith('/app'))
+        logging.debug('current URL: %s', self.driver.current_url)
+        self.assertTrue(self.driver.current_url.endswith('/app'))
+
+    def tearDown(self):
+        '''
+        Cleanup after testing complete
+        '''
+        self.driver.quit()
+
 
 if __name__ == '__main__':
+    '''
+    Run all tests
+    '''
     unittest.main()
