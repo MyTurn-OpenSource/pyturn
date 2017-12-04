@@ -62,6 +62,7 @@ set:
 	$@
 $(PHANTOMJS): ~/Downloads/$(notdir $(PHANTOMJS_TBZ))
 	cd /usr/src/ && tar xvf $<
+	touch $@
 unittests: $(PHANTOMJS)
 	python3 myturn_test.py
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
