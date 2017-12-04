@@ -1,8 +1,11 @@
 SHELL := /bin/bash
 APP := pyturn
 PORT := 5678
-# add location of chromedriver to PATH
-PATH := $(HOME)/Downloads:$(PATH)
+PHANTOMJS_TBZ := https://bitbucket.org/ariya/phantomjs/downloads
+PHANTOMJS_TBZ := $(PHANTOMJS_TBZ)/phantomjs-2.1.1-linux-i686.tar.bz2
+PHANTOMJS := /usr/src/phantomjs-2.1.1-linux-i686/bin/phantomjs
+# add location of phantomjs to PATH
+PATH := $(dir $(PHANTOMJS)):$(PATH)
 # set npm_config_argv to "alpha" for local (test) installation
 npm_config_argv ?= {"remain": ["alpha"]}
 export
@@ -55,11 +58,11 @@ install: install.mk
 	 's/^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\s\(droplet.*\)/$* \1/' \
 	 /etc/hosts
 	ssh root@droplet
-env set:
-	$(MAKE) -f install.mk $@
-unittests:
-	java -jar ~/Downloads/selenium-server-standalone-3.7.1.jar & \
-	 echo $$! > /tmp/testserver.pid
-	sleep 5  # wait for Java to start server
-	-python3 myturn_test.py
-	kill $$(</tmp/testserver.pid)
+set:
+	$@
+$(PHANTOMJS): ~/Downloads/$(notdir $(PHANTOMJS_TBZ))
+	cd /usr/src/ && tar xvf $<
+unittests: $(PHANTOMJS)
+	python3 myturn_test.py
+~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
+	cd $(dir $@) && wget $(PHANTOMJS_TBZ)

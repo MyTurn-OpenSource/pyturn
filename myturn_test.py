@@ -17,8 +17,7 @@ class TestMyturnApp(unittest.TestCase):
         '''
         Initialize test environment
         '''
-        self.driver = webdriver.Remote(
-            desired_capabilities=webdriver.DesiredCapabilities.HTMLUNITWITHJS)
+        self.driver = webdriver.PhantomJS()
 
     def test_load(self):
         '''
