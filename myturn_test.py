@@ -6,6 +6,7 @@ this one is geared to pyturn
 '''
 import sys, os, unittest, time, logging
 from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 
 class TestMyturnApp(unittest.TestCase):
@@ -17,7 +18,9 @@ class TestMyturnApp(unittest.TestCase):
         '''
         Initialize test environment
         '''
-        self.driver = webdriver.PhantomJS()
+        capabilities = DesiredCapabilities.PHANTOMJS
+        capabilities['loggingPrefs'] = {'browser': 'ALL'}
+        self.driver = webdriver.PhantomJS(desired_capabilities=capabilities)
 
     def test_load(self):
         '''
@@ -26,7 +29,8 @@ class TestMyturnApp(unittest.TestCase):
         self.driver.get('http://uwsgi-alpha.myturn.local')
         time.sleep(1)  # enough time for redirect
         logging.debug('current URL: %s', self.driver.current_url)
-        for entry in self.driver.get_log('har'):
+        for entry in (
+                self.driver.get_log('browser') + self.driver.get_log('har')):
             logging.debug('browser log entry: %s', entry)
         self.assertTrue(self.driver.current_url.endswith('/app'))
 
