@@ -29,8 +29,7 @@ class TestMyturnApp(unittest.TestCase):
         self.driver.get('http://uwsgi-alpha.myturn.local')
         time.sleep(1)  # enough time for redirect
         logging.debug('current URL: %s', self.driver.current_url)
-        for entry in (
-                self.driver.get_log('browser') + self.driver.get_log('har')):
+        for entry in self.driver.get_log('browser'):
             logging.debug('browser log entry: %s', entry)
         self.assertTrue(self.driver.current_url.endswith('/app'))
 

@@ -1,3 +1,4 @@
+console.log("client.js starting");
 // namespace this module.
 if (typeof(com) == "undefined") var com = {};
 if (typeof(com.jcomeau) == "undefined") com.jcomeau = {};
@@ -137,14 +138,16 @@ com.jcomeau.myturn.updateGroups = function() {
 addEventListener("load", function() {
     console.log("onload routine started");
     var cjm = com.jcomeau.myturn;
-    var path = location.pathname.replace(/\/+/, "/");
     console.log("location: " + JSON.stringify(location));
+    var path = location ? location.pathname.replace(/\/+/, "/") : "/phantom";
     console.log("location.pathname: " + path);
     if (path != "/noscript") {
         cjm.state = "loading";
-        cjm.pages = document.querySelectorAll("div.body");
+        cjm.pages = document ? document.querySelectorAll("div.body") : [];
         console.log("pages: " + cjm.pages);
-        for (var page of cjm.pages) {
+        // neither phantomjs nor htmlunit support for...of statements
+        for (var index = 0; index < cjm.pages.length; index++) {
+            var page = cjm.pages[index];
             if (page.style.display == "none") {
                 cjm.storedPages.push(page);
                 page.parentNode.removeChild(page);
@@ -180,6 +183,10 @@ addEventListener("load", function() {
         cjm.state = "loaded";
     }
 });
+if (phantom) {  // for phantomjs testing
+    console.log(phantom + " exiting");
+    phantom.exit();
+}
 /*
    vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 */
