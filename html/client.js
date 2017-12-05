@@ -183,7 +183,7 @@ addEventListener("load", function() {
         cjm.state = "loaded";
     }
 });
-if (phantom) {  // for phantomjs testing
+if (typeof(phantom) != "undefined") {  // for phantomjs command-line testing
     console.log(phantom + " exiting");
     phantom.exit();
 }
