@@ -49,22 +49,19 @@ class TestMyturnMultiUser(unittest.TestCase):
         '''
         noscript = DesiredCapabilities.PHANTOMJS
         noscript['javascriptEnabled'] = False
+        noscript['phantomjs.page.settings.javascriptEnabled'] = False
         self.alice = webdriver.PhantomJS()
         self.bob = webdriver.PhantomJS()
         self.charlie = webdriver.PhantomJS(desired_capabilities=noscript)
 
     def test_load(self):
         '''
-        Make sure JavaScript runs in headless browser
+        Make sure JavaScript doesn't run where we want to test /noscript
         '''
-        self.alice.get('http://uwsgi-alpha.myturn.local')
         self.charlie.get('http://uwsgi-alpha.myturn.local')
-        time.sleep(1)  # enough time for redirect
-        logging.debug('current URL: %s', self.alice.current_url)
-        for entry in self.alice.get_log('browser'):
+        time.sleep(5)  # enough time for refresh
+        for entry in self.charlie.get_log('browser'):
             logging.debug('browser log entry: %s', entry)
-        self.assertTrue(self.alice.current_url.endswith('/app'))
-        time.sleep(4)  # 5 seconds total for /noscript redirect
         self.assertEqual(self.charlie.current_url.split('/')[-1], 'noscript')
 
     def tearDown(self):
