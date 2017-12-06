@@ -30,8 +30,8 @@ wsgilog applog:
 logs:
 	sudo tail -n 200 -f /var/log/uwsgi/app/$(APP)*.log \
 	 /var/log/nginx/$(APP)-error.log
-edit_all: myturn.py html/index.html html/css/style.css html/client.js \
-	$(APP).uwsgi $(APP).nginx
+edit_all: myturn.py myturn_test.py html/index.html html/css/style.css \
+	 html/client.js $(APP).uwsgi $(APP).nginx
 	-vi $+
 	# now test:
 	python3 $<
@@ -64,6 +64,10 @@ $(PHANTOMJS): ~/Downloads/$(notdir $(PHANTOMJS_TBZ))
 	cd /usr/src/ && tar xvf $<
 	touch $@
 unittests: $(PHANTOMJS)
-	python3 myturn_test.py
+	java -jar ~/Downloads/selenium-server-standalone-3.7.1.jar & \
+	 echo $$! > /tmp/testserver.pid
+	sleep 5  # wait for Java to start server
+	-python3 myturn_test.py
+	kill $$(</tmp/testserver.pid)
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
 	cd $(dir $@) && wget $(PHANTOMJS_TBZ)

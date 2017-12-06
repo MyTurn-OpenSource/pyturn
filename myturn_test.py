@@ -47,12 +47,11 @@ class TestMyturnMultiUser(unittest.TestCase):
         '''
         Initialize test environment
         '''
-        noscript = DesiredCapabilities.PHANTOMJS
+        noscript = DesiredCapabilities.HTMLUNIT
         noscript['javascriptEnabled'] = False
-        noscript['phantomjs.page.settings.javascriptEnabled'] = False
         self.alice = webdriver.PhantomJS()
         self.bob = webdriver.PhantomJS()
-        self.charlie = webdriver.PhantomJS(desired_capabilities=noscript)
+        self.charlie = webdriver.Remote(desired_capabilities=noscript)
 
     def test_load(self):
         '''
@@ -60,8 +59,6 @@ class TestMyturnMultiUser(unittest.TestCase):
         '''
         self.charlie.get('http://uwsgi-alpha.myturn.local')
         time.sleep(5)  # enough time for refresh
-        for entry in self.charlie.get_log('browser'):
-            logging.debug('browser log entry: %s', entry)
         self.assertEqual(self.charlie.current_url.split('/')[-1], 'noscript')
 
     def tearDown(self):
