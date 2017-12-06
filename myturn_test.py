@@ -19,9 +19,7 @@ class TestMyturnApp(unittest.TestCase):
         '''
         Initialize test environment
         '''
-        capabilities = DesiredCapabilities.PHANTOMJS
-        capabilities['loggingPrefs'] = {'browser': 'ALL'}
-        self.driver = webdriver.PhantomJS(desired_capabilities=capabilities)
+        self.driver = webdriver.PhantomJS()
 
     def test_load(self):
         '''
@@ -40,9 +38,46 @@ class TestMyturnApp(unittest.TestCase):
         '''
         self.driver.quit()
 
-class TestMyturnAppMultiUser(unittest.TestCase):
+class TestMyturnMultiUser(unittest.TestCase):
     '''
     Various tests of interaction between app and multiple users
+    '''
+
+    def setUp(self):
+        '''
+        Initialize test environment
+        '''
+        noscript = DesiredCapabilities.PHANTOMJS
+        noscript['javascriptEnabled'] = False
+        self.alice = webdriver.PhantomJS()
+        self.bob = webdriver.PhantomJS()
+        self.charlie = webdriver.PhantomJS(desired_capabilities=noscript)
+
+    def test_load(self):
+        '''
+        Make sure JavaScript runs in headless browser
+        '''
+        self.alice.get('http://uwsgi-alpha.myturn.local')
+        self.charlie.get('http://uwsgi-alpha.myturn.local')
+        time.sleep(1)  # enough time for redirect
+        logging.debug('current URL: %s', self.alice.current_url)
+        for entry in self.alice.get_log('browser'):
+            logging.debug('browser log entry: %s', entry)
+        self.assertTrue(self.alice.current_url.endswith('/app'))
+        time.sleep(4)  # 5 seconds total for /noscript redirect
+        self.assertEqual(self.charlie.current_url.split('/')[-1], 'noscript')
+
+    def tearDown(self):
+        '''
+        Cleanup after testing complete
+        '''
+        self.alice.quit()
+        self.bob.quit()
+        self.charlie.quit()
+
+class TestMyturnStress(unittest.TestCase):
+    '''
+    Stress-test server
     '''
 
     def setUp(self):
@@ -67,37 +102,6 @@ class TestMyturnAppMultiUser(unittest.TestCase):
         Cleanup after testing complete
         '''
         self.driver.quit()
-
-class TestMyturnStress(unittest.TestCase):
-    '''
-    Stress-test server
-    '''
-
-    def setUp(self):
-        '''
-        Initialize test environment
-        '''
-        capabilities = DesiredCapabilities.PHANTOMJS
-        capabilities['loggingPrefs'] = {'browser': 'ALL'}
-        self.driver = webdriver.PhantomJS(desired_capabilities=capabilities)
-
-    def test_load(self):
-        '''
-        Make sure JavaScript runs in headless browser
-        '''
-        self.driver.get('http://uwsgi-alpha.myturn.local')
-        time.sleep(1)  # enough time for redirect
-        logging.debug('current URL: %s', self.driver.current_url)
-        for entry in self.driver.get_log('browser'):
-            logging.debug('browser log entry: %s', entry)
-        self.assertTrue(self.driver.current_url.endswith('/app'))
-
-    def tearDown(self):
-        '''
-        Cleanup after testing complete
-        '''
-        self.driver.quit()
-
 
 if __name__ == '__main__':
     '''
