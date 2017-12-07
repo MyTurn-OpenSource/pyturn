@@ -8,7 +8,7 @@ Copyright 2017 John Otis Comeau <jc@unternet.net>
 distributed under the terms of the GNU General Public License Version 3
 (see COPYING)
 
-for testing with local host http://myturn/, must first mate a local IP 
+for testing with local host http://myturn/, must first mate a local IP
 address with the name `myturn` in /etc/hosts, e.g.:
 
 127.0.1.125 myturn
@@ -125,7 +125,7 @@ def loadpage(path, data=None):
             logging.debug('showing talk page')
             hide_except('talksession', parsed)
     elif (postdict.get('submit') == 'Join' and postdict.get('username') and
-            postdict.get('group', '') == ''):
+          postdict.get('group', '') == ''):
         # some browsers won't return `group` in postdict at all if
         # selected element is empty (as it is by default in this case)
         logging.debug('showing groupform after joinform')
@@ -378,7 +378,7 @@ def handle_post(env):
                 postdict['groupname'] = group
                 if username in groups[group]['participants']:
                     raise ValueError('"%s" is already a member of %s' % (
-                                     username, group))
+                        username, group))
                 groups[group]['participants'][username] = defaultdict(
                     float,  # for `speaking` and `spoke` times
                     {'timestamp': timestamp}
@@ -411,8 +411,7 @@ def handle_post(env):
                 raise ValueError((
                     'Group {group[groupname]} already exists with total time '
                     '{group[total]} minutes and turn time '
-                    '{group[turn]} seconds')
-                    .format(group=groups[group]))
+                    '{group[turn]} seconds').format(group=groups[group]))
         elif buttonvalue == 'OK':
             # affirming receipt of error message or Help screen
             return copy.deepcopy(DATA)
@@ -496,7 +495,7 @@ def most_eligible_speaker(group, data=None):
     people = groupdata['participants']
     waiting = filter(lambda p: people[p]['request'], people)
     speaker_pool = sorted(waiting, key=lambda p:
-                            (people[p]['spoke'], people[p]['request']))
+                          (people[p]['spoke'], people[p]['request']))
     return (speaker_pool or [None])[0]
 
 def select_speaker(group, data=None):
