@@ -6,9 +6,22 @@ this one is geared to pyturn
 '''
 import sys, os, unittest, time, logging
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
+
+def myturn(driver, release=False):
+    '''
+    Activate or deactivate `My Turn` button
+    '''
+    button = driver.find_element_by_css_selector('.myturn-button')
+    actions = ActionChains(driver)
+    if release:
+        actions.release(button)
+    else:
+        actions.click_and_hold(button)
+    actions.perform()
 
 class TestMyturnApp(unittest.TestCase):
     '''
