@@ -507,7 +507,7 @@ def select_speaker(group, data=None):
         when `turn` time is up or speaker voluntarily relinquishes turn:
             sets speaker's `speaking` count to zero in data dict
             sets speaker to new speaker
-    
+
     NOTE: not using uwsgi.lock for this, shouldn't be necessary. no
     possible race conditions are known at time of coding (jc).
     '''
@@ -530,7 +530,7 @@ def countdown(group, data=None):
 
     currently only using uwsgi.lock() when moving group to `finished`.
     may need to reevaluate that (jc).
-    
+
     >>> now = datetime.datetime.utcnow().timestamp()
     >>> data = {'finished': {}, 'groups': {
     ...         'test': {
