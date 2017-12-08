@@ -7,7 +7,6 @@ com.jcomeau.myturn.state = null;
 com.jcomeau.myturn.pages = null;
 com.jcomeau.myturn.page = null;
 com.jcomeau.myturn.pagename = null;
-com.jcomeau.myturn.storedPages = [];
 com.jcomeau.myturn.poller = null;
 com.jcomeau.myturn.username = null;
 com.jcomeau.myturn.groupname = null;
@@ -29,7 +28,7 @@ com.jcomeau.myturn.myTurn = function() {
                 request.status == 200) {
             var groupdata = request.response;
             if (!groupdata.groupname) {
-                console.log("discussion over, redirecting to report page");
+                console.log("MyTurn mousedown redirecting to report page");
                 return cjm.showReport();
             }
         }
@@ -53,7 +52,7 @@ com.jcomeau.myturn.cancelRequest = function() {
                 request.status == 200) {
             var groupdata = request.response;
             if (!groupdata.groupname) {
-                console.log("discussion over, redirecting to report page");
+                console.log("MyTurn mouseup redirecting to report page");
                 return cjm.showReport();
             }
         }
@@ -116,13 +115,15 @@ com.jcomeau.myturn.showReport = function() {
                 request.status == 200) {
             var report = request.response.getElementById("report-table");
             for (var index = 0; index < cjm.pages.length; index++) {
-                element = cjm.pages[index];
-                if (element.getAttribute("id") == "report-body") {
-                    cjm.page = cjm.pages.splice(element, 1, cjm.page);
+                var page = cjm.pages[index];
+                var pagename = page.getAttribute("id");
+                if (pagename == "report-body") {
+                    cjm.page = page;
+                    cjm.pagename = pagename;
                     break;
                 }
             }
-            cjm.page.getElementById("report-table").replaceWith(report);
+            cjm.page.getElementsByTagName("table")[0].replaceWith(report);
             document.querySelector("div.body").replaceWith(cjm.page);
         }
     };
@@ -177,7 +178,6 @@ addEventListener("load", function() {
         for (var index = 0; index < cjm.pages.length; index++) {
             var page = cjm.pages[index];
             if (page.style.display == "none") {
-                cjm.storedPages.push(page);
                 page.parentNode.removeChild(page);
                 // OK to set it visible now, it's no longer part of document
                 page.style.display = "";
