@@ -306,7 +306,7 @@ def server(env=None, start_response=None):
         status_code = '200 OK'
     elif path.startswith('report/'):
         group = path.split('/')[1]
-        page = create_report(group=group)
+        page = create_report(group=group).decode('utf8')
         status_code = '200 OK'
     elif path.startswith('groups/'):
         group = path.split('/')[1]

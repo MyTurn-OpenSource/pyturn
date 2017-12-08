@@ -103,6 +103,7 @@ com.jcomeau.myturn.updateTalkSession = function() {
     };
     request.send();
 };
+
 com.jcomeau.myturn.showReport = function() {
     var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
@@ -114,16 +115,20 @@ com.jcomeau.myturn.showReport = function() {
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var report = request.response.getElementById("report-table");
-            var reportPage = cjm.pages.findIndex(function(element) {
-                return element.getAttribute("id") == "report-body";
-            });
-            cjm.page = cjm.pages.splice(reportPage, 1, cjm.page);
+            for (var index = 0; index < cjm.pages.length; index++) {
+                element = cjm.pages[index];
+                if (element.getAttribute("id") == "report-body") {
+                    cjm.page = cjm.pages.splice(element, 1, cjm.page);
+                    break;
+                }
+            }
             cjm.page.getElementById("report-table").replaceWith(report);
             document.querySelector("div.body").replaceWith(cjm.page);
         }
     };
     request.send();
 };
+
 com.jcomeau.myturn.updateGroups = function() {
     var request = new XMLHttpRequest();  // not supporting IE
     request.open("GET", "/groups");
