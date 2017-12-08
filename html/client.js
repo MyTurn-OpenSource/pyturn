@@ -110,7 +110,7 @@ com.jcomeau.myturn.showReport = function() {
     request.responseType = "document";  // returns object
     request.onreadystatechange = function() {
         console.log("response code " + request.readyState + ": " +
-                    JSON.stringify(request.response || {}));
+                    request.response);
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var report = request.response.getElementById("report-table");
@@ -123,6 +123,7 @@ com.jcomeau.myturn.showReport = function() {
                     break;
                 }
             }
+            // unfortunately, elements do not have getElementById method
             cjm.page.getElementsByTagName("table")[0].replaceWith(report);
             document.querySelector("div.body").replaceWith(cjm.page);
         }
