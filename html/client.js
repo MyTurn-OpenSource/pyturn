@@ -29,7 +29,8 @@ com.jcomeau.myturn.myTurn = function() {
                 request.status == 200) {
             var groupdata = request.response;
             if (!groupdata.groupname) {
-                console.log("discussion over, code redirect to report page");
+                console.log("discussion over, redirecting to report page");
+                return cjm.showReport();
             }
         }
     };
@@ -52,7 +53,8 @@ com.jcomeau.myturn.cancelRequest = function() {
                 request.status == 200) {
             var groupdata = request.response;
             if (!groupdata.groupname) {
-                console.log("discussion over, code redirect to report page");
+                console.log("discussion over, redirecting to report page");
+                return cjm.showReport();
             }
         }
     };
@@ -73,8 +75,8 @@ com.jcomeau.myturn.updateTalkSession = function() {
             var groupdata = request.response;
             if (!groupdata.groupname) {
                 cjm.poller = clearInterval(cjm.poller);
-                console.log("discussion over, code redirect to report page");
-                return;
+                console.log("discussion over, redirecting to report page");
+                return cjm.showReport();
             }
             var speaker = groupdata.talksession.speaker;
             var remaining = groupdata.talksession.remaining;
@@ -97,6 +99,27 @@ com.jcomeau.myturn.updateTalkSession = function() {
                         null, 0, 1, 0, 0, remaining).toString().split(" ")[4];
             }
             cjm.groupdata = groupdata;
+        }
+    };
+    request.send();
+};
+com.jcomeau.myturn.showReport = function() {
+    var cjm = com.jcomeau.myturn;
+    var request = new XMLHttpRequest();  // not supporting IE
+    request.open("GET", "/report/" + cjm.groupname);
+    request.responseType = "document";  // returns object
+    request.onreadystatechange = function() {
+        console.log("response code " + request.readyState + ": " +
+                    JSON.stringify(request.response || {}));
+        if (request.readyState == XMLHttpRequest.DONE &&
+                request.status == 200) {
+            var report = request.response.getElementById("report-table");
+            var reportPage = cjm.pages.findIndex(function(element) {
+                return element.getAttribute("id") == "report-body";
+            });
+            cjm.page = cjm.pages.splice(reportPage, 1, cjm.page);
+            cjm.page.getElementById("report-table").replaceWith(report);
+            document.querySelector("div.body").replaceWith(cjm.page);
         }
     };
     request.send();

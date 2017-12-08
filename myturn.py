@@ -135,7 +135,7 @@ def loadpage(path, data=None):
         hide_except('joinform', parsed)
     return html.tostring(parsed).decode()
 
-def create_report(parsed, group, data=None, **formatting):
+def create_report(parsed=None, group=None, data=None, **formatting):
     '''
     show participants with the amount of time each spoke
 
@@ -170,13 +170,18 @@ def create_report(parsed, group, data=None, **formatting):
        </table>
     <BLANKLINE>
     '''
+    parsed = parsed or copy.deepcopy(PARSED)
     data = data or DATA
     rows = parsed.xpath('//*[@id="report-body"]//table/tr')
     logging.debug('create_report: rows: %s', rows)
     template = rows[1]
     table = template.getparent()
     table.remove(template)
-    participants = data['finished'][group]['participants']
+    try:
+        participants = data['finished'][group]['participants']
+    except KeyError as nosuchgroup:
+        logging.warn('No such group %s', nosuchgroup)
+        participants = {}
     speakers = sorted(participants, key=lambda u: -participants[u]['spoke'])
     columns = template.xpath('./td')
     logging.debug('create_report: speakers: %s', speakers)
@@ -298,6 +303,10 @@ def server(env=None, start_response=None):
     logging.debug('server: data: %s', data)
     if path in ('groups',):
         page = populate_grouplist(None, data, formatted='element')
+        status_code = '200 OK'
+    elif path.startswith('report/'):
+        group = path.split('/')[1]
+        page = create_report(group=group)
         status_code = '200 OK'
     elif path.startswith('groups/'):
         group = path.split('/')[1]
