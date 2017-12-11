@@ -90,10 +90,17 @@ com.jcomeau.myturn.updateTalkSession = function() {
                 var previousData = cjm.groupdata;
                 console.log("previous data: " + JSON.stringify(previousData));
                 console.log("participants: " + previousData.participants);
-                var previousTime = 1000;  // arbitrarily high number
-                if (previousData.participants[speaker]) 
+                var previousTime = 1000000;  // arbitrarily high number
+                var previousSpeaker = previousData.talksession.speaker;
+                if (previousSpeaker == speaker &&
+                        previousData.participants[speaker]) {
+                    console.log("same speaker, checking if new quantum");
                     previousTime = previousData.participants[speaker].speaking;
-                if (groupdata.participants[speaker].speaking < previousTime)
+                }
+                var currentTime = groupdata.participants[speaker].speaking;
+                console.log("will update time field if " + currentTime +
+                            " < " + previousTime);
+                if (currentTime < previousTime)
                     timeStatus.textContent = new Date(
                         null, 0, 1, 0, 0, remaining).toString().split(" ")[4];
             }
