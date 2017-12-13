@@ -28,6 +28,10 @@ def joingroup(driver, username, groupname=None):
             logging.error('see /tmp/errorscreen.png for error')
             raise
         Select(field).select_by_value(groupname)
+    logging.debug('joingroup field: %s: %s', field, dir(field))
+    field = driver.find_element_by_css_selector(
+        'input[name="submit"][value="Join"]')
+    field.click()
 
 def newgroup(driver, groupname, minutes, turntime):
     '''
@@ -39,7 +43,8 @@ def newgroup(driver, groupname, minutes, turntime):
     field.send_keys(str(minutes))
     field = driver.find_element_by_css_selector('input[name="turn"]')
     field.send_keys(str(turntime))
-    field.submit()
+    field = driver.find_element_by_css_selector('input[value="Submit"]')
+    field.click()
 
 def myturn(driver, release=False):
     '''
