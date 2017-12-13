@@ -6,6 +6,8 @@ PHANTOMJS_TBZ := $(PHANTOMJS_TBZ)/phantomjs-2.1.1-linux-i686.tar.bz2
 PHANTOMJS := /usr/src/phantomjs-2.1.1-linux-i686/bin/phantomjs
 # add location of phantomjs to PATH
 PATH := $(dir $(PHANTOMJS)):$(PATH)
+# add location of chromedriver to PATH
+PATH := $(HOME)/downloads:$(PATH)
 # set npm_config_argv to "alpha" for local (test) installation
 npm_config_argv ?= {"remain": ["alpha"]}
 export
