@@ -3,6 +3,12 @@ html, body {
   background: green;  /* should never be seen with 0 margin */
   margin: 0;  /* eliminate scrollbars */
   font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+}
+@media screen and (max-device-width: 1023px) {
+  html, body {
+    font-size: xx-large;
+  }
 }
 table {
   width: 100%;
@@ -59,7 +65,6 @@ div[class$="status"] {
 label {
   background-color: #f7f7f7;
   text-align: left;
-  font-size: small;
   display: table-cell;
   width: 7em;
   font-weight: bold;
@@ -78,7 +83,7 @@ label, input {
 }
 input[type=submit] {
   border-radius: 5px;
-  font-size: large;
+  font-size: larger;
   font-weight: bold;
   border: 1px solid #999999;
   background-color: #cccccc;
