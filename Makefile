@@ -64,6 +64,7 @@ $(PHANTOMJS): ~/Downloads/$(notdir $(PHANTOMJS_TBZ))
 	cd /usr/src/ && tar xvf $<
 	touch $@
 unittests: $(PHANTOMJS)
+	$(MAKE) restart  # start with clean slate
 	java -jar ~/Downloads/selenium-server-standalone-3.7.1.jar & \
 	 echo $$! > /tmp/testserver.pid
 	sleep 5  # wait for Java to start server

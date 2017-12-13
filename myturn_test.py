@@ -23,7 +23,7 @@ def savescreen(driver, fileprefix):
     '''
     Save screen to a unique filename for debugging
     '''
-    descriptor, filename = tempfile.mkstemp(prefix=fileprefix)
+    descriptor, filename = tempfile.mkstemp(prefix=fileprefix, suffix='.png')
     logging.warning('Saving screenshot to %s', filename)
     driver.save_screenshot(filename)
 
