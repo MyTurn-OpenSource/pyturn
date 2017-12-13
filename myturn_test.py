@@ -50,7 +50,12 @@ def myturn(driver, release=False):
     '''
     Activate or deactivate `My Turn` button
     '''
-    button = driver.find_element_by_id('myturn-button')
+    try:
+        button = driver.find_element_by_id('myturn-button')
+    except NoSuchElementException:
+        driver.save_screenshot('/tmp/errorscreen.png')
+        logging.error('see /tmp/errorscreen.png for error')
+        raise
     actions = ActionChains(driver)
     if release:
         actions.release(button)
