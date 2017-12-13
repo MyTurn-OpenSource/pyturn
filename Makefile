@@ -67,7 +67,8 @@ unittests: $(PHANTOMJS)
 	java -jar ~/Downloads/selenium-server-standalone-3.7.1.jar & \
 	 echo $$! > /tmp/testserver.pid
 	sleep 5  # wait for Java to start server
-	-python3 myturn_test.py
+	@echo Logging tests to /tmp/unittests.log, please wait...
+	-python3 myturn_test.py >/tmp/unittests.log 2>&1
 	kill $$(</tmp/testserver.pid)
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
 	cd $(dir $@) && wget $(PHANTOMJS_TBZ)

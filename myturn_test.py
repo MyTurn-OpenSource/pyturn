@@ -4,28 +4,44 @@ multiuser test of MyTurn implementations
 
 this one is geared to pyturn
 '''
-import sys, os, unittest, time, logging
+import sys, os, unittest, time, logging, uuid, tempfile
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import InvalidElementStateException
 logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
 WEBPAGE = 'http://uwsgi-alpha.myturn.local/'
+EXPECTED_EXCEPTIONS = (
+    NoSuchElementException,
+    InvalidElementStateException,
+)
+
+def savescreen(driver, fileprefix):
+    '''
+    Save screen to a unique filename for debugging
+    '''
+    descriptor, filename = tempfile.mkstemp(prefix=fileprefix)
+    logging.warning('Saving screenshot to %s', filename)
+    driver.save_screenshot(filename)
 
 def joingroup(driver, username, groupname=None):
     '''
     Fill out "join" form. Leave groupname unspecified for default.
     '''
-    field = driver.find_element_by_css_selector('input[name="username"]')
-    field.send_keys(username)
+    try:
+        field = driver.find_element_by_css_selector('input[name="username"]')
+        field.send_keys(username)
+    except EXPECTED_EXCEPTIONS:
+        savescreen(driver, 'username_input')
+        raise
     if groupname is not None:
         try:
             field = driver.find_element_by_id('group-select')
-        except NoSuchElementException:
-            driver.save_screenshot('/tmp/errorscreen.png')
-            logging.error('see /tmp/errorscreen.png for error')
+        except EXPECTED_EXCEPTIONS:
+            savescreen(driver, 'groupselect')
             raise
         Select(field).select_by_value(groupname)
     logging.debug('joingroup field: %s: %s', field, dir(field))
@@ -52,9 +68,8 @@ def myturn(driver, release=False):
     '''
     try:
         button = driver.find_element_by_id('myturn-button')
-    except NoSuchElementException:
-        driver.save_screenshot('/tmp/errorscreen.png')
-        logging.error('see /tmp/errorscreen.png for error')
+    except EXPECTED_EXCEPTIONS:
+        savescreen(driver, 'myturnbutton')
         raise
     actions = ActionChains(driver)
     if release:
