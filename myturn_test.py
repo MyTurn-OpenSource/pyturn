@@ -18,6 +18,8 @@ EXPECTED_EXCEPTIONS = (
     NoSuchElementException,
     InvalidElementStateException,
 )
+BROWSER = os.getenv('USE_TEST_BROWSER', 'PhantomJS')
+WEBDRIVER = getattr(webdriver, BROWSER)
 
 def savescreen(driver, fileprefix):
     '''
@@ -75,8 +77,10 @@ def myturn(driver, release=False):
         raise
     actions = ActionChains(driver)
     if release:
+        logging.debug('releasing My Turn button')
         actions.release(button)
     else:
+        logging.debug('clicking and holding My Turn button')
         actions.click_and_hold(button)
     actions.perform()
 
@@ -89,7 +93,7 @@ class TestMyturnApp(unittest.TestCase):
         '''
         Initialize test environment
         '''
-        self.driver = webdriver.PhantomJS()
+        self.driver = WEBDRIVER()
         self.driver.implicit_wait = 5
 
     def test_load(self):
@@ -114,8 +118,11 @@ class TestMyturnApp(unittest.TestCase):
         joingroup(self.driver, groupname='testing')
         myturn(self.driver)
         time.sleep(10)
+        savescreen(self.driver, 'before_releasing_myturn')
         myturn(self.driver, release=True)
         time.sleep(50.5);
+        for entry in self.driver.get_log('browser'):
+            logging.debug('browser log entry: %s', entry)
         try:
             report = self.driver.find_element_by_id('report-table')
             logging.info('report: %s', report)
@@ -140,9 +147,9 @@ class TestMyturnMultiUser(unittest.TestCase):
         '''
         noscript = DesiredCapabilities.HTMLUNIT
         noscript['javascriptEnabled'] = False
-        self.alice = webdriver.PhantomJS()
+        self.alice = WEBDRIVER()
         self.alice.implicit_wait = 5
-        self.bob = webdriver.PhantomJS()
+        self.bob = WEBDRIVER()
         self.bob.implicit_wait = 5
         self.charlie = webdriver.Remote(desired_capabilities=noscript)
         self.charlie.implicit_wait = 5
@@ -172,7 +179,7 @@ class TestMyturnStress(unittest.TestCase):
         '''
         Initialize test environment
         '''
-        self.driver = webdriver.PhantomJS()
+        self.driver = WEBDRIVER()
         self.driver.implicit_wait = 5
 
     def test_load(self):
