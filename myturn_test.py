@@ -27,16 +27,18 @@ def savescreen(driver, fileprefix):
     logging.warning('Saving screenshot to %s', filename)
     driver.save_screenshot(filename)
 
-def joingroup(driver, username, groupname=None):
+def joingroup(driver, username=None, groupname=None):
     '''
     Fill out "join" form. Leave groupname unspecified for default.
     '''
-    try:
-        field = driver.find_element_by_css_selector('input[name="username"]')
-        field.send_keys(username)
-    except EXPECTED_EXCEPTIONS:
-        savescreen(driver, 'username_input')
-        raise
+    if username is not None:
+        try:
+            field = driver.find_element_by_css_selector(
+                'input[name="username"]')
+            field.send_keys(username)
+        except EXPECTED_EXCEPTIONS:
+            savescreen(driver, 'username_input')
+            raise
     if groupname is not None:
         try:
             field = driver.find_element_by_id('group-select')
@@ -109,7 +111,7 @@ class TestMyturnApp(unittest.TestCase):
         self.driver.get(WEBPAGE)
         joingroup(self.driver, 'tester', '')
         newgroup(self.driver, 'testing', 1, 2)
-        joingroup(self.driver, 'tester', 'testing')
+        joingroup(self.driver, groupname='testing')
         myturn(self.driver)
         time.sleep(10)
         myturn(self.driver, release=True)
