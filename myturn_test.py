@@ -116,8 +116,12 @@ class TestMyturnApp(unittest.TestCase):
         time.sleep(10)
         myturn(self.driver, release=True)
         time.sleep(50.5);
-        report = self.driver.find_element_by_id('report-table')
-        logging.debug('report: %s', report)
+        try:
+            report = self.driver.find_element_by_id('report-table')
+            logging.info('report: %s', report)
+        except EXPECTED_EXCEPTIONS:
+            savescreen(self.driver, 'report')
+            raise
 
     def tearDown(self):
         '''
