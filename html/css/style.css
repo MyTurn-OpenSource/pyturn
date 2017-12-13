@@ -10,6 +10,11 @@ html, body {
     font-size: xx-large;
   }
 }
+button, input, select, textarea {
+  /* developer.mozilla.org/en-US/docs/Learn/HTML/Forms/Styling_HTML_forms */
+  font-family: inherit;
+  font-size: 100%;
+}
 table {
   width: 100%;
   height: 100%;
