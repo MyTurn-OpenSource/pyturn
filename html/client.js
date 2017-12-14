@@ -209,7 +209,10 @@ addEventListener("load", function() {
             var myturnButton = document.getElementById("myturn-button");
             myturnButton.addEventListener("mousedown", cjm.myTurn);
             myturnButton.addEventListener("mouseup", cjm.cancelRequest);
-            myturnButton.onclick = function() {return false};  // disable click
+            myturnButton.onclick = function(event) {  // disable click event
+                event.preventDefault();
+                return false;
+            };
             var checkStatus = document.getElementById("check-status");
             checkStatus.parentNode.removeChild(checkStatus);
             cjm.poller = setInterval(cjm.updateTalkSession, 500);

@@ -4,6 +4,8 @@ PORT := 5678
 PHANTOMJS_TBZ := https://bitbucket.org/ariya/phantomjs/downloads
 PHANTOMJS_TBZ := $(PHANTOMJS_TBZ)/phantomjs-2.1.1-linux-i686.tar.bz2
 PHANTOMJS := /usr/src/phantomjs-2.1.1-linux-i686/bin/phantomjs
+# HOSTNAME isn't set when used with `sudo make install`
+HOSTNAME ?= $(shell hostname)
 # add location of phantomjs to PATH
 PATH := $(dir $(PHANTOMJS)):$(PATH)
 # add location of chromedriver to PATH
@@ -47,7 +49,14 @@ edit: myturn.py html/index.html html/css/style.css
 	pylint3 $<
 install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
+	$(MAKE) alphapatch
 	$(MAKE) restart
+alphapatch:
+	if [ "$$(git status | sed -n 's/^On branch \(.*\)/\1/p')" = "alpha" -a \
+	  "$(HOSTNAME)" = "aspire" ]; then \
+	 sed -i 's/^\( *listen 80\)/\1 default_server/' \
+	  /etc/nginx/sites-available/pyturn-alpha; \
+	fi
 %.ssh:
 	# must first set up ~/.ssh/config:
 	# Host droplet
