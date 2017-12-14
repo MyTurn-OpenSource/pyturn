@@ -5,6 +5,7 @@ stats-http
 stats-server = localhost:5679
 plugin = python3
 wsgi-file = /usr/local/jcomeauictx/myturn/myturn.py
+log-date = @(exec:///bin/date +%%Y-%%m-%%d:%%H:%%M:%%S)
 callable = server
 uid = www-data
 threads = 4
