@@ -20,7 +20,9 @@ import uuid, time
 from collections import defaultdict, OrderedDict
 from lxml import html
 from lxml.html import builder
-logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
+logging.basicConfig(
+    level=logging.DEBUG if __debug__ else logging.INFO,
+    format='%(asctime)s:%(levelname)s:%(name)s:%(message)s')
 LOCK = threading.Lock()
 try:  # command-line testing won't have module available
     import uwsgi
