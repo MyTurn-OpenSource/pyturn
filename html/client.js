@@ -210,7 +210,9 @@ addEventListener("load", function() {
             myturnButton.addEventListener("mousedown", cjm.myTurn);
             myturnButton.addEventListener("mouseup", cjm.cancelRequest);
             myturnButton.onclick = function(event) {  // disable click event
+                console.log("trying to prevent click event from functioning");
                 event.preventDefault();
+                event.stopPropagation();
                 return false;
             };
             var checkStatus = document.getElementById("check-status");
