@@ -49,7 +49,7 @@ edit: myturn.py html/index.html html/css/style.css
 	pylint3 $<
 install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
-	$(MAKE) alphapatch
+	-$(MAKE) alphapatch
 	$(MAKE) restart
 alphapatch:
 	if [ "$$(git status | sed -n 's/^On branch \(.*\)/\1/p')" = "alpha" -a \
