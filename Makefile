@@ -10,8 +10,11 @@ HOSTNAME ?= $(shell hostname)
 PATH := $(dir $(PHANTOMJS)):$(PATH)
 # add location of chromedriver to PATH
 PATH := $(HOME)/downloads:$(PATH)
+TODAY ?= $(shell date +%Y-%m-%d)
 # set npm_config_argv to "alpha" for local (test) installation
 npm_config_argv ?= {"remain": ["alpha"]}
+# last client log using Chrome remote Android debugger, saved to ~/downloads
+LASTLOG ?= $(shell ls -rt ~/downloads/*.log 2>/dev/null | tail -n 1)
 export
 default: test
 ngrep:
@@ -87,3 +90,6 @@ unittests: $(PHANTOMJS)
 html/favicon.ico: html/images/myturn-logo.png .FORCE
 	convert $< -crop 144x144+0+20 -define icon:auto-resize=64,48,32,16 $@
 .FORCE:
+mergelogs:  # combine output of server and client side debugging logs
+	cat <(sudo sed -n 's/^$(TODAY) \([0-9:,]\+:DEBUG:.*\)/\1/p' \
+	 /var/log/uwsgi/app/pyturn-alpha.log) $(LASTLOG) | sort
