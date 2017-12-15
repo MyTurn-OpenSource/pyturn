@@ -12,6 +12,7 @@ com.jcomeau.myturn.username = null;
 com.jcomeau.myturn.groupname = null;
 com.jcomeau.myturn.groupdata = {talksession: {}, participants: {}};
 // no need to use `window.` anything; it is implied
+com.jcomeau.myturn.icon = "(url('images/myturn-logo.png')";
 
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
@@ -210,6 +211,8 @@ addEventListener("load", function() {
             myturnButton.style.color = "transparent";
             myturnButton.style.height = "33vmin";
             myturnButton.style.width = "33vmin";
+            myturnButton.style.backgroundImage = cjm.icon;
+            myturnButton.style.backgroundSize = "cover";
             myturnButton.addEventListener("mousedown", cjm.myTurn);
             myturnButton.addEventListener("mouseup", cjm.cancelRequest);
             myturnButton.onclick = function(event) {  // disable click event

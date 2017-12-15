@@ -26,7 +26,7 @@ logging.basicConfig(
 LOCK = threading.Lock()
 try:  # command-line testing won't have module available
     import uwsgi
-    debug('all', 'uwsgi: %s', dir(uwsgi))
+    logging.debug('uwsgi: %s', dir(uwsgi))
 except ImportError:
     uwsgi = type('uwsgi', (), {'opt': {}})  # object with empty opt attribute
     uwsgi.lock = LOCK.acquire
