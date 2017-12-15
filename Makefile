@@ -88,7 +88,12 @@ unittests: $(PHANTOMJS)
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
 	cd $(dir $@) && wget $(PHANTOMJS_TBZ)
 html/favicon.ico: html/images/myturn-logo.png .FORCE
-	convert $< -crop 144x144+0+20 -define icon:auto-resize=64,48,32,16 $@
+	convert $< -crop 144x144+0+20 -resize 16x16 /tmp/myturn-icon.16.png
+	convert $< -crop 144x144+0+20 -resize 32x32 /tmp/myturn-icon.32.png
+	convert $< -resize 48x48 /tmp/myturn-icon.48.png
+	convert $< -resize 64x64 /tmp/myturn-icon.64.png
+	convert /tmp/myturn-icon.*.png -colors 64 $@
+
 .FORCE:
 mergelogs:  # combine output of server and client side debugging logs
 	cat <(sudo sed -n 's/^$(TODAY) \([0-9:,]\+:DEBUG:.*\)/\1/p' \
