@@ -26,7 +26,7 @@ logging.basicConfig(
 LOCK = threading.Lock()
 try:  # command-line testing won't have module available
     import uwsgi
-    logging.debug('uwsgi: %s', dir(uwsgi))
+    debug('all', 'uwsgi: %s', dir(uwsgi))
 except ImportError:
     uwsgi = type('uwsgi', (), {'opt': {}})  # object with empty opt attribute
     uwsgi.lock = LOCK.acquire
@@ -54,19 +54,31 @@ EXPECTED_ERRORS = (
 )
 PARSED = html.parse(os.path.join(APPDIR, 'index.html')).getroot()
 PAGE = html.tostring(PARSED.getroottree())
+DEBUG = ['all']  # populate from querystring
+
+def debug(category, *args):
+    '''
+    log debug code only for given category
+
+    reduces log size and allows for granular approach to debugging
+    '''
+    if not __debug__:
+        return
+    elif category in DEBUG:
+        logging.debug(*args)
 
 def findpath(env):
     '''
     locate directory where files are stored, and requested file
     '''
     start = APPDIR
-    logging.debug('findpath: start: %s' % start)
+    debug('all', 'findpath: start: %s' % start)
     path = env.get('HTTP_PATH')
-    #logging.debug('path, attempt 1: %s', path)
+    #debug('all', 'path, attempt 1: %s', path)
     path = path or env.get('REQUEST_URI')
-    #logging.debug('path, attempt 2: %s', path)
+    #debug('all', 'path, attempt 2: %s', path)
     path = (path or '/').lstrip('/')
-    logging.debug('findpath: should not be None at this point: "%s"', path)
+    debug('all', 'findpath: should not be None at this point: "%s"', path)
     return start, path
 
 def loadpage(path, data=None):
@@ -78,18 +90,18 @@ def loadpage(path, data=None):
     data = data or DATA
     parsed = html.fromstring(PAGE)
     postdict = data.get('postdict', {})
-    logging.debug('loadpage: postdict: %s', postdict)
+    debug('all', 'loadpage: postdict: %s', postdict)
     set_values(parsed, postdict,
                ['username', 'groupname', 'httpsession_key', 'joined'])
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
     else:
         groups = []
-    logging.debug('loadpage: groups: %s', groups)
+    debug('all', 'loadpage: groups: %s', groups)
     # only show load indicator if no path specified;
     # get rid of meta refresh if path has already been chosen
     if path == '':
-        logging.debug('showing load indicator')
+        debug('all', 'showing load indicator')
         hide_except('loading', parsed)
         return html.tostring(parsed).decode()
     else:
@@ -98,18 +110,18 @@ def loadpage(path, data=None):
     if 'text' in postdict:
         span = builder.SPAN(cgi.escape(postdict['text']))
         parsed.xpath('//div[@id="error-text"]')[0].append(span)
-        logging.debug('showing error page')
+        debug('all', 'showing error page')
         hide_except('error', parsed)
     elif postdict.get('joined'):
-        logging.debug('found "joined": %s', data['postdict'])
+        debug('all', 'found "joined": %s', data['postdict'])
         group = postdict['groupname']
         if not group in groups:
             if not group in data['finished']:
-                logging.debug('nonexistent group, showing joinform again')
+                debug('all', 'nonexistent group, showing joinform again')
                 hide_except('joinform', parsed)
             else:
                 create_report(parsed, group, data)
-                logging.debug('showing report page')
+                debug('all', 'showing report page')
                 hide_except('report', parsed)
         else:
             groupdata = data['groups'][group]
@@ -120,20 +132,20 @@ def loadpage(path, data=None):
                      ['Current speaker is %s' % speaker if speaker else
                       'Waiting for next speaker'])
             set_text(parsed, ['talksession-time'], [formatseconds(remaining)])
-            logging.debug('userdata[request]: %.6f', userdata['request'])
+            debug('all', 'userdata[request]: %.6f', userdata['request'])
             buttonvalue = 'Cancel request' if userdata['request'] else 'My Turn'
-            logging.debug('setting buttonvalue to %s', buttonvalue)
+            debug('all', 'setting buttonvalue to %s', buttonvalue)
             set_button(parsed, ['myturn-button'], [buttonvalue])
-            logging.debug('showing talk page')
+            debug('all', 'showing talk page')
             hide_except('talksession', parsed)
     elif (postdict.get('submit') == 'Join' and postdict.get('username') and
           postdict.get('group', '') == ''):
         # some browsers won't return `group` in postdict at all if
         # selected element is empty (as it is by default in this case)
-        logging.debug('showing groupform after joinform')
+        debug('all', 'showing groupform after joinform')
         hide_except('groupform', parsed)
     else:
-        logging.debug('showing joinform by default')
+        debug('all', 'showing joinform by default')
         hide_except('joinform', parsed)
     return html.tostring(parsed).decode()
 
@@ -175,7 +187,7 @@ def create_report(parsed=None, group=None, data=None, **formatting):
     parsed = parsed or copy.deepcopy(PARSED)
     data = data or DATA
     rows = parsed.xpath('//*[@id="report-body"]//table/tr')
-    logging.debug('create_report: rows: %s', rows)
+    debug('all', 'create_report: rows: %s', rows)
     template = rows[1]
     table = template.getparent()
     table.remove(template)
@@ -186,28 +198,28 @@ def create_report(parsed=None, group=None, data=None, **formatting):
         participants = {}
     speakers = sorted(participants, key=lambda u: -participants[u]['spoke'])
     columns = template.xpath('./td')
-    logging.debug('create_report: speakers: %s', speakers)
+    debug('all', 'create_report: speakers: %s', speakers)
     for speaker in speakers:
-        logging.debug('adding speaker "%s" to report', speaker)
+        debug('all', 'adding speaker "%s" to report', speaker)
         columns[0].text = speaker
         columns[1].text = formatseconds(participants[speaker]['spoke'])
-        logging.debug('template now: %s', html.tostring(template))
+        debug('all', 'template now: %s', html.tostring(template))
         table.append(html.fromstring(html.tostring(template)))
-        logging.debug('table now: %s', html.tostring(table))
+        debug('all', 'table now: %s', html.tostring(table))
     return html.tostring(table, **formatting)
 
 def set_text(parsed, idlist, values):
     '''
     pre-set page text
     '''
-    logging.debug('setting values of %s from %s', idlist, values)
+    debug('all', 'setting values of %s from %s', idlist, values)
     for index in range(len(idlist)):
         elementid = idlist[index]
         value = values[index]
         element = parsed.xpath('//*[@id="%s"]' % elementid)[0]
-        logging.debug('before: %s', html.tostring(element))
+        debug('all', 'before: %s', html.tostring(element))
         element.text = value
-        logging.debug('after: %s', html.tostring(element))
+        debug('all', 'after: %s', html.tostring(element))
 
 def set_button(parsed, idlist, values):
     '''
@@ -222,25 +234,25 @@ def set_button(parsed, idlist, values):
         elementid = idlist[index]
         value = values[index]
         element = parsed.xpath('//*[@id="%s"]' % elementid)[0]
-        logging.debug('before: %s', html.tostring(element))
+        debug('all', 'before: %s', html.tostring(element))
         element.set('value', value)
-        logging.debug('after: %s', html.tostring(element))
+        debug('all', 'after: %s', html.tostring(element))
 
 def set_values(parsed, postdict, fieldlist):
     '''
     pre-set form input values from postdict
     '''
-    logging.debug('setting values of %s from %s', fieldlist, postdict)
+    debug('all', 'setting values of %s from %s', fieldlist, postdict)
     for fieldname in fieldlist:
         value = postdict.get(fieldname, '')
         if not value:
-            logging.debug('skipping %s, no value found', fieldname)
+            debug('all', 'skipping %s, no value found', fieldname)
             continue
         elements = parsed.xpath('//input[@name="%s"]' % fieldname)
         for element in elements:
-            logging.debug('before: %s', html.tostring(element))
+            debug('all', 'before: %s', html.tostring(element))
             element.set('value', value)
-            logging.debug('after: %s', html.tostring(element))
+            debug('all', 'after: %s', html.tostring(element))
 
 def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     '''
@@ -267,7 +279,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
                     key=lambda g: data['groups'][g]['timestamp'])
     contents = ':'.join([''] + groups)
     grouplist = parsed.xpath('//select[@name="group"]')[0]
-    logging.debug('populate_grouplist: %s', grouplist)
+    debug('all', 'populate_grouplist: %s', grouplist)
     for group in groups:
         newgroup = builder.OPTION(group, value=group)
         grouplist.append(newgroup)
@@ -302,7 +314,7 @@ def server(env=None, start_response=None):
     status_code, mimetype, page = '500 Server error', 'text/html', '(Unknown)'
     start, path = findpath(env)
     data = handle_post(env)
-    logging.debug('server: data: %s', data)
+    debug('all', 'server: data: %s', data)
     if path in ('groups',):
         page = populate_grouplist(None, data, formatted='element')
         status_code = '200 OK'
@@ -315,7 +327,7 @@ def server(env=None, start_response=None):
         try:
             page = cgi.escape(json.dumps(data['groups'][group]))
         except KeyError as groupname:
-            logging.debug('group "%s" does not exist', groupname)
+            debug('all', 'group "%s" does not exist', groupname)
             page = '{}'
         status_code = '200 OK'
     elif path in ('', 'noscript', 'app'):
@@ -332,7 +344,7 @@ def server(env=None, start_response=None):
             status_code = '404 File not found'
             page = '<h1>No such page: %s</h1>' % str(filenotfound)
     start_response(status_code, [('Content-type', mimetype)])
-    logging.debug('page: %s', page[:128])
+    debug('all', 'page: %s', page[:128])
     return [page.encode('utf8')]
 
 def handle_post(env):
@@ -363,13 +375,13 @@ def handle_post(env):
             return copy.deepcopy(DATA)
         posted = urllib.parse.parse_qsl(env['wsgi.input'].read().decode())
         DATA['postdict'] = postdict = dict(posted)
-        logging.debug('handle_post: %s, postdict: %s', posted, postdict)
+        debug('all', 'handle_post: %s, postdict: %s', posted, postdict)
         # [groupname, total, turn] and submit=Submit if group creation
         # [username, group] and submit=Join if joining a group
         postdict['timestamp'] = timestamp
         if not postdict.get('httpsession_key'):
             postdict['httpsession_key'] = uuid.uuid4().hex
-            logging.debug('set httpsession_key = %s',
+            debug('all', 'set httpsession_key = %s',
                           postdict['httpsession_key'])
         try:
             buttonvalue = postdict['submit']
@@ -380,7 +392,7 @@ def handle_post(env):
             # username being added to group
             # don't allow if name already in group
             groups = DATA['groups']
-            logging.debug('processing Join: %s', postdict)
+            debug('all', 'processing Join: %s', postdict)
             username = postdict.get('username', '')
             group = postdict.get('group', '')
             if not username:
@@ -432,14 +444,14 @@ def handle_post(env):
             # attempting to speak in ongoing session
             # this would normally only be reached by browser in which
             # JavaScript did not work properly in taking over default actions
-            logging.debug('env: %s', env)
+            debug('all', 'env: %s', env)
             groups = DATA['groups']
             group = postdict['groupname']
             username = postdict['username']
             try:
                 userdata = groups[group]['participants'][username]
                 if not userdata['request']:
-                    logging.debug("userdata: setting %s's request to %.6f",
+                    debug('all', "userdata: setting %s's request to %.6f",
                                   username, timestamp)
                     userdata['request'] = timestamp
                 else:
@@ -468,11 +480,11 @@ def handle_post(env):
             raise ValueError('Unknown form submitted')
     except UserWarning as request:
         if str(request) == 'Help requested':
-            logging.debug('displaying help screen')
+            debug('all', 'displaying help screen')
             DATA['postdict']['text'] = read(os.path.join(THISDIR, 'README.md'))
             return copy.deepcopy(DATA)
     except EXPECTED_ERRORS as failed:
-        logging.debug('displaying error: "%r"', failed)
+        debug('all', 'displaying error: "%r"', failed)
         DATA['postdict']['text'] = repr(failed)
         return copy.deepcopy(DATA)
     finally:
@@ -558,16 +570,16 @@ def countdown(group, data=None):
         ending = (datetime.datetime.fromtimestamp(
             groups[group]['talksession']['start']) +
                   datetime.timedelta(minutes=minutes)).timestamp()
-        logging.debug('countdown ending: %.6f', ending)
+        debug('all', 'countdown ending: %.6f', ending)
         while True:
             time.sleep(sleeptime)
             now = datetime.datetime.utcnow().timestamp()
-            logging.debug('countdown now: %.6f', now)
+            debug('all', 'countdown now: %.6f', now)
             if now > ending:
-                logging.debug('countdown ended at %.6f', now)
+                debug('all', 'countdown ended at %.6f', now)
                 break
             speaker = select_speaker(group, data)
-            logging.debug('countdown: speaker: %s', speaker)
+            debug('all', 'countdown: speaker: %s', speaker)
             if speaker:
                 speakerdata = groups[group]['participants'][speaker]
                 speakerdata['speaking'] += sleeptime
@@ -584,7 +596,7 @@ def countdown(group, data=None):
         try:
             uwsgi.unlock()
         except Exception as nosuchlock:  # pylint: disable=broad-except
-            logging.debug('ignoring uwsgi.unlock() error: %s', nosuchlock)
+            debug('all', 'ignoring uwsgi.unlock() error: %s', nosuchlock)
             pass
 
 def update_httpsession(postdict):
@@ -613,7 +625,7 @@ def update_httpsession(postdict):
                     'updated': timestamp,
                     'username': username}
         else:
-            logging.debug('no username associated with session %s', session_key)
+            debug('all', 'no username associated with session %s', session_key)
     else:
         logging.warn('no httpsession_key in POST')
 
@@ -621,9 +633,9 @@ def render(pagename, standalone=True):
     '''
     Return content with Content-type header
     '''
-    logging.debug('render(%s, %s) called', pagename, standalone)
+    debug('all', 'render(%s, %s) called', pagename, standalone)
     if pagename.endswith('.html'):
-        logging.debug('rendering static HTML content')
+        debug('all', 'rendering static HTML content')
         return (read(pagename), 'text/html')
     elif not pagename.endswith(('.png', '.ico', '.jpg', '.jpeg')):
         # assume plain text
@@ -641,10 +653,10 @@ def read(filename):
     '''
     Return contents of a file
     '''
-    logging.debug('read: returning contents of %s', filename)
+    debug('all', 'read: returning contents of %s', filename)
     with open(filename) as infile:
         data = infile.read()
-        logging.debug('data: %s', data[:128])
+        debug('all', 'data: %s', data[:128])
         return data
 
 def formatseconds(seconds):
