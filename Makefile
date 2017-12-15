@@ -43,13 +43,13 @@ edit_all: myturn.py myturn_test.py html/index.html html/css/style.css \
 	# now test:
 	python3 $<
 	python3 -m doctest $<
-	pylint3 $<
+	pylint3 --disable=locally-disabled $<
 edit: myturn.py html/index.html html/css/style.css
 	-vi $+
 	# now test:
 	python3 $<
 	python3 -m doctest $<
-	pylint3 $<
+	pylint3 --disable=locally-disabled $<
 install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
 	-$(MAKE) alphapatch
