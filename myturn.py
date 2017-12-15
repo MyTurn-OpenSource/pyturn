@@ -13,6 +13,7 @@ address with the name `myturn` in /etc/hosts, e.g.:
 
 127.0.1.125 myturn
 '''
+# pragma pylint: disable=multiple-imports
 from __future__ import print_function
 import sys, os, urllib.request, urllib.error, urllib.parse, logging, pwd
 import subprocess, site, cgi, datetime, urllib.parse, threading, copy, json
@@ -26,12 +27,12 @@ logging.basicConfig(
 LOCK = threading.Lock()
 try:  # command-line testing won't have module available
     import uwsgi
-    logging.debug('uwsgi: %s', dir(uwsgi))
+    #logging.debug('uwsgi: %s', dir(uwsgi))
 except ImportError:
     uwsgi = type('uwsgi', (), {'opt': {}})  # object with empty opt attribute
     uwsgi.lock = LOCK.acquire
     uwsgi.unlock = LOCK.release
-logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
+#logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('sys.argv: %s', sys.argv)  # only shows [uwsgi]
 #logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
 # so we can see that sys.argv and PWD are useless for uwsgi operation
@@ -54,7 +55,7 @@ EXPECTED_ERRORS = (
 )
 PARSED = html.parse(os.path.join(APPDIR, 'index.html')).getroot()
 PAGE = html.tostring(PARSED.getroottree())
-DEBUG = ['all']  # populate from querystring
+DEBUG = []  # populate from querystring
 
 def debug(category, *args):
     '''
@@ -70,12 +71,18 @@ def debug(category, *args):
 def findpath(env):
     '''
     locate directory where files are stored, and requested file
+
+    side effect: splits off querystring and stores its debug values in DEBUG
     '''
     start = APPDIR
+    parsed = urllib.parse.urlparse(env.get('REQUEST_URI'), '')
+    if parsed.query:
+        query = urllib.parse.parse_qs(parsed.query or '')
+        DEBUG[:] = query.get('debug', [])
     debug('all', 'findpath: start: %s' % start)
     path = env.get('HTTP_PATH')
     #debug('all', 'path, attempt 1: %s', path)
-    path = path or env.get('REQUEST_URI')
+    path = path or parsed.path
     #debug('all', 'path, attempt 2: %s', path)
     path = (path or '/').lstrip('/')
     debug('all', 'findpath: should not be None at this point: "%s"', path)
@@ -184,7 +191,7 @@ def create_report(parsed=None, group=None, data=None, **formatting):
        </table>
     <BLANKLINE>
     '''
-    parsed = parsed or copy.deepcopy(PARSED)
+    parsed = parsed if parsed is not None else copy.deepcopy(PARSED)
     data = data or DATA
     rows = parsed.xpath('//*[@id="report-body"]//table/tr')
     debug('all', 'create_report: rows: %s', rows)
@@ -382,7 +389,7 @@ def handle_post(env):
         if not postdict.get('httpsession_key'):
             postdict['httpsession_key'] = uuid.uuid4().hex
             debug('all', 'set httpsession_key = %s',
-                          postdict['httpsession_key'])
+                  postdict['httpsession_key'])
         try:
             buttonvalue = postdict['submit']
         except KeyError:
@@ -444,15 +451,15 @@ def handle_post(env):
             # attempting to speak in ongoing session
             # this would normally only be reached by browser in which
             # JavaScript did not work properly in taking over default actions
-            debug('all', 'env: %s', env)
+            debug('button', 'My Turn button pressed, env: %s', env)
             groups = DATA['groups']
             group = postdict['groupname']
             username = postdict['username']
             try:
                 userdata = groups[group]['participants'][username]
                 if not userdata['request']:
-                    debug('all', "userdata: setting %s's request to %.6f",
-                                  username, timestamp)
+                    debug('button', "userdata: setting %s's request to %.6f",
+                          username, timestamp)
                     userdata['request'] = timestamp
                 else:
                     logging.warning('ignoring newer request %.6f, '
@@ -462,6 +469,7 @@ def handle_post(env):
                 raise SystemError('Group %s is no longer active' % group)
             return copy.deepcopy(DATA)
         elif buttonvalue == 'Cancel request':
+            debug('button', 'My Turn button released')
             groups = DATA['groups']
             group = postdict['groupname']
             username = postdict['username']
