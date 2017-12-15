@@ -217,7 +217,9 @@ addEventListener("load", function() {
             myturnButton.style.backgroundImage = cjm.icon;
             myturnButton.style.backgroundSize = "cover";
             myturnButton.addEventListener("mousedown", cjm.myTurn);
+            myturnButton.addEventListener("touchstart", cjm.myTurn);
             myturnButton.addEventListener("mouseup", cjm.cancelRequest);
+            myturnButton.addEventListener("touchend", cjm.cancelRequest);
             myturnButton.onclick = function(event) {  // disable click event
                 console.log("trying to prevent click event from functioning");
                 event.preventDefault();
