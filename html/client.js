@@ -12,7 +12,7 @@ com.jcomeau.myturn.username = null;
 com.jcomeau.myturn.groupname = null;
 com.jcomeau.myturn.groupdata = {talksession: {}, participants: {}};
 // no need to use `window.` anything; it is implied
-com.jcomeau.myturn.icon = "(url('images/myturn-logo.png')";
+com.jcomeau.myturn.icon = "url('images/myturn-logo.png')";
 
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
