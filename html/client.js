@@ -208,8 +208,8 @@ addEventListener("load", function() {
             cjm.updateTalkSession(); // do it once now to make sure it works
             var myturnButton = document.getElementById("myturn-button");
             myturnButton.style.color = "transparent";
-            myturnButton.style.height = "33vh";
-            myturnButton.style.width = "33vw";
+            myturnButton.style.height = "33vmin";
+            myturnButton.style.width = "33vmin";
             myturnButton.addEventListener("mousedown", cjm.myTurn);
             myturnButton.addEventListener("mouseup", cjm.cancelRequest);
             myturnButton.onclick = function(event) {  // disable click event
