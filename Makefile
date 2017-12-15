@@ -85,6 +85,7 @@ unittests: $(PHANTOMJS)
 	@echo Logging tests to /tmp/unittests.log, please wait...
 	-python3 myturn_test.py >/tmp/unittests.log 2>&1
 	kill $$(</tmp/testserver.pid)
+	@echo Tests were logged to /tmp/unittests.log
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
 	cd $(dir $@) && wget $(PHANTOMJS_TBZ)
 html/favicon.ico: html/images/myturn-logo.png .FORCE
