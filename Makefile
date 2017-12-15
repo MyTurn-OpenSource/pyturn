@@ -84,3 +84,6 @@ unittests: $(PHANTOMJS)
 	kill $$(</tmp/testserver.pid)
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
 	cd $(dir $@) && wget $(PHANTOMJS_TBZ)
+html/favicon.ico: html/images/myturn-logo.png .FORCE
+	convert $< -crop 144x144+0+20 -define icon:auto-resize=64,48,32,16 $@
+.FORCE:
