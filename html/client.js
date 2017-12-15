@@ -181,7 +181,7 @@ addEventListener("load", function() {
     var path = location ? location.pathname.replace(/\/+/, "/") : "/phantom";
     console.log("location.pathname: " + path);
     if (typeof URLSearchParams != "undefined" && location.search)
-        cjm.debugging = URLSearchParams(location.search).debug.split(",");
+        cjm.debugging = (new URLSearchParams(location.search)).getAll("debug");
     if (path != "/noscript") {
         cjm.state = "loading";
         cjm.pages = document ? document.querySelectorAll("div.body") : [];
