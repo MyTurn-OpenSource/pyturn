@@ -13,6 +13,7 @@ com.jcomeau.myturn.groupname = null;
 com.jcomeau.myturn.groupdata = {talksession: {}, participants: {}};
 // no need to use `window.` anything; it is implied
 com.jcomeau.myturn.icon = "url('images/myturn-logo.png')";
+com.jcomeau.myturn.debugging = [];
 
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
@@ -179,6 +180,8 @@ addEventListener("load", function() {
     console.log("location: " + JSON.stringify(location));
     var path = location ? location.pathname.replace(/\/+/, "/") : "/phantom";
     console.log("location.pathname: " + path);
+    if (typeof URLSearchParams != "undefined" && location.search)
+        cjm.debugging = URLSearchParams(location.search).debug.split(",");
     if (path != "/noscript") {
         cjm.state = "loading";
         cjm.pages = document ? document.querySelectorAll("div.body") : [];
