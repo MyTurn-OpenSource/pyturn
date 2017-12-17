@@ -1,23 +1,25 @@
 - To start a new discussion: -
 
-1. The Group initialization fields appear if no groups are active, or if "(Create new group)" is selected at the "Join" screen.
+1. Enter your name after "Your name" and then press "Join".
 
-2. Enter the name of your new discussion after "Group name."
+2. The Group initialization fields appear if "(Create new group)" is selected at the "Join" screen.
 
-3. Enter a number after "Total (min)", which will be the maximum time for discussion, in minutes. 
+3. Enter the name of your new discussion after "Group name."
 
-4. Enter a number after "Turn (sec)", which will be the minimum time a person can speak without any possibility of interruption, in seconds.
+4. Enter a number after "Total (min)", which will be the maximum time for discussion, in minutes.
 
-5. Press "Submit."
+5. Enter a number after "Turn (sec)", which will be the minimum time a person can speak without any possibility of interruption, in seconds.
 
-6. Enter your name after "Your name" and then press "Join". 
+6. Press "Submit."
 
-7. The Discussion Page will appear. Press "My Turn" when you wish to speak. Hold the Button until you finish speaking. It is like a "Push-to-Talk" button, but one that is not active until you get a beep.
+7. You will be back at the Join form. If all looks correct, press "Join".
+
+8. The Discussion Page will appear. Press "My Turn" when you wish to speak. Hold the Button until you finish speaking. It is like a "Push-to-Talk" button, but one that is not active until you get a beep.
 
 
 - If the Group already exists: -
 
-1. Select the name of your discussion by pressing the downward pointing triangle after "Group". A list will appear. Select the Group name and press “Done".
+1. Select the name of your discussion by pressing the downward pointing triangle after "Group". A list will appear. Click the one you want to join.
 
 2. Enter your name after "Your name" and then Press "Join". 
 
