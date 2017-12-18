@@ -58,18 +58,19 @@ com.jcomeau.myturn.myTurn = function() {
 
 com.jcomeau.myturn.flash = function() {
     var cjm = com.jcomeau.myturn;
-    var newColor = "rgb(";
+    var newColor, newColors = cjm.backgroundColor.slice();
     if (cjm.backgroundColor && cjm.backgroundColor.length == 3) {
-        for (var index = 0; index < cjm.backgroundColor.length; index++) {
-            component = cjm.backgroundColor[index];
+        for (var index = 0; index < newColors.length; index++) {
             // can't use division here without Math.floor()
-            newColor += component < 128 ? component << 1: component >>> 1;
-            newColor += ", ";
+            if (newColors[index] < 128) newColors[index] <<= 1;
+            else newColors[index] >>>= 1;
         }
-        newColor += ")";
+        newColor = "rgb(" + newColors.join(", ") + ")";
+        console.log("flashing background color to " + newColor);
         document.body.style.backgroundColor = newColor;
         setTimeout(function() {
             newColor = "rgb(" + cjm.backgroundColor.join(", ") + ")";
+            console.log("restoring background color to " + newColor);
             document.body.style.backgroundColor = newColor;
         }, 10);
     }
@@ -225,7 +226,7 @@ addEventListener("load", function() {
             .map(function(datum) {return parseInt(datum)});
     }
     // test vibration and set flasher if none enabled
-    //navigator.vibrate(1) || navigator.vibrate = cjm.flash;
+    navigator.vibrate(0) || (navigator.vibrate = cjm.flash);
     if (path != "/noscript") {
         cjm.state = "loading";
         cjm.pages = document ? document.querySelectorAll("div.body") : [];
