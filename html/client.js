@@ -46,7 +46,10 @@ com.jcomeau.myturn.myTurn = function() {
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var groupdata = request.response;
-            if (!groupdata.groupname) {
+            if (groupdata.groupname !== cjm.groupname) {
+                console.log("groupdata: " + groupdata);
+                console.log("groupname now " + groupdata.groupname +
+                            ", was: " + cjm.groupname);
                 console.log("MyTurn mousedown redirecting to report page");
                 return cjm.showReport();
             }
@@ -90,7 +93,10 @@ com.jcomeau.myturn.cancelRequest = function() {
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var groupdata = request.response;
-            if (!groupdata.groupname) {
+            if (groupdata.groupname !== cjm.groupname) {
+                console.log("groupdata: " + groupdata);
+                console.log("groupname now " + groupdata.groupname +
+                            ", was: " + cjm.groupname);
                 console.log("MyTurn mouseup redirecting to report page");
                 return cjm.showReport();
             }
@@ -111,8 +117,10 @@ com.jcomeau.myturn.updateTalkSession = function() {
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var groupdata = request.response;
-            if (groupdata.groupname != cjm.groupname) {
-                console.log("found new groupname: " + groupdata.groupname);
+            if (groupdata.groupname !== cjm.groupname) {
+                console.log("groupdata: " + groupdata);
+                console.log("groupname now " + groupdata.groupname +
+                            ", was: " + cjm.groupname);
                 cjm.poller = clearInterval(cjm.poller);
                 console.log("discussion over, redirecting to report page");
                 return cjm.showReport();
@@ -281,8 +289,8 @@ addEventListener("load", function() {
         cjm.state = "loaded";
     }
 });
-if (typeof(phantom) != "undefined") {  // for phantomjs command-line testing
-    console.log(phantom + " exiting");
+if (typeof phantom != "undefined") {  // for phantomjs command-line testing
+    console.log("phantom exiting now");
     phantom.exit();
 }
 /*
