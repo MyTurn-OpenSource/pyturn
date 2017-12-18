@@ -12,8 +12,11 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import InvalidElementStateException
-logging.basicConfig(level=logging.DEBUG if __debug__ else logging.INFO)
-WEBPAGE = 'http://uwsgi-alpha.myturn.local/'
+logging.basicConfig(
+    level=logging.DEBUG if __debug__ else logging.INFO,
+    format='%(asctime)s:%(levelname)s:%(name)s:%(message)s')
+QUERY_STRING = '?debug=button&debug=all'
+WEBPAGE = 'http://uwsgi-alpha.myturn.local/' + QUERY_STRING
 EXPECTED_EXCEPTIONS = (
     NoSuchElementException,
     InvalidElementStateException,

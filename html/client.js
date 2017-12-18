@@ -276,7 +276,7 @@ addEventListener("load", function() {
             cjm.poller = setInterval(cjm.updateTalkSession, 500);
         }
         // save this redirect for last, only reached if all other tests pass
-        if (path == "/") location.replace(location.href + "app");
+        if (location && path == "/") location.pathname = "/app";
         cjm.state = "loaded";
     }
 });

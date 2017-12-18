@@ -13,8 +13,11 @@ PATH := $(HOME)/downloads:$(PATH)
 TODAY ?= $(shell date +%Y-%m-%d)
 # set npm_config_argv to "alpha" for local (test) installation
 npm_config_argv ?= {"remain": ["alpha"]}
+# result of `make unittests` goes to ~/downloads for LASTLOG
+TESTLOG ?= ~/downloads/apptest.log
 # last client log using Chrome remote Android debugger, saved to ~/downloads
-LASTLOG ?= $(shell ls -rt ~/downloads/*.log 2>/dev/null | tail -n 1)
+# don't use := or ?= for this, `touch` the log you want if necessary
+LASTLOG = $(shell ls -rt ~/downloads/*.log 2>/dev/null | tail -n 1)
 export
 default: test
 ngrep:
@@ -43,6 +46,7 @@ edit_all: myturn.py apptest.py html/index.html html/css/style.css \
 	# now test:
 	python3 $<
 	python3 -m doctest $<
+	$(MAKE) html/client.js.test
 	pylint3 --disable=locally-disabled $<
 edit: myturn.py html/index.html html/css/style.css
 	-vi $+
@@ -79,13 +83,14 @@ $(PHANTOMJS): ~/Downloads/$(notdir $(PHANTOMJS_TBZ))
 	touch $@
 unittests: $(PHANTOMJS)
 	$(MAKE) restart  # start with clean slate
-	java -jar ~/Downloads/selenium-server-standalone-3.7.1.jar & \
+	-java -jar ~/Downloads/selenium-server-standalone-3.7.1.jar & \
 	 echo $$! > /tmp/testserver.pid
 	sleep 5  # wait for Java to start server
-	@echo Logging tests to /tmp/unittests.log, please wait...
-	-python3 apptest.py >/tmp/unittests.log 2>&1
+	@echo Logging tests to $(TESTLOG), please wait...
+	-python3 apptest.py >$(TESTLOG) 2>&1
 	kill $$(</tmp/testserver.pid)
-	@echo Tests were logged to /tmp/unittests.log
+	@echo Tests were logged to $(TESTLOG)
+	$(MAKE) mergelogs
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
 	cd $(dir $@) && wget $(PHANTOMJS_TBZ)
 html/favicon.ico: html/images/myturn-logo.png .FORCE
