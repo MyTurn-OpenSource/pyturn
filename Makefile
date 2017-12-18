@@ -93,7 +93,7 @@ html/favicon.ico: html/images/myturn-logo.png .FORCE
 	convert $< -crop 144x144+0+20 -resize 32x32 /tmp/myturn-icon.32.png
 	convert $< -resize 48x48 /tmp/myturn-icon.48.png
 	convert $< -resize 64x64 /tmp/myturn-icon.64.png
-	convert /tmp/myturn-icon.*.png -colors 64 $@
+	convert /tmp/myturn-icon.*.png -background none $@
 
 .FORCE:
 mergelogs:  # combine output of server and client side debugging logs
