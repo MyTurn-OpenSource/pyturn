@@ -111,7 +111,8 @@ com.jcomeau.myturn.updateTalkSession = function() {
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var groupdata = request.response;
-            if (!groupdata.groupname) {
+            if (groupdata.groupname != cjm.groupname) {
+                console.log("found new groupname: " + groupdata.groupname);
                 cjm.poller = clearInterval(cjm.poller);
                 console.log("discussion over, redirecting to report page");
                 return cjm.showReport();
