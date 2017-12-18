@@ -37,7 +37,7 @@ wsgilog applog:
 logs:
 	sudo tail -n 200 -f /var/log/uwsgi/app/$(APP)*.log \
 	 /var/log/nginx/$(APP)-error.log
-edit_all: myturn.py myturn_test.py html/index.html html/css/style.css \
+edit_all: myturn.py apptest.py html/index.html html/css/style.css \
 	 html/client.js $(APP).uwsgi $(APP).nginx
 	-vi $+
 	# now test:
@@ -83,7 +83,7 @@ unittests: $(PHANTOMJS)
 	 echo $$! > /tmp/testserver.pid
 	sleep 5  # wait for Java to start server
 	@echo Logging tests to /tmp/unittests.log, please wait...
-	-python3 myturn_test.py >/tmp/unittests.log 2>&1
+	-python3 apptest.py >/tmp/unittests.log 2>&1
 	kill $$(</tmp/testserver.pid)
 	@echo Tests were logged to /tmp/unittests.log
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
