@@ -4,7 +4,7 @@ multiuser test of MyTurn implementations
 
 this one is geared to pyturn
 '''
-import sys, os, unittest, time, logging, uuid, tempfile
+import sys, os, unittest, time, logging, uuid, tempfile, urllib.parse
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -15,7 +15,7 @@ from selenium.common.exceptions import InvalidElementStateException
 logging.basicConfig(
     level=logging.DEBUG if __debug__ else logging.INFO,
     format='%(asctime)s:%(levelname)s:%(name)s:%(message)s')
-QUERY_STRING = '?debug=button&debug=all'
+QUERY_STRING = '?debug=button'
 WEBPAGE = 'http://uwsgi-alpha.myturn.local/' + QUERY_STRING
 EXPECTED_EXCEPTIONS = (
     NoSuchElementException,
@@ -23,6 +23,12 @@ EXPECTED_EXCEPTIONS = (
 )
 BROWSER = os.getenv('USE_TEST_BROWSER', 'PhantomJS')
 WEBDRIVER = getattr(webdriver, BROWSER)
+
+def currentpath(driver):
+    '''
+    Return just the pathname part of the URL
+    '''
+    return urllib.parse.urlsplit(driver.current_url).path
 
 def savescreen(driver, fileprefix):
     '''
@@ -107,8 +113,8 @@ class TestMyturnApp(unittest.TestCase):
         time.sleep(1)  # enough time for redirect
         logging.debug('current URL: %s', self.driver.current_url)
         for entry in self.driver.get_log('browser'):
-            logging.debug('browser log entry: %s', entry)
-        self.assertTrue(self.driver.current_url.endswith('/app'))
+            logging.debug('client.js: %s', entry)
+        self.assertEqual(currentpath(self.driver), '/app')
 
     def test_single(self):
         '''
@@ -125,7 +131,7 @@ class TestMyturnApp(unittest.TestCase):
         myturn(self.driver, release=True)
         time.sleep(50.5);
         for entry in self.driver.get_log('browser'):
-            logging.debug('browser log entry: %s', entry)
+            logging.debug('client.js: %s', entry)
         try:
             report = self.driver.find_element_by_id('report-table')
             logging.info('report: %s', report)
@@ -163,7 +169,7 @@ class TestMyturnMultiUser(unittest.TestCase):
         '''
         self.charlie.get(WEBPAGE)
         time.sleep(5)  # enough time for refresh
-        self.assertEqual(self.charlie.current_url.split('/')[-1], 'noscript')
+        self.assertEqual(currentpath(self.charlie), '/noscript')
 
     def tearDown(self):
         '''
@@ -193,8 +199,8 @@ class TestMyturnStress(unittest.TestCase):
         time.sleep(1)  # enough time for redirect
         logging.debug('current URL: %s', self.driver.current_url)
         for entry in self.driver.get_log('browser'):
-            logging.debug('browser log entry: %s', entry)
-        self.assertTrue(self.driver.current_url.endswith('/app'))
+            logging.debug('client.js: %s', entry)
+        self.assertEqual(currentpath(self.driver), '/app')
 
     def tearDown(self):
         '''

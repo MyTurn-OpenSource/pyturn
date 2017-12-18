@@ -103,7 +103,8 @@ html/favicon.ico: html/images/myturn-logo.png .FORCE
 .FORCE:
 mergelogs:  # combine output of server and client side debugging logs
 	cat <(sudo sed -n 's/^$(TODAY) \([0-9:,]\+:DEBUG:.*\)/\1/p' \
-	 /var/log/uwsgi/app/pyturn-alpha.log) $(LASTLOG) | sort
+	 /var/log/uwsgi/app/pyturn-alpha.log) \
+	 <(grep client.js $(LASTLOG)) | sort
 %.js.test: $(PHANTOMJS)
 	$< --debug=true $(@:.test=)
 js.test: $(PHANTOMJS)
