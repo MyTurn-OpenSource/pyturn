@@ -31,6 +31,7 @@ com.jcomeau.myturn.icon = "url('images/myturn-logo.png')";
 com.jcomeau.myturn.debugging = [];
 com.jcomeau.myturn.backgroundColor = null;
 com.jcomeau.myturn.beat = [30, 100, 30];  // heartbeat vibration
+com.jcomeau.myturn.phantom = {};
 
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
@@ -45,9 +46,9 @@ com.jcomeau.myturn.myTurn = function() {
                     JSON.stringify(request.response || {}));
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
-            var groupdata = request.response;
+            var groupdata = cjm.phantom.parse(request.response);
             if (groupdata.groupname !== cjm.groupname) {
-                console.log("groupdata: " + groupdata);
+                cjm.phantom.log("groupdata: " + groupdata);
                 console.log("groupname now " + groupdata.groupname +
                             ", was: " + cjm.groupname);
                 console.log("MyTurn mousedown redirecting to report page");
@@ -92,9 +93,9 @@ com.jcomeau.myturn.cancelRequest = function() {
                     JSON.stringify(request.response || {}));
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
-            var groupdata = request.response;
+            var groupdata = cjm.phantom.parse(request.response);
             if (groupdata.groupname !== cjm.groupname) {
-                console.log("groupdata: " + groupdata);
+                cjm.phantom.log("groupdata: " + groupdata);
                 console.log("groupname now " + groupdata.groupname +
                             ", was: " + cjm.groupname);
                 console.log("MyTurn mouseup redirecting to report page");
@@ -116,9 +117,9 @@ com.jcomeau.myturn.updateTalkSession = function() {
                     JSON.stringify(request.response || {}));
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
-            var groupdata = request.response;
+            var groupdata = cjm.phantom.parse(request.response);
             if (groupdata.groupname !== cjm.groupname) {
-                console.log("groupdata: " + groupdata);
+                cjm.phantom.log("groupdata: " + groupdata);
                 console.log("groupname now " + groupdata.groupname +
                             ", was: " + cjm.groupname);
                 cjm.poller = clearInterval(cjm.poller);
@@ -223,6 +224,14 @@ com.jcomeau.myturn.updateGroups = function() {
 addEventListener("load", function() {
     console.log("onload routine started");
     var cjm = com.jcomeau.myturn;
+    if (navigator.userAgent.match(/PhantomJS/)) {
+        cjm.phantom.log = function(message) {console.log(message)};
+        cjm.phantom.parse = JSON.parse;
+    } else {
+        cjm.phantom.log = function() {};
+        cjm.phantom.parse = function(arg) {return arg};
+    }
+    cjm.phantom.log("browser is PhantomJS");
     console.log("location: " + JSON.stringify(location));
     var path = location ? location.pathname.replace(/\/+/, "/") : "/phantom";
     console.log("location.pathname: " + path);
