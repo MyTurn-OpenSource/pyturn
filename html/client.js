@@ -1,4 +1,19 @@
 console.log("client.js starting");
+// initialize vibration API for older browsers
+navigator.vibrate = navigator.vibrate || 
+    navigator.webkitVibrate || 
+    navigator.mozVibrate || 
+    navigator.msVibrate ||
+    (navigator.notification ? navigator.notification.vibrate : function() {
+        return false
+    });
+// but get rid of false desktop Chrome support -- it can't really vibrate
+if (!navigator.userAgent.match(/(Mobi|iP|Android|SCH-I800)/)) {
+    console.log("desktop browser " + navigator.userAgent +
+                ": disabling vibration");
+    navigator.vibrate = function() {return false};
+}
+console.log("vibration enabled: " + navigator.vibrate);
 // namespace this module.
 if (typeof(com) == "undefined") var com = {};
 if (typeof(com.jcomeau) == "undefined") com.jcomeau = {};
@@ -14,6 +29,8 @@ com.jcomeau.myturn.groupdata = {talksession: {}, participants: {}};
 // no need to use `window.` anything; it is implied
 com.jcomeau.myturn.icon = "url('images/myturn-logo.png')";
 com.jcomeau.myturn.debugging = [];
+com.jcomeau.myturn.backgroundColor = null;
+com.jcomeau.myturn.beat = [30, 100, 30];  // heartbeat vibration
 
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
@@ -37,6 +54,25 @@ com.jcomeau.myturn.myTurn = function() {
     };
     request.send("submit=My+Turn&username=" + cjm.username + "&groupname=" +
                  cjm.groupname);
+};
+
+com.jcomeau.myturn.flash = function() {
+    var cjm = com.jcomeau.myturn;
+    var newColor = "rgb(";
+    if (cjm.backgroundColor && cjm.backgroundColor.length == 3) {
+        for (var index = 0; index < cjm.backgroundColor.length; index++) {
+            component = cjm.backgroundColor[index];
+            // can't use division here without Math.floor()
+            newColor += component < 128 ? component << 1: component >>> 1;
+            newColor += ", ";
+        }
+        newColor += ")";
+        document.body.style.backgroundColor = newColor;
+        setTimeout(function() {
+            newColor = "rgb(" + cjm.backgroundColor.join(", ") + ")";
+            document.body.style.backgroundColor = newColor;
+        }, 10);
+    }
 };
 
 com.jcomeau.myturn.cancelRequest = function() {
@@ -182,6 +218,14 @@ addEventListener("load", function() {
     console.log("location.pathname: " + path);
     if (typeof URLSearchParams != "undefined" && location.search)
         cjm.debugging = (new URLSearchParams(location.search)).getAll("debug");
+    if (typeof getComputedStyle != "undefined") {
+        cjm.backgroundColor = getComputedStyle(document.body)
+            .lightingColor.split(/rgb\(|, |\)/)
+            .filter(function(datum) {return datum})
+            .map(function(datum) {return parseInt(datum)});
+    }
+    // test vibration and set flasher if none enabled
+    //navigator.vibrate(1) || navigator.vibrate = cjm.flash;
     if (path != "/noscript") {
         cjm.state = "loading";
         cjm.pages = document ? document.querySelectorAll("div.body") : [];
