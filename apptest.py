@@ -12,6 +12,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import InvalidElementStateException
+from selenium.common.exceptions import WebDriverException
 logging.basicConfig(
     level=logging.DEBUG if __debug__ else logging.INFO,
     format='%(asctime)s:%(levelname)s:%(name)s:%(message)s')
@@ -53,7 +54,17 @@ def savescreen(driver, fileprefix):
     '''
     descriptor, filename = tempfile.mkstemp(prefix=fileprefix, suffix='.png')
     logging.warning('Saving screenshot to %s', filename)
-    driver.save_screenshot(filename)
+    try:  # HTMLUnit doesn't support screenshots
+        driver.save_screenshot(filename)
+    except WebDriverException:
+        # fire up a complete browser to take a shot of the HTML
+        source, htmlfile = tempfile.mkstemp(prefix=fileprefix, suffix='.html')
+        os.write(source, driver.page_source.encode())
+        os.close(source)
+        photographer = WEBDRIVER()
+        photographer.get(htmlfile)
+        photographer.save_screenshot(filename)
+        photographer.quit()
 
 def joingroup(driver, username=None, groupname=None):
     '''
