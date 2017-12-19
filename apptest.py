@@ -23,6 +23,23 @@ EXPECTED_EXCEPTIONS = (
 )
 BROWSER = os.getenv('USE_TEST_BROWSER', 'PhantomJS')
 WEBDRIVER = getattr(webdriver, BROWSER)
+FINDERS = [
+    'id', 'css_selector', 'name', 'xpath', 'link_text',
+]
+
+def find_element(driver, identifier):
+    '''
+    Tries more than one way of locating the element and returns it
+    '''
+    element = None
+    for finder in FINDERS:
+        try:
+            element = getattr(driver, 'find_element_by_' + finder)(identifier)
+        except NoSuchElementException:
+            pass
+    if element is None:
+        raise  # re-raise last exception
+    return element
 
 def currentpath(driver):
     '''
@@ -48,13 +65,13 @@ def joingroup(driver, username=None, groupname=None):
                 'input[name="username"]')
             field.send_keys(username)
         except EXPECTED_EXCEPTIONS:
-            savescreen(driver, 'username_input')
+            savescreen(driver, 'username_input_')
             raise
     if groupname is not None:
         try:
             field = driver.find_element_by_id('group-select')
         except EXPECTED_EXCEPTIONS:
-            savescreen(driver, 'groupselect')
+            savescreen(driver, 'groupselect_')
             raise
         Select(field).select_by_value(groupname)
     logging.debug('joingroup field: %s: %s', field, dir(field))
@@ -82,7 +99,7 @@ def myturn(driver, release=False):
     try:
         button = driver.find_element_by_id('myturn-button')
     except EXPECTED_EXCEPTIONS:
-        savescreen(driver, 'myturnbutton')
+        savescreen(driver, 'myturnbutton_')
         raise
     actions = ActionChains(driver)
     if release:
@@ -127,7 +144,7 @@ class TestMyturnApp(unittest.TestCase):
         joingroup(self.driver, groupname='testing')
         myturn(self.driver)
         time.sleep(10)
-        savescreen(self.driver, 'before_releasing_myturn')
+        savescreen(self.driver, 'before_releasing_myturn_')
         myturn(self.driver, release=True)
         time.sleep(50.5);
         for entry in self.driver.get_log('browser'):
@@ -136,7 +153,7 @@ class TestMyturnApp(unittest.TestCase):
             report = self.driver.find_element_by_id('report-table')
             logging.info('report: %s', report)
         except EXPECTED_EXCEPTIONS:
-            savescreen(self.driver, 'report')
+            savescreen(self.driver, 'report_')
             raise
 
     def tearDown(self):
@@ -170,6 +187,25 @@ class TestMyturnMultiUser(unittest.TestCase):
         self.charlie.get(WEBPAGE)
         time.sleep(5)  # enough time for refresh
         self.assertEqual(currentpath(self.charlie), '/noscript')
+
+    def test_issue_1(self):
+        '''
+        Stale display on update
+
+        https://github.com/MyTurn-OpenSource/pyturn/issues/1
+        '''
+        self.alice.get(WEBPAGE)
+        time.sleep(1)  # get past splash screen
+        joingroup(self.alice, 'alice')
+        newgroup(self.alice, 'issue1', 1, 2)
+        joingroup(self.alice, None, 'issue1')
+        # clock should now be ticking on this group
+        self.charlie.refresh()  # Charlie won't see new group until he refreshes
+        joingroup(self.charlie, 'charles', 'issue1')
+        find_element(self.charlie, 'myturn-button').click()
+        find_element(self.charlie, 'check-status').click()
+        status = find_element(self.charlie, 'talksession-speaker').text
+        self.assertEqual('charles', status.split()[-1])
 
     def tearDown(self):
         '''
