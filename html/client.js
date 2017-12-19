@@ -180,14 +180,16 @@ com.jcomeau.myturn.showReport = function() {
                 }
             }
             // unfortunately, elements do not have getElementById method
-            cjm.page.getElementsByTagName("table")[0].replaceWith(report);
-            document.querySelector("div.body").replaceWith(cjm.page);
+            cjm.phantom.replace(cjm.page.getElementsByTagName("table")[0],
+                                                              report);
+            cjm.phantom.replace(document.querySelector("div.body"), cjm.page);
         }
     };
     request.send();
 };
 
 com.jcomeau.myturn.updateGroups = function() {
+    var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
     request.open("GET", "/groups");
     request.responseType = "document";
@@ -212,7 +214,7 @@ com.jcomeau.myturn.updateGroups = function() {
             }
             if (replacement.dataset.contents != selector.dataset.contents) {
                 console.log("replacing group-select with new copy from server");
-                selector.replaceWith(replacement);
+                cjm.phantom.replace(selector, replacement);
             } else {
                 console.log("leaving group-select as it was, nothing changed");
             }
@@ -225,11 +227,20 @@ addEventListener("load", function() {
     console.log("onload routine started");
     var cjm = com.jcomeau.myturn;
     if (navigator.userAgent.match(/PhantomJS/)) {
+        // hacks to work with PhantomJS for unit testing
         cjm.phantom.log = function(message) {console.log(message)};
         cjm.phantom.parse = JSON.parse;
+        cjm.phantom.replace = function(element, newElement) {
+            var parent = element.parentNode;
+            parent.removeChild(element);
+            parent.appendChild(newElement);
+        };
     } else {
         cjm.phantom.log = function() {};
         cjm.phantom.parse = function(arg) {return arg};
+        cjm.phantom.replace = function(element, newElement) {
+            element.replaceWith(newElement);
+        };
     }
     cjm.phantom.log("browser is PhantomJS");
     console.log("location: " + JSON.stringify(location));
