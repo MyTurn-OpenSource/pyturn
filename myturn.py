@@ -13,10 +13,10 @@ address with the name `myturn` in /etc/hosts, e.g.:
 
 127.0.1.125 myturn
 '''
-# pragma pylint: disable=multiple-imports
+# pragma pylint: disable=multiple-imports, consider-using-enumerate
 from __future__ import print_function
 import sys, os, urllib.request, urllib.error, urllib.parse, logging, pwd
-import subprocess, site, cgi, datetime, urllib.parse, threading, copy, json
+import subprocess, site, cgi, datetime, threading, copy, json
 import uuid, time
 from collections import defaultdict, OrderedDict
 from lxml import html
@@ -201,7 +201,7 @@ def create_report(parsed=None, group=None, data=None, **formatting):
     try:
         participants = data['finished'][group]['participants']
     except KeyError as nosuchgroup:
-        logging.warn('No such group %s', nosuchgroup)
+        logging.warning('No such group %s', nosuchgroup)
         participants = {}
     speakers = sorted(participants, key=lambda u: -participants[u]['spoke'])
     columns = template.xpath('./td')
@@ -635,7 +635,7 @@ def update_httpsession(postdict):
         else:
             debug('all', 'no username associated with session %s', session_key)
     else:
-        logging.warn('no httpsession_key in POST')
+        logging.warning('no httpsession_key in POST')
 
 def render(pagename, standalone=True):
     '''
@@ -647,10 +647,10 @@ def render(pagename, standalone=True):
         return (read(pagename), 'text/html')
     elif not pagename.endswith(('.png', '.ico', '.jpg', '.jpeg')):
         # assume plain text
-        logging.warn('app is serving %s instead of nginx', pagename)
+        logging.warning('app is serving %s instead of nginx', pagename)
         return (read(pagename), 'text/plain')
     elif standalone:
-        logging.warn('app is serving %s instead of nginx', pagename)
+        logging.warning('app is serving %s instead of nginx', pagename)
         return (read(pagename),
                 MIMETYPES.get(os.path.splitext(pagename)[1], 'text/plain'))
     else:
