@@ -205,6 +205,10 @@ class TestMyturnMultiUser(unittest.TestCase):
 
         https://github.com/MyTurn-OpenSource/pyturn/issues/1
         '''
+        self.charlie.get(WEBPAGE)
+        self.assertEqual(currentpath(self.charlie), '/noscript')
+        savescreen(self.charlie, 'before_refresh_')
+        time.sleep(5)  # time for auto refresh to /noscript page
         self.alice.get(WEBPAGE)
         time.sleep(1)  # get past splash screen
         joingroup(self.alice, 'alice')
@@ -212,7 +216,7 @@ class TestMyturnMultiUser(unittest.TestCase):
         joingroup(self.alice, None, 'issue1')
         # clock should now be ticking on this group
         self.charlie.refresh()  # Charlie won't see new group until he refreshes
-        savescreen(self.charlie, 'after_refresh')
+        savescreen(self.charlie, 'after_refresh_')
         joingroup(self.charlie, 'charlie', 'issue1')
         find_element(self.charlie, 'myturn-button').click()
         find_element(self.charlie, 'check-status').click()
