@@ -201,11 +201,12 @@ class TestMyturnMultiUser(unittest.TestCase):
         joingroup(self.alice, None, 'issue1')
         # clock should now be ticking on this group
         self.charlie.refresh()  # Charlie won't see new group until he refreshes
-        joingroup(self.charlie, 'charles', 'issue1')
+        savescreen(self.charlie, 'after_refresh')
+        joingroup(self.charlie, 'charlie', 'issue1')
         find_element(self.charlie, 'myturn-button').click()
         find_element(self.charlie, 'check-status').click()
         status = find_element(self.charlie, 'talksession-speaker').text
-        self.assertEqual('charles', status.split()[-1])
+        self.assertEqual('charlie', status.split()[-1])
 
     def tearDown(self):
         '''
