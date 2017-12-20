@@ -207,7 +207,6 @@ class TestMyturnMultiUser(unittest.TestCase):
         '''
         self.charlie.get(WEBPAGE)
         self.assertEqual(currentpath(self.charlie), '/noscript')
-        savescreen(self.charlie, 'before_refresh_')
         time.sleep(5)  # time for auto refresh to /noscript page
         self.alice.get(WEBPAGE)
         time.sleep(1)  # get past splash screen
@@ -216,12 +215,18 @@ class TestMyturnMultiUser(unittest.TestCase):
         joingroup(self.alice, None, 'issue1')
         # clock should now be ticking on this group
         self.charlie.refresh()  # Charlie won't see new group until he refreshes
-        savescreen(self.charlie, 'after_refresh_')
         joingroup(self.charlie, 'charlie', 'issue1')
         find_element(self.charlie, 'myturn-button').click()
         find_element(self.charlie, 'check-status').click()
         status = find_element(self.charlie, 'talksession-speaker').text
         self.assertEqual('charlie', status.split()[-1])
+        myturn(self.alice)
+        time.sleep(2)  # wait until charlie's time is up
+        status = find_element(self.alice, 'talksession-speaker').text
+        self.assertEqual('alice', status.split()[-1])
+        find_element(self.charlie, 'check-status').click()
+        status = find_element(self.charlie, 'talksession-speaker').text
+        self.assertEqual('alice', status.split()[-1])
 
     def tearDown(self):
         '''
