@@ -221,7 +221,7 @@ class TestMyturnMultiUser(unittest.TestCase):
         status = find_element(self.charlie, 'talksession-speaker').text
         self.assertEqual('charlie', status.split()[-1])
         myturn(self.alice)
-        time.sleep(2)  # wait until charlie's time is up
+        time.sleep(2.3)  # wait until charlie's time is up plus a little extra
         status = find_element(self.alice, 'talksession-speaker').text
         self.assertEqual('alice', status.split()[-1])
         find_element(self.charlie, 'check-status').click()

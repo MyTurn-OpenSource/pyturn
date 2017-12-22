@@ -61,6 +61,7 @@ com.jcomeau.myturn.myTurn = function() {
 };
 
 com.jcomeau.myturn.flash = function() {
+    // ignore any args, it will get the same args as navigator.vibrate()
     var cjm = com.jcomeau.myturn;
     var newColor, newColors = cjm.backgroundColor.slice();
     if (cjm.backgroundColor && cjm.backgroundColor.length == 3) {

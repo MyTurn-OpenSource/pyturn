@@ -55,7 +55,7 @@ EXPECTED_ERRORS = (
 )
 PARSED = html.parse(os.path.join(APPDIR, 'index.html')).getroot()
 PAGE = html.tostring(PARSED.getroottree())
-DEBUG = []  # populate from querystring
+DEBUG = ['all']  # populate from querystring
 
 def debug(category, *args):
     '''
@@ -73,12 +73,16 @@ def findpath(env):
     locate directory where files are stored, and requested file
 
     side effect: splits off querystring and stores its debug values in DEBUG
+    
+    NOTE: DEBUG is a global and as such will be affected by any client adding
+    `debug=` args to his querystring. so the net result in debugging will be
+    the union of what all the clients request.
     '''
     start = APPDIR
     parsed = urllib.parse.urlparse(env.get('REQUEST_URI'), '')
     if parsed.query:
         query = urllib.parse.parse_qs(parsed.query or '')
-        DEBUG[:] = query.get('debug', [])
+        DEBUG[:] = list(set(DEBUG) | set(query.get('debug', [])))
     debug('all', 'findpath: start: %s' % start)
     path = env.get('HTTP_PATH')
     #debug('all', 'path, attempt 1: %s', path)
