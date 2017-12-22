@@ -226,6 +226,7 @@ class TestMyturnMultiUser(unittest.TestCase):
         self.assertEqual('alice', status.split()[-1])
         find_element(self.charlie, 'check-status').click()
         status = find_element(self.charlie, 'talksession-speaker').text
+        # the following fails when server under heavy load, see issue #1
         self.assertEqual('alice', status.split()[-1])
 
     def tearDown(self):

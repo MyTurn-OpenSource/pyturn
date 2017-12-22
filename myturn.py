@@ -14,6 +14,8 @@ address with the name `myturn` in /etc/hosts, e.g.:
 127.0.1.125 myturn
 '''
 # pragma pylint: disable=multiple-imports, consider-using-enumerate
+# disable warnings about uwsgi, which isn't available outside uwsgi context
+# pragma pylint: disable=wrong-import-position, invalid-name
 from __future__ import print_function
 import sys, os, urllib.request, urllib.error, urllib.parse, logging, pwd
 import subprocess, site, cgi, datetime, threading, copy, json
@@ -73,7 +75,7 @@ def findpath(env):
     locate directory where files are stored, and requested file
 
     side effect: splits off querystring and stores its debug values in DEBUG
-    
+
     NOTE: DEBUG is a global and as such will be affected by any client adding
     `debug=` args to his querystring. so the net result in debugging will be
     the union of what all the clients request.
@@ -101,18 +103,18 @@ def loadpage(path, data=None):
     data = data or DATA
     parsed = html.fromstring(PAGE)
     postdict = data.get('postdict', {})
-    debug('all', 'loadpage: postdict: %s', postdict)
+    debug('load', 'loadpage: postdict: %s', postdict)
     set_values(parsed, postdict,
                ['username', 'groupname', 'httpsession_key', 'joined'])
     if 'groups' in data:
         groups = populate_grouplist(parsed, data)
     else:
         groups = []
-    debug('all', 'loadpage: groups: %s', groups)
+    debug('load', 'loadpage: groups: %s', groups)
     # only show load indicator if no path specified;
     # get rid of meta refresh if path has already been chosen
     if path == '':
-        debug('all', 'showing load indicator')
+        debug('load', 'showing load indicator')
         hide_except('loading', parsed)
         return html.tostring(parsed).decode()
     else:
@@ -121,10 +123,10 @@ def loadpage(path, data=None):
     if 'text' in postdict:
         message = builder.PRE(cgi.escape(postdict['text']))
         parsed.xpath('//div[@id="error-text"]')[0].append(message)
-        debug('all', 'showing error page')
+        debug('load', 'showing error page')
         hide_except('error', parsed)
     elif postdict.get('joined'):
-        debug('all', 'found "joined": %s', data['postdict'])
+        debug('join', 'found "joined": %s', data['postdict'])
         group = postdict['groupname']
         if not group in groups:
             if not group in data['finished']:
@@ -143,20 +145,20 @@ def loadpage(path, data=None):
                      ['Current speaker is %s' % speaker if speaker else
                       'Waiting for next speaker'])
             set_text(parsed, ['talksession-time'], [formatseconds(remaining)])
-            debug('all', 'userdata[request]: %.6f', userdata['request'])
+            debug('talk', 'userdata[request]: %.6f', userdata['request'])
             buttonvalue = 'Cancel request' if userdata['request'] else 'My Turn'
-            debug('all', 'setting buttonvalue to %s', buttonvalue)
+            debug('talk', 'setting buttonvalue to %s', buttonvalue)
             set_button(parsed, ['myturn-button'], [buttonvalue])
-            debug('all', 'showing talk page')
+            debug('talk', 'showing talk page')
             hide_except('talksession', parsed)
     elif (postdict.get('submit') == 'Join' and postdict.get('username') and
           postdict.get('group', '') == ''):
         # some browsers won't return `group` in postdict at all if
         # selected element is empty (as it is by default in this case)
-        debug('all', 'showing groupform after joinform')
+        debug('join', 'showing groupform after joinform')
         hide_except('groupform', parsed)
     else:
-        debug('all', 'showing joinform by default')
+        debug('load', 'showing joinform by default')
         hide_except('joinform', parsed)
     return html.tostring(parsed).decode()
 
@@ -198,7 +200,7 @@ def create_report(parsed=None, group=None, data=None, **formatting):
     parsed = parsed if parsed is not None else copy.deepcopy(PARSED)
     data = data or DATA
     rows = parsed.xpath('//*[@id="report-body"]//table/tr')
-    debug('all', 'create_report: rows: %s', rows)
+    debug('report', 'create_report: rows: %s', rows)
     template = rows[1]
     table = template.getparent()
     table.remove(template)
@@ -209,14 +211,14 @@ def create_report(parsed=None, group=None, data=None, **formatting):
         participants = {}
     speakers = sorted(participants, key=lambda u: -participants[u]['spoke'])
     columns = template.xpath('./td')
-    debug('all', 'create_report: speakers: %s', speakers)
+    debug('report', 'create_report: speakers: %s', speakers)
     for speaker in speakers:
-        debug('all', 'adding speaker "%s" to report', speaker)
+        debug('report', 'adding speaker "%s" to report', speaker)
         columns[0].text = speaker
         columns[1].text = formatseconds(participants[speaker]['spoke'])
-        debug('all', 'template now: %s', html.tostring(template))
+        debug('report', 'template now: %s', html.tostring(template))
         table.append(html.fromstring(html.tostring(template)))
-        debug('all', 'table now: %s', html.tostring(table))
+        debug('report', 'table now: %s', html.tostring(table))
     return html.tostring(table, **formatting)
 
 def set_text(parsed, idlist, values):
@@ -245,25 +247,25 @@ def set_button(parsed, idlist, values):
         elementid = idlist[index]
         value = values[index]
         element = parsed.xpath('//*[@id="%s"]' % elementid)[0]
-        debug('all', 'before: %s', html.tostring(element))
+        debug('buttons', 'before: %s', html.tostring(element))
         element.set('value', value)
-        debug('all', 'after: %s', html.tostring(element))
+        debug('buttons', 'after: %s', html.tostring(element))
 
 def set_values(parsed, postdict, fieldlist):
     '''
     pre-set form input values from postdict
     '''
-    debug('all', 'setting values of %s from %s', fieldlist, postdict)
+    debug('hidden', 'setting values of %s from %s', fieldlist, postdict)
     for fieldname in fieldlist:
         value = postdict.get(fieldname, '')
         if not value:
-            debug('all', 'skipping %s, no value found', fieldname)
+            debug('hidden', 'skipping %s, no value found', fieldname)
             continue
         elements = parsed.xpath('//input[@name="%s"]' % fieldname)
         for element in elements:
-            debug('all', 'before: %s', html.tostring(element))
+            debug('hidden', 'before: %s', html.tostring(element))
             element.set('value', value)
-            debug('all', 'after: %s', html.tostring(element))
+            debug('hidden', 'after: %s', html.tostring(element))
 
 def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     '''
@@ -290,7 +292,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
                     key=lambda g: data['groups'][g]['timestamp'])
     contents = ':'.join([''] + groups)
     grouplist = parsed.xpath('//select[@name="group"]')[0]
-    debug('all', 'populate_grouplist: %s', grouplist)
+    debug('grouplist', 'populate_grouplist: %s', grouplist)
     for group in groups:
         newgroup = builder.OPTION(group, value=group)
         grouplist.append(newgroup)
@@ -392,7 +394,7 @@ def handle_post(env):
         postdict['timestamp'] = timestamp
         if not postdict.get('httpsession_key'):
             postdict['httpsession_key'] = uuid.uuid4().hex
-            debug('all', 'set httpsession_key = %s',
+            debug('sessions', 'set httpsession_key = %s',
                   postdict['httpsession_key'])
         try:
             buttonvalue = postdict['submit']
@@ -403,7 +405,7 @@ def handle_post(env):
             # username being added to group
             # don't allow if name already in group
             groups = DATA['groups']
-            debug('all', 'processing Join: %s', postdict)
+            debug('join', 'processing Join: %s', postdict)
             username = postdict.get('username', '')
             group = postdict.get('group', '')
             if not username:
@@ -582,16 +584,16 @@ def countdown(group, data=None):
         ending = (datetime.datetime.fromtimestamp(
             groups[group]['talksession']['start']) +
                   datetime.timedelta(minutes=minutes)).timestamp()
-        debug('all', 'countdown ending: %.6f', ending)
+        debug('countdown', 'countdown ending: %.6f', ending)
         while True:
             time.sleep(sleeptime)
             now = datetime.datetime.utcnow().timestamp()
-            debug('all', 'countdown now: %.6f', now)
+            debug('countdown', 'countdown now: %.6f', now)
             if now > ending:
-                debug('all', 'countdown ended at %.6f', now)
+                debug('countdown', 'countdown ended at %.6f', now)
                 break
             speaker = select_speaker(group, data)
-            debug('all', 'countdown: speaker: %s', speaker)
+            debug('countdown', 'countdown: speaker: %s', speaker)
             if speaker:
                 speakerdata = groups[group]['participants'][speaker]
                 speakerdata['speaking'] += sleeptime
@@ -637,7 +639,8 @@ def update_httpsession(postdict):
                     'updated': timestamp,
                     'username': username}
         else:
-            debug('all', 'no username associated with session %s', session_key)
+            debug('sessions',
+                  'no username associated with session %s', session_key)
     else:
         logging.warning('no httpsession_key in POST')
 
@@ -645,9 +648,9 @@ def render(pagename, standalone=True):
     '''
     Return content with Content-type header
     '''
-    debug('all', 'render(%s, %s) called', pagename, standalone)
+    debug('render', 'render(%s, %s) called', pagename, standalone)
     if pagename.endswith('.html'):
-        debug('all', 'rendering static HTML content')
+        debug('render', 'rendering static HTML content')
         return (read(pagename), 'text/html')
     elif not pagename.endswith(('.png', '.ico', '.jpg', '.jpeg')):
         # assume plain text
@@ -665,10 +668,10 @@ def read(filename):
     '''
     Return contents of a file
     '''
-    debug('all', 'read: returning contents of %s', filename)
+    debug('read', 'read: returning contents of %s', filename)
     with open(filename) as infile:
         data = infile.read()
-        debug('all', 'data: %s', data[:128])
+        debug('read', 'data: %s', data[:128])
         return data
 
 def formatseconds(seconds):
