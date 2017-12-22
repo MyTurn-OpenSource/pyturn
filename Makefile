@@ -109,3 +109,5 @@ mergelogs:  # combine output of server and client side debugging logs
 	$< --debug=true $(@:.test=)
 js.test: $(PHANTOMJS)
 	$<
+interactive: $(PHANTOMJS)
+	python3 -i -c'from apptest import *'
