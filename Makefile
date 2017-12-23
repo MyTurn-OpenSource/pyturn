@@ -108,7 +108,8 @@ mergelogs:  # combine output of server and client side debugging logs
 	cat <(sudo sed -n 's/^$(TODAY) \([0-9:,]\+:DEBUG:.*\)/\1/p' \
 	 /var/log/uwsgi/app/pyturn-alpha.log) \
 	 <(sed -n 's%^$(XTODAY) \(.*\)%\1%p' $(ERRORLOG)) \
-	 <(sed -n 's/$(TODAY) \(.*\)/\1/p' $(LASTLOG)) | sort
+	 <(sed -n 's/$(TODAY) \(.*\)/\1/p' $(LASTLOG) | \
+	  egrep -v ':Finished Request|/wd/hub/session') | sort
 %.js.test: $(PHANTOMJS)
 	$< --debug=true $(@:.test=)
 js.test: $(PHANTOMJS)

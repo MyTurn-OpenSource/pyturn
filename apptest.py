@@ -5,6 +5,7 @@ multiuser test of MyTurn implementations
 this one is geared to pyturn
 '''
 import sys, os, unittest, time, logging, uuid, tempfile, threading
+from datetime import datetime
 try:
     import urllib.parse as urlparse
 except ImportError:
@@ -129,12 +130,18 @@ def driverlogger(driver):
     '''
     Check constantly for JavaScript logs and output to Python logger
     '''
+    index = None  # index into log returned by get_log
     while True:
         messages = driver.get_log('browser')
         logger = logging.getLogger(threading.current_thread().name)
-        while messages:
-            message = messages.pop(0)
-            logger.debug(message['message'].rstrip(' (:)'))
+        if len(messages):
+            index = index or 0
+            while messages[index:]:
+                message = messages[index]
+                logtime = datetime.fromtimestamp(message['timestamp'] / 1000)
+                logger.debug(message['message'].rstrip(' (:)') +
+                            (' (%s)' % logtime.isoformat()[11:23]))
+                index += 1
         time.sleep(.005)
 
 class TestMyturnApp(unittest.TestCase):
