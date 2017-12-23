@@ -144,6 +144,13 @@ def driverlogger(driver):
                 index += 1
         time.sleep(.005)
 
+def active_speaker(driver):
+    '''
+    return active speaker as shown in upper-left of discussion page
+    '''
+    status = find_element(driver, 'talksession-speaker').text
+    return status.split()[-1]
+
 class TestMyturnApp(unittest.TestCase):
     '''
     Various tests of basic app functionality
@@ -263,14 +270,13 @@ class TestMyturnMultiUser(unittest.TestCase):
         logging.debug('alice pressing My Turn button')
         myturn(self.alice)
         time.sleep(2)  # wait until charlie's time is up plus a little extra
-        status = find_element(self.alice, 'talksession-speaker').text
-        logging.debug('making sure alice sees her own name as active speaker')
-        self.assertEqual('alice', status.split()[-1])
+        logging.debug('waiting until alice sees her own name as active speaker')
+        while active_speaker(self.alice) != 'alice':
+            time.sleep(.1)
         find_element(self.charlie, 'check-status').click()
-        status = find_element(self.charlie, 'talksession-speaker').text
         # the following fails when server under heavy load, see issue #1
         logging.debug('making sure charlie sees alice as active speaker')
-        self.assertEqual('alice', status.split()[-1])
+        self.assertEqual(active_speaker(self.charlie), 'alice')
 
     def tearDown(self):
         '''

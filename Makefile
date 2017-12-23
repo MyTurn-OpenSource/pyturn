@@ -92,6 +92,7 @@ unittests: $(PHANTOMJS)
 	-python3 apptest.py >$(TESTLOG) 2>&1
 	kill $$(</tmp/testserver.pid)
 	$(MAKE) mergelogs
+	tail -n 50 $(LASTLOG)
 	@echo Tests were logged to $(TESTLOG)
 ~/Downloads/$(notdir $(PHANTOMJS_TBZ)):
 	cd $(dir $@) && wget $(PHANTOMJS_TBZ)
