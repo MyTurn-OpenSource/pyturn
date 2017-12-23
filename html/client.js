@@ -1,4 +1,4 @@
-console.log("client.js starting");
+console.debug("client.js starting");
 // initialize vibration API for older browsers
 navigator.vibrate = navigator.vibrate || 
     navigator.webkitVibrate || 
@@ -9,11 +9,11 @@ navigator.vibrate = navigator.vibrate ||
     });
 // but get rid of false desktop Chrome support -- it can't really vibrate
 if (!navigator.userAgent.match(/(Mobi|iP|Android|SCH-I800)/)) {
-    console.log("desktop browser " + navigator.userAgent +
+    console.debug("desktop browser " + navigator.userAgent +
                 ": disabling vibration");
     navigator.vibrate = function() {return false};
 }
-console.log("vibration enabled: " + navigator.vibrate);
+console.debug("vibration enabled: " + navigator.vibrate);
 // namespace this module.
 if (typeof(com) == "undefined") var com = {};
 if (typeof(com.jcomeau) == "undefined") com.jcomeau = {};
@@ -36,22 +36,22 @@ com.jcomeau.myturn.phantom = {};
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
     var cjm = com.jcomeau.myturn;
-    console.log("My Turn mousedown");
+    console.debug("My Turn mousedown");
     request.open("POST", "/groups/" + cjm.groupname);
     request.setRequestHeader("Content-type",
                              "application/x-www-form-urlencoded");
     request.responseType = "json";  // returns object
     request.onreadystatechange = function() {
-        console.log("response code " + request.readyState + ": " +
+        console.debug("response code " + request.readyState + ": " +
                     JSON.stringify(request.response || {}));
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var groupdata = cjm.phantom.parse(request.response);
             if (groupdata.groupname !== cjm.groupname) {
                 cjm.phantom.log("groupdata: " + groupdata);
-                console.log("groupname now " + groupdata.groupname +
+                console.debug("groupname now " + groupdata.groupname +
                             ", was: " + cjm.groupname);
-                console.log("MyTurn mousedown redirecting to report page");
+                console.debug("MyTurn mousedown redirecting to report page");
                 return cjm.showReport();
             }
         }
@@ -71,11 +71,11 @@ com.jcomeau.myturn.flash = function() {
             else newColors[index] >>>= 1;
         }
         newColor = "rgb(" + newColors.join(", ") + ")";
-        console.log("flashing background color to " + newColor);
+        console.debug("flashing background color to " + newColor);
         document.body.style.backgroundColor = newColor;
         setTimeout(function() {
             newColor = "rgb(" + cjm.backgroundColor.join(", ") + ")";
-            console.log("restoring background color to " + newColor);
+            console.debug("restoring background color to " + newColor);
             document.body.style.backgroundColor = newColor;
         }, 10);
     }
@@ -84,22 +84,22 @@ com.jcomeau.myturn.flash = function() {
 com.jcomeau.myturn.cancelRequest = function() {
     var request = new XMLHttpRequest();  // not supporting IE
     var cjm = com.jcomeau.myturn;
-    console.log("My Turn mouseup");
+    console.debug("My Turn mouseup");
     request.open("POST", "/groups/" + cjm.groupname);
     request.setRequestHeader("Content-type",
                              "application/x-www-form-urlencoded");
     request.responseType = "json";  // returns object
     request.onreadystatechange = function() {
-        console.log("response code " + request.readyState + ": " +
+        console.debug("response code " + request.readyState + ": " +
                     JSON.stringify(request.response || {}));
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var groupdata = cjm.phantom.parse(request.response);
             if (groupdata.groupname !== cjm.groupname) {
                 cjm.phantom.log("groupdata: " + groupdata);
-                console.log("groupname now " + groupdata.groupname +
+                console.debug("groupname now " + groupdata.groupname +
                             ", was: " + cjm.groupname);
-                console.log("MyTurn mouseup redirecting to report page");
+                console.debug("MyTurn mouseup redirecting to report page");
                 return cjm.showReport();
             }
         }
@@ -114,17 +114,17 @@ com.jcomeau.myturn.updateTalkSession = function() {
     request.open("GET", "/groups/" + cjm.groupname);
     request.responseType = "json";  // returns object
     request.onreadystatechange = function() {
-        console.log("response code " + request.readyState + ": " +
+        console.debug("response code " + request.readyState + ": " +
                     JSON.stringify(request.response || {}));
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var groupdata = cjm.phantom.parse(request.response);
             if (groupdata.groupname !== cjm.groupname) {
                 cjm.phantom.log("groupdata: " + groupdata);
-                console.log("groupname now " + groupdata.groupname +
+                console.debug("groupname now " + groupdata.groupname +
                             ", was: " + cjm.groupname);
                 cjm.poller = clearInterval(cjm.poller);
-                console.log("discussion over, redirecting to report page");
+                console.debug("discussion over, redirecting to report page");
                 return cjm.showReport();
             }
             var speaker = groupdata.talksession.speaker;
@@ -138,17 +138,17 @@ com.jcomeau.myturn.updateTalkSession = function() {
             // only update time at start of new quantum
             if (speaker) {
                 var previousData = cjm.groupdata;
-                console.log("previous data: " + JSON.stringify(previousData));
-                console.log("participants: " + previousData.participants);
+                console.debug("previous data: " + JSON.stringify(previousData));
+                console.debug("participants: " + previousData.participants);
                 var previousTime = 1000000;  // arbitrarily high number
                 var previousSpeaker = previousData.talksession.speaker;
                 if (previousSpeaker == speaker &&
                         previousData.participants[speaker]) {
-                    console.log("same speaker, checking if new quantum");
+                    console.debug("same speaker, checking if new quantum");
                     previousTime = previousData.participants[speaker].speaking;
                 }
                 var currentTime = groupdata.participants[speaker].speaking;
-                console.log("will update time field if " + currentTime +
+                console.debug("will update time field if " + currentTime +
                             " < " + previousTime);
                 if (currentTime < previousTime)
                     timeStatus.textContent = new Date(
@@ -166,7 +166,7 @@ com.jcomeau.myturn.showReport = function() {
     request.open("GET", "/report/" + cjm.groupname);
     request.responseType = "document";  // returns object
     request.onreadystatechange = function() {
-        console.log("response code " + request.readyState + ": " +
+        console.debug("response code " + request.readyState + ": " +
                     request.response);
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
@@ -195,29 +195,29 @@ com.jcomeau.myturn.updateGroups = function() {
     request.open("GET", "/groups");
     request.responseType = "document";
     request.onreadystatechange = function() {
-        console.log("response code " + request.readyState + ": " +
+        console.debug("response code " + request.readyState + ": " +
                     request.response);
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
             var selector = document.getElementById("group-select");
             var previous = selector.value;
             var replacement = request.response.getElementById("group-select");
-            console.log("selector: " + selector);
-            console.log("replacement: " + replacement);
+            console.debug("selector: " + selector);
+            console.debug("replacement: " + replacement);
             /* if there are any non-default options, and default is selected,
              * don't change to the newest group */
             if (previous || previous.length > 1) {
-                console.log("keeping already selected \""+ previous + "\"");
+                console.debug("keeping already selected \""+ previous + "\"");
                 /* setting selected value to what it was before...
                  * in the case that the previous selected group is no longer
                  * active, the Chrome browser will show a blank selection */
                 replacement.value = previous;
             }
             if (replacement.dataset.contents != selector.dataset.contents) {
-                console.log("replacing group-select with new copy from server");
+                console.debug("replacing group-select with new copy from server");
                 cjm.phantom.replace(selector, replacement);
             } else {
-                console.log("leaving group-select as it was, nothing changed");
+                console.debug("leaving group-select as it was, nothing changed");
             }
         }
     };
@@ -225,11 +225,11 @@ com.jcomeau.myturn.updateGroups = function() {
 };
 
 addEventListener("load", function() {
-    console.log("onload routine started");
+    console.debug("onload routine started");
     var cjm = com.jcomeau.myturn;
     if (navigator.userAgent.match(/PhantomJS/)) {
         // hacks to work with PhantomJS for unit testing
-        cjm.phantom.log = function(message) {console.log(message)};
+        cjm.phantom.log = function(message) {console.debug(message)};
         cjm.phantom.parse = JSON.parse;
         cjm.phantom.replace = function(element, newElement) {
             var parent = element.parentNode;
@@ -244,9 +244,9 @@ addEventListener("load", function() {
         };
     }
     cjm.phantom.log("browser is PhantomJS");
-    console.log("location: " + JSON.stringify(location));
+    console.debug("location: " + JSON.stringify(location));
     var path = location ? location.pathname.replace(/\/+/, "/") : "/phantom";
-    console.log("location.pathname: " + path);
+    console.debug("location.pathname: " + path);
     if (typeof URLSearchParams != "undefined" && location.search)
         cjm.debugging = (new URLSearchParams(location.search)).getAll("debug");
     if (typeof getComputedStyle != "undefined") {
@@ -260,7 +260,7 @@ addEventListener("load", function() {
     if (path != "/noscript") {
         cjm.state = "loading";
         cjm.pages = document ? document.querySelectorAll("div.body") : [];
-        console.log("pages: " + cjm.pages);
+        console.debug("pages: " + cjm.pages);
         // neither phantomjs nor htmlunit support for...of statements
         for (var index = 0; index < cjm.pages.length; index++) {
             var page = cjm.pages[index];
@@ -271,7 +271,7 @@ addEventListener("load", function() {
             } else {
                 cjm.page = page;
                 cjm.pagename = page.getAttribute("id");
-                console.log("page loaded: " + cjm.pagename);
+                console.debug("page loaded: " + cjm.pagename);
             }
         }
         if (cjm.pagename == "joinform-body") {
@@ -296,7 +296,7 @@ addEventListener("load", function() {
             myturnButton.addEventListener("mouseup", cjm.cancelRequest);
             myturnButton.addEventListener("touchend", cjm.cancelRequest);
             myturnButton.onclick = function(event) {  // disable click event
-                console.log("trying to prevent click event from functioning");
+                console.debug("trying to prevent click event from functioning");
                 event.preventDefault();
                 event.stopPropagation();
                 return false;
@@ -311,7 +311,7 @@ addEventListener("load", function() {
     }
 });
 if (typeof phantom != "undefined") {  // for phantomjs command-line testing
-    console.log("phantom exiting now");
+    console.debug("phantom exiting now");
     phantom.exit();
 }
 /*

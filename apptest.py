@@ -4,7 +4,11 @@ multiuser test of MyTurn implementations
 
 this one is geared to pyturn
 '''
-import sys, os, unittest, time, logging, uuid, tempfile, urllib.parse
+import sys, os, unittest, time, logging, uuid, tempfile, threading
+try:
+    import urllib.parse as urlparse
+except ImportError:
+    import urlparse
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -15,7 +19,7 @@ from selenium.common.exceptions import InvalidElementStateException
 from selenium.common.exceptions import WebDriverException
 logging.basicConfig(
     level=logging.DEBUG if __debug__ else logging.INFO,
-    format='%(asctime)s:%(levelname)s:%(name)s:%(message)s')
+    format='%(asctime)s:%(levelname)s:%(threadName)s:%(message)s')
 QUERY_STRING = '?debug=button'
 WEBPAGE = 'http://uwsgi-alpha.myturn.local/' + QUERY_STRING
 EXPECTED_EXCEPTIONS = (
@@ -46,7 +50,7 @@ def currentpath(driver):
     '''
     Return just the pathname part of the URL
     '''
-    return urllib.parse.urlsplit(driver.current_url).path
+    return urlparse.urlsplit(driver.current_url).path
 
 def savescreen(driver, fileprefix):
     '''
@@ -121,6 +125,18 @@ def myturn(driver, release=False):
         actions.click_and_hold(button)
     actions.perform()
 
+def driverlogger(driver):
+    '''
+    Check constantly for JavaScript logs and output to Python logger
+    '''
+    while True:
+        messages = driver.get_log('browser')
+        logger = logging.getLogger(threading.current_thread().name)
+        while messages:
+            message = messages.pop(0)
+            logger.debug(message['message'].rstrip(' (:)'))
+        time.sleep(.005)
+
 class TestMyturnApp(unittest.TestCase):
     '''
     Various tests of basic app functionality
@@ -186,10 +202,21 @@ class TestMyturnMultiUser(unittest.TestCase):
         noscript['javascriptEnabled'] = False
         self.alice = WEBDRIVER()
         self.alice.implicit_wait = 5
+        alice_logger = threading.Thread(target=driverlogger,
+                                        name='alice',
+                                        args=(self.alice,))
+        alice_logger.daemon = True  # so main thread doesn't hang at end
+        alice_logger.start()
         self.bob = WEBDRIVER()
         self.bob.implicit_wait = 5
+        bob_logger = threading.Thread(target=driverlogger,
+                                        name='bob',
+                                        args=(self.bob,))
+        bob_logger.daemon = True  # so main thread doesn't hang at end
+        bob_logger.start()
         self.charlie = webdriver.Remote(desired_capabilities=noscript)
         self.charlie.implicit_wait = 5
+        # htmlunit doesn't have a logger, javascript is not enabled
 
     def test_load(self):
         '''
