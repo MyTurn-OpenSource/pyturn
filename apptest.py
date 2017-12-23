@@ -20,7 +20,7 @@ from selenium.common.exceptions import WebDriverException
 logging.basicConfig(
     level=logging.DEBUG if __debug__ else logging.INFO,
     format='%(asctime)s:%(levelname)s:%(threadName)s:%(message)s')
-QUERY_STRING = '?debug=button'
+QUERY_STRING = '?debug=button&debug=issue1'
 WEBPAGE = 'http://uwsgi-alpha.myturn.local/' + QUERY_STRING
 EXPECTED_EXCEPTIONS = (
     NoSuchElementException,
@@ -253,6 +253,7 @@ class TestMyturnMultiUser(unittest.TestCase):
         find_element(self.charlie, 'check-status').click()
         status = find_element(self.charlie, 'talksession-speaker').text
         self.assertEqual('charlie', status.split()[-1])
+        logging.debug('alice pressing My Turn button')
         myturn(self.alice)
         time.sleep(2)  # wait until charlie's time is up plus a little extra
         status = find_element(self.alice, 'talksession-speaker').text
