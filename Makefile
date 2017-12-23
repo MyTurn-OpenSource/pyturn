@@ -11,6 +11,7 @@ PATH := $(dir $(PHANTOMJS)):$(PATH)
 # add location of chromedriver to PATH
 PATH := $(HOME)/downloads:$(PATH)
 TODAY ?= $(shell date +%Y-%m-%d)
+XTODAY = $(shell date +%Y/%m/%d)  # for nginx
 # set npm_config_argv to "alpha" for local (test) installation
 npm_config_argv ?= {"remain": ["alpha"]}
 # result of `make unittests` goes to ~/downloads for LASTLOG
@@ -18,6 +19,7 @@ TESTLOG ?= ~/downloads/apptest.log
 # last client log using Chrome remote Android debugger, saved to ~/downloads
 # don't use := or ?= for this, `touch` the log you want if necessary
 LASTLOG = $(shell ls -rt ~/downloads/*.log 2>/dev/null | tail -n 1)
+ERRORLOG := /var/log/nginx/pyturn-error.log  # shows connection errors
 export
 default: test
 ngrep:
@@ -102,9 +104,11 @@ html/favicon.ico: html/images/myturn-logo.png .FORCE
 
 .FORCE:
 mergelogs:  # combine output of server and client side debugging logs
+	# filters out date because it's in different formats
 	cat <(sudo sed -n 's/^$(TODAY) \([0-9:,]\+:DEBUG:.*\)/\1/p' \
 	 /var/log/uwsgi/app/pyturn-alpha.log) \
-	 <(grep client.js $(LASTLOG)) | sort
+	 <(sed -n 's%^$(XTODAY) \(.*\)%\1%p' $(ERRORLOG)) \
+	 <(sed -n 's/$(TODAY) \(.*\)/\1/p' $(LASTLOG)) | sort
 %.js.test: $(PHANTOMJS)
 	$< --debug=true $(@:.test=)
 js.test: $(PHANTOMJS)

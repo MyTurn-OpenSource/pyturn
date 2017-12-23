@@ -153,17 +153,25 @@ class TestMyturnApp(unittest.TestCase):
         '''
         Make sure JavaScript runs in headless browser
         '''
+        logger = threading.Thread(target=driverlogger,
+                                        name='console.log',
+                                        args=(self.driver,))
+        logger.daemon = True  # so main thread doesn't hang at end
+        logger.start()
         self.driver.get(WEBPAGE)
         time.sleep(1)  # enough time for redirect
         logging.debug('current URL: %s', self.driver.current_url)
-        for entry in self.driver.get_log('browser'):
-            logging.debug('client.js: %s', entry)
         self.assertEqual(currentpath(self.driver), '/app')
 
     def test_single(self):
         '''
         Run single-user "conversation" start to finish
         '''
+        logger = threading.Thread(target=driverlogger,
+                                        name='console.log',
+                                        args=(self.driver,))
+        logger.daemon = True  # so main thread doesn't hang at end
+        logger.start()
         time.sleep(1)  # wait for redirect to /app
         self.driver.get(WEBPAGE)
         joingroup(self.driver, 'tester', '')
@@ -174,8 +182,6 @@ class TestMyturnApp(unittest.TestCase):
         savescreen(self.driver, 'before_releasing_myturn_')
         myturn(self.driver, release=True)
         time.sleep(50.5);
-        for entry in self.driver.get_log('browser'):
-            logging.debug('client.js: %s', entry)
         try:
             report = self.driver.find_element_by_id('report-table')
             logging.info('report: %s', report)
@@ -248,12 +254,14 @@ class TestMyturnMultiUser(unittest.TestCase):
         status = find_element(self.charlie, 'talksession-speaker').text
         self.assertEqual('charlie', status.split()[-1])
         myturn(self.alice)
-        time.sleep(2.3)  # wait until charlie's time is up plus a little extra
+        time.sleep(2)  # wait until charlie's time is up plus a little extra
         status = find_element(self.alice, 'talksession-speaker').text
+        logging.debug('making sure alice sees her own name as active speaker')
         self.assertEqual('alice', status.split()[-1])
         find_element(self.charlie, 'check-status').click()
         status = find_element(self.charlie, 'talksession-speaker').text
         # the following fails when server under heavy load, see issue #1
+        logging.debug('making sure charlie sees alice as active speaker')
         self.assertEqual('alice', status.split()[-1])
 
     def tearDown(self):
@@ -268,30 +276,6 @@ class TestMyturnStress(unittest.TestCase):
     '''
     Stress-test server
     '''
-
-    def setUp(self):
-        '''
-        Initialize test environment
-        '''
-        self.driver = WEBDRIVER()
-        self.driver.implicit_wait = 5
-
-    def test_load(self):
-        '''
-        Make sure JavaScript runs in headless browser
-        '''
-        self.driver.get(WEBPAGE)
-        time.sleep(1)  # enough time for redirect
-        logging.debug('current URL: %s', self.driver.current_url)
-        for entry in self.driver.get_log('browser'):
-            logging.debug('client.js: %s', entry)
-        self.assertEqual(currentpath(self.driver), '/app')
-
-    def tearDown(self):
-        '''
-        Cleanup after testing complete
-        '''
-        self.driver.quit()
 
 if __name__ == '__main__':
     '''
