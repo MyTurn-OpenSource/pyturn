@@ -10,6 +10,9 @@ HOSTNAME ?= $(shell hostname)
 PATH := $(dir $(PHANTOMJS)):$(PATH)
 # add location of chromedriver to PATH
 PATH := $(HOME)/downloads:$(PATH)
+# add location of adb to PATH
+ANDROID_SDK := /usr/local/src/android/adt-bundle-linux-x86_64-20130717/sdk
+PATH := $(ANDROID_SDK)/platform-tools:$(PATH)
 TODAY ?= $(shell date +%Y-%m-%d)
 XTODAY = $(shell date +%Y/%m/%d)  # for nginx
 # set npm_config_argv to "alpha" for local (test) installation
@@ -117,3 +120,5 @@ js.test: $(PHANTOMJS)
 	$<
 interactive: $(PHANTOMJS)
 	python3 -i -c'from apptest import *'
+adbshell:
+	adb shell

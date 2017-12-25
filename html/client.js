@@ -32,6 +32,8 @@ com.jcomeau.myturn.debugging = [];
 com.jcomeau.myturn.backgroundColor = null;
 com.jcomeau.myturn.beat = [30, 100, 30];  // heartbeat vibration
 com.jcomeau.myturn.phantom = {};
+com.jcomeau.myturn.pollcount = -1;  // determines when to heartbeat
+com.jcomeau.myturn.lastPulse = -1;  // updates on every heartbeat
 
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
@@ -131,6 +133,22 @@ com.jcomeau.myturn.updateTalkSession = function() {
             var remaining = groupdata.talksession.remaining;
             var tick = groupdata.talksession.tick;
             var speakerStatus = document.getElementById("talksession-speaker");
+            var beatHeart = false;
+            // heartbeat affected by dropped/delayed packets on purpose
+            // it helps participants gauge network speed
+            cjm.count += 1;  // update count
+            // active speaker, vibrate every query (every half second)
+            if (speaker === cjm.username) beatHeart = true;
+            // waiting to speak, vibrate every second
+            else if (groupdata.participants[cjm.username].request)
+                beatHeart = (cjm.count - cjm.lastPulse >= 2) ? true : false;
+            // otherwise beat every 2 seconds
+            else if (cjm.count - cjm.lastPulse >= 4) beatHeart = true;
+            if (beatHeart) {
+                console.debug("beating heart with vibrate or flash");
+                navigator.vibrate(cjm.beat);
+                cjm.lastPulse = cjm.count;
+            }
             speakerStatus.textContent = speaker ?
                 "Current speaker is " + speaker:
                 "Waiting for next speaker";
