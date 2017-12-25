@@ -13,7 +13,7 @@ if (!navigator.userAgent.match(/(Mobi|iP|Android|SCH-I800)/)) {
                 ": disabling vibration");
     navigator.vibrate = function() {return false};
 }
-console.debug("vibration enabled: " + navigator.vibrate);
+console.debug("vibration enabled: " + navigator.vibrate(0));
 // namespace this module.
 if (typeof(com) == "undefined") var com = {};
 if (typeof(com.jcomeau) == "undefined") com.jcomeau = {};
@@ -74,11 +74,11 @@ com.jcomeau.myturn.flash = function() {
         }
         newColor = "rgb(" + newColors.join(", ") + ")";
         console.debug("flashing background color to " + newColor);
-        document.body.style.backgroundColor = newColor;
+        cjm.page.style.backgroundColor = newColor;
         setTimeout(function() {
             newColor = "rgb(" + cjm.backgroundColor.join(", ") + ")";
             console.debug("restoring background color to " + newColor);
-            document.body.style.backgroundColor = newColor;
+            cjm.page.style.backgroundColor = newColor;
         }, 10);
     }
 };
@@ -267,66 +267,65 @@ addEventListener("load", function() {
     console.debug("location.pathname: " + path);
     if (typeof URLSearchParams != "undefined" && location.search)
         cjm.debugging = (new URLSearchParams(location.search)).getAll("debug");
+    // test vibration and set flasher if none enabled
+    if (navigator.vibrate(10) === false) navigator.vibrate = cjm.flash;
+    cjm.state = "loading";
+    cjm.pages = document ? document.querySelectorAll("div.body") : [];
+    console.debug("pages: " + cjm.pages);
+    // neither phantomjs nor htmlunit support for...of statements
+    for (var index = 0; index < cjm.pages.length; index++) {
+        var page = cjm.pages[index];
+        if (page.style.display == "none") {
+            page.parentNode.removeChild(page);
+            // OK to set it visible now, it's no longer part of document
+            page.style.display = "";
+        } else {
+            cjm.page = page;
+            cjm.pagename = page.getAttribute("id");
+            console.debug("page loaded: " + cjm.pagename);
+        }
+    }
+    // save background color of active div.body element for flasher to work
     if (typeof getComputedStyle != "undefined") {
-        cjm.backgroundColor = getComputedStyle(document.body)
+        cjm.backgroundColor = getComputedStyle(cjm.page)
             .lightingColor.split(/rgb\(|, |\)/)
             .filter(function(datum) {return datum})
             .map(function(datum) {return parseInt(datum)});
     }
-    // test vibration and set flasher if none enabled
-    navigator.vibrate(0) || (navigator.vibrate = cjm.flash);
-    if (path != "/noscript") {
-        cjm.state = "loading";
-        cjm.pages = document ? document.querySelectorAll("div.body") : [];
-        console.debug("pages: " + cjm.pages);
-        // neither phantomjs nor htmlunit support for...of statements
-        for (var index = 0; index < cjm.pages.length; index++) {
-            var page = cjm.pages[index];
-            if (page.style.display == "none") {
-                page.parentNode.removeChild(page);
-                // OK to set it visible now, it's no longer part of document
-                page.style.display = "";
-            } else {
-                cjm.page = page;
-                cjm.pagename = page.getAttribute("id");
-                console.debug("page loaded: " + cjm.pagename);
-            }
-        }
-        if (cjm.pagename == "joinform-body") {
-            cjm.updateGroups();  // do it once now to make sure it works
-            cjm.poller = setInterval(cjm.updateGroups, 500);
-        } else if (cjm.pagename == "talksession-body") {
-            /* get rid of "Check status" button, and make "My turn"
-             * button activate on button-down and button-up */
-            cjm.username = document.querySelector(
-                "input[name=username][type=hidden]").value;
-            cjm.groupname = document.querySelector(
-                "input[name=groupname][type=hidden]").value;
-            cjm.updateTalkSession(); // do it once now to make sure it works
-            var myturnButton = document.getElementById("myturn-button");
-            myturnButton.style.color = "transparent";
-            myturnButton.style.height = "33vmin";
-            myturnButton.style.width = "33vmin";
-            myturnButton.style.backgroundImage = cjm.icon;
-            myturnButton.style.backgroundSize = "cover";
-            myturnButton.addEventListener("mousedown", cjm.myTurn);
-            myturnButton.addEventListener("touchstart", cjm.myTurn);
-            myturnButton.addEventListener("mouseup", cjm.cancelRequest);
-            myturnButton.addEventListener("touchend", cjm.cancelRequest);
-            myturnButton.onclick = function(event) {  // disable click event
-                console.debug("trying to prevent click event from functioning");
-                event.preventDefault();
-                event.stopPropagation();
-                return false;
-            };
-            var checkStatus = document.getElementById("check-status");
-            checkStatus.parentNode.removeChild(checkStatus);
-            cjm.poller = setInterval(cjm.updateTalkSession, 500);
-        }
-        // save this redirect for last, only reached if all other tests pass
-        if (location && path == "/") location.pathname = "/app";
-        cjm.state = "loaded";
+    if (cjm.pagename == "joinform-body") {
+        cjm.updateGroups();  // do it once now to make sure it works
+        cjm.poller = setInterval(cjm.updateGroups, 500);
+    } else if (cjm.pagename == "talksession-body") {
+        /* get rid of "Check status" button, and make "My turn"
+         * button activate on button-down and button-up */
+        cjm.username = document.querySelector(
+            "input[name=username][type=hidden]").value;
+        cjm.groupname = document.querySelector(
+            "input[name=groupname][type=hidden]").value;
+        cjm.updateTalkSession(); // do it once now to make sure it works
+        var myturnButton = document.getElementById("myturn-button");
+        myturnButton.style.color = "transparent";
+        myturnButton.style.height = "33vmin";
+        myturnButton.style.width = "33vmin";
+        myturnButton.style.backgroundImage = cjm.icon;
+        myturnButton.style.backgroundSize = "cover";
+        myturnButton.addEventListener("mousedown", cjm.myTurn);
+        myturnButton.addEventListener("touchstart", cjm.myTurn);
+        myturnButton.addEventListener("mouseup", cjm.cancelRequest);
+        myturnButton.addEventListener("touchend", cjm.cancelRequest);
+        myturnButton.onclick = function(event) {  // disable click event
+            console.debug("trying to prevent click event from functioning");
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        };
+        var checkStatus = document.getElementById("check-status");
+        checkStatus.parentNode.removeChild(checkStatus);
+        cjm.poller = setInterval(cjm.updateTalkSession, 500);
     }
+    // save this redirect for last, only reached if all other tests pass
+    if (location && path == "/") location.pathname = "/app";
+    cjm.state = "loaded";
 });
 if (typeof phantom != "undefined") {  // for phantomjs command-line testing
     console.debug("phantom exiting now");
