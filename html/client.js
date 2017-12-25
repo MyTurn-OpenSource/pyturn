@@ -309,6 +309,7 @@ addEventListener("load", function() {
         myturnButton.style.width = "33vmin";
         myturnButton.style.backgroundImage = cjm.icon;
         myturnButton.style.backgroundSize = "cover";
+        myturnButton.style.outline = "none";
         myturnButton.addEventListener("mousedown", cjm.myTurn);
         myturnButton.addEventListener("touchstart", cjm.myTurn);
         myturnButton.addEventListener("mouseup", cjm.cancelRequest);
