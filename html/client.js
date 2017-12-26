@@ -27,21 +27,12 @@ com.jcomeau.myturn.enableVibration = function() {
         navigator.webkitVibrate || 
         navigator.mozVibrate || 
         navigator.msVibrate ||
-        (navigator.notification ? navigator.notification.vibrate : function() {
-            return false
-        });
+        (navigator.notification ? navigator.notification.vibrate : false);
     // but get rid of false desktop Chrome support -- it can't really vibrate
     if (!navigator.userAgent.match(/(Mobi|iP|Android|SCH-I800)/)) {
         console.debug("desktop browser " + navigator.userAgent +
                       ": disabling vibration");
-        navigator.vibrate = function() {return false};
-    }
-    // test vibration and set flasher if none enabled
-    if (navigator.vibrate(0) === false) {
-        console.debug("setting navigator.vibrate to flash screen instead");
-        navigator.vibrate = cjm.flash;
-    } else {
-        console.debug("navigator.vibrate should work after screen interaction");
+        navigator.vibrate = false;
     }
 };
 
@@ -177,12 +168,14 @@ com.jcomeau.myturn.updateTalkSession = function() {
                 beatHeart = (cjm.pollcount - cjm.lastPulse >= 2) ? true : false;
             // otherwise beat every 2 seconds
             else if (cjm.pollcount - cjm.lastPulse >= 4) beatHeart = true;
-            if (beatHeart) {
-                console.debug("beating heart with vibrate or flash");
-                navigator.vibrate(cjm.beat);
-                cjm.lastPulse = cjm.pollcount;
-            }
+            // save actual call to navigator.vibrate() to very end
+            // otherwise groupdata and pollcount won't get updated
             cjm.groupdata = groupdata;
+            if (beatHeart) {
+                cjm.lastPulse = cjm.pollcount;
+                console.debug("beating heart with vibrate or flash");
+                navigator.vibrate ? navigator.vibrate(cjm.beat) : cjm.flash();
+            }
         }
     };
     request.send();
