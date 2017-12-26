@@ -21,9 +21,7 @@ com.jcomeau.myturn.pollcount = -1;  // determines when to heartbeat
 com.jcomeau.myturn.lastPulse = -1;  // updates on every heartbeat
 
 // initialize vibration API for older browsers
-com.jcomeau.myturn.enableVibration = function(event) {
-    // if called by onclick, make it a one-shot
-    if (event) event.removeEventListener(event.type, arguments.callee);
+com.jcomeau.myturn.enableVibration = function() {
     var cjm = com.jcomeau.myturn;
     navigator.vibrate = navigator.vibrate || 
         navigator.webkitVibrate || 
@@ -38,9 +36,13 @@ com.jcomeau.myturn.enableVibration = function(event) {
                       ": disabling vibration");
         navigator.vibrate = function() {return false};
     }
-    console.debug("vibration enabled: " + navigator.vibrate(0));
     // test vibration and set flasher if none enabled
-    if (navigator.vibrate(0) === false) navigator.vibrate = cjm.flash;
+    if (navigator.vibrate(0) === false) {
+        console.debug("setting navigator.vibrate to flash screen instead");
+        navigator.vibrate = cjm.flash;
+    } else {
+        console.debug("navigator.vibrate should work after screen interaction");
+    }
 };
 
 com.jcomeau.myturn.myTurn = function() {
@@ -87,7 +89,7 @@ com.jcomeau.myturn.flash = function() {
             newColor = "rgb(" + cjm.backgroundColor.join(", ") + ")";
             console.debug("restoring background color to " + newColor);
             cjm.page.style.backgroundColor = newColor;
-        }, 10);
+        }, 50);
     }
 };
 
@@ -142,21 +144,6 @@ com.jcomeau.myturn.updateTalkSession = function() {
             var tick = groupdata.talksession.tick;
             var speakerStatus = document.getElementById("talksession-speaker");
             var beatHeart = false;
-            // heartbeat affected by dropped/delayed packets on purpose
-            // it helps participants gauge network speed
-            cjm.count += 1;  // update count
-            // active speaker, vibrate every query (every half second)
-            if (speaker === cjm.username) beatHeart = true;
-            // waiting to speak, vibrate every second
-            else if (groupdata.participants[cjm.username].request)
-                beatHeart = (cjm.count - cjm.lastPulse >= 2) ? true : false;
-            // otherwise beat every 2 seconds
-            else if (cjm.count - cjm.lastPulse >= 4) beatHeart = true;
-            if (beatHeart) {
-                console.debug("beating heart with vibrate or flash");
-                navigator.vibrate(cjm.beat);
-                cjm.lastPulse = cjm.count;
-            }
             speakerStatus.textContent = speaker ?
                 "Current speaker is " + speaker:
                 "Waiting for next speaker";
@@ -179,6 +166,21 @@ com.jcomeau.myturn.updateTalkSession = function() {
                 if (currentTime < previousTime)
                     timeStatus.textContent = new Date(
                         null, 0, 1, 0, 0, remaining).toString().split(" ")[4];
+            }
+            // heartbeat affected by dropped/delayed packets on purpose
+            // it helps participants gauge network speed
+            cjm.pollcount += 1;  // update count
+            // active speaker, vibrate every query (every half second)
+            if (speaker === cjm.username) beatHeart = true;
+            // waiting to speak, vibrate every second
+            else if (groupdata.participants[cjm.username].request)
+                beatHeart = (cjm.pollcount - cjm.lastPulse >= 2) ? true : false;
+            // otherwise beat every 2 seconds
+            else if (cjm.pollcount - cjm.lastPulse >= 4) beatHeart = true;
+            if (beatHeart) {
+                console.debug("beating heart with vibrate or flash");
+                navigator.vibrate(cjm.beat);
+                cjm.lastPulse = cjm.pollcount;
             }
             cjm.groupdata = groupdata;
         }
@@ -329,10 +331,7 @@ addEventListener("load", function() {
         var checkStatus = document.getElementById("check-status");
         checkStatus.parentNode.removeChild(checkStatus);
         cjm.poller = setInterval(cjm.updateTalkSession, 500);
-        // one-shot vibration enabler
-        // this won't be necessary if we use JavaScript to trap the Join button,
-        // and initialize vibration in that handler.
-        cjm.page.addEventListener("click", cjm.initializeVibration);
+        cjm.initializeVibration();
     }
     // save this redirect for last, only reached if all other tests pass
     if (location && path == "/") location.pathname = "/app";
