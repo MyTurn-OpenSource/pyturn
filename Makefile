@@ -122,3 +122,5 @@ interactive: $(PHANTOMJS)
 	python3 -i -c'from apptest import *'
 adbshell:
 	adb shell
+logcat:
+	adb logcat

@@ -1,19 +1,4 @@
 console.debug("client.js starting");
-// initialize vibration API for older browsers
-navigator.vibrate = navigator.vibrate || 
-    navigator.webkitVibrate || 
-    navigator.mozVibrate || 
-    navigator.msVibrate ||
-    (navigator.notification ? navigator.notification.vibrate : function() {
-        return false
-    });
-// but get rid of false desktop Chrome support -- it can't really vibrate
-if (!navigator.userAgent.match(/(Mobi|iP|Android|SCH-I800)/)) {
-    console.debug("desktop browser " + navigator.userAgent +
-                ": disabling vibration");
-    navigator.vibrate = function() {return false};
-}
-console.debug("vibration enabled: " + navigator.vibrate(0));
 // namespace this module.
 if (typeof(com) == "undefined") var com = {};
 if (typeof(com.jcomeau) == "undefined") com.jcomeau = {};
@@ -34,6 +19,29 @@ com.jcomeau.myturn.beat = [30, 100, 30];  // heartbeat vibration
 com.jcomeau.myturn.phantom = {};
 com.jcomeau.myturn.pollcount = -1;  // determines when to heartbeat
 com.jcomeau.myturn.lastPulse = -1;  // updates on every heartbeat
+
+// initialize vibration API for older browsers
+com.jcomeau.myturn.enableVibration = function(event) {
+    // if called by onclick, make it a one-shot
+    if (event) event.removeEventListener(event.type, arguments.callee);
+    var cjm = com.jcomeau.myturn;
+    navigator.vibrate = navigator.vibrate || 
+        navigator.webkitVibrate || 
+        navigator.mozVibrate || 
+        navigator.msVibrate ||
+        (navigator.notification ? navigator.notification.vibrate : function() {
+            return false
+        });
+    // but get rid of false desktop Chrome support -- it can't really vibrate
+    if (!navigator.userAgent.match(/(Mobi|iP|Android|SCH-I800)/)) {
+        console.debug("desktop browser " + navigator.userAgent +
+                      ": disabling vibration");
+        navigator.vibrate = function() {return false};
+    }
+    console.debug("vibration enabled: " + navigator.vibrate(0));
+    // test vibration and set flasher if none enabled
+    if (navigator.vibrate(0) === false) navigator.vibrate = cjm.flash;
+};
 
 com.jcomeau.myturn.myTurn = function() {
     var request = new XMLHttpRequest();  // not supporting IE
@@ -267,8 +275,6 @@ addEventListener("load", function() {
     console.debug("location.pathname: " + path);
     if (typeof URLSearchParams != "undefined" && location.search)
         cjm.debugging = (new URLSearchParams(location.search)).getAll("debug");
-    // test vibration and set flasher if none enabled
-    if (navigator.vibrate(10) === false) navigator.vibrate = cjm.flash;
     cjm.state = "loading";
     cjm.pages = document ? document.querySelectorAll("div.body") : [];
     console.debug("pages: " + cjm.pages);
@@ -323,6 +329,10 @@ addEventListener("load", function() {
         var checkStatus = document.getElementById("check-status");
         checkStatus.parentNode.removeChild(checkStatus);
         cjm.poller = setInterval(cjm.updateTalkSession, 500);
+        // one-shot vibration enabler
+        // this won't be necessary if we use JavaScript to trap the Join button,
+        // and initialize vibration in that handler.
+        cjm.page.addEventListener("click", cjm.initializeVibration);
     }
     // save this redirect for last, only reached if all other tests pass
     if (location && path == "/") location.pathname = "/app";
