@@ -21,7 +21,7 @@ com.jcomeau.myturn.pollcount = -1;  // determines when to heartbeat
 com.jcomeau.myturn.lastPulse = -1;  // updates on every heartbeat
 
 // initialize vibration API for older browsers
-com.jcomeau.myturn.enableVibration = function() {
+com.jcomeau.myturn.initializeVibration = function() {
     var cjm = com.jcomeau.myturn;
     navigator.vibrate = navigator.vibrate || 
         navigator.webkitVibrate || 
