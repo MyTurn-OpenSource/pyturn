@@ -258,24 +258,24 @@ class TestMyturnMultiUser(unittest.TestCase):
         self.alice.get(WEBPAGE)
         time.sleep(1)  # get past splash screen
         joingroup(self.alice, 'alice')
-        newgroup(self.alice, 'issue1', 1, 2)
+        newgroup(self.alice, 'issue1', 1, 10)
         joingroup(self.alice, None, 'issue1')
         # clock should now be ticking on this group
         self.charlie.refresh()  # Charlie won't see new group until he refreshes
         joingroup(self.charlie, 'charlie', 'issue1')
+        logging.debug('issue1: charlie pressing My Turn button')
         find_element(self.charlie, 'myturn-button').click()
         find_element(self.charlie, 'check-status').click()
         status = find_element(self.charlie, 'talksession-speaker').text
-        self.assertEqual('charlie', status.split()[-1])
-        logging.debug('alice pressing My Turn button')
+        self.assertEqual(active_speaker(self.charlie), 'charlie')
+        logging.debug('issue1: alice pressing My Turn button')
         myturn(self.alice)
-        time.sleep(2)  # wait until charlie's time is up plus a little extra
-        logging.debug('waiting until alice sees her own name as active speaker')
+        logging.debug('issue1: waiting until alice is active speaker')
         while active_speaker(self.alice) != 'alice':
             time.sleep(.1)
         find_element(self.charlie, 'check-status').click()
         # the following fails when server under heavy load, see issue #1
-        logging.debug('making sure charlie sees alice as active speaker')
+        logging.debug('issue1: checking charlie sees alice as active speaker')
         self.assertEqual(active_speaker(self.charlie), 'alice')
 
     def tearDown(self):

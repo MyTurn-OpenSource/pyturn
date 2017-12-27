@@ -63,6 +63,10 @@ com.jcomeau.myturn.myTurn = function() {
                  cjm.groupname);
 };
 
+com.jcomeau.myturn.rgb = function(colorArray) {
+    return "rgb(" + colorArray.join(", ") + ")";
+};
+
 com.jcomeau.myturn.flash = function() {
     // ignore any args, it will get the same args as navigator.vibrate()
     var cjm = com.jcomeau.myturn;
@@ -73,11 +77,11 @@ com.jcomeau.myturn.flash = function() {
             if (newColors[index] < 128) newColors[index] <<= 1;
             else newColors[index] >>>= 1;
         }
-        newColor = "rgb(" + newColors.join(", ") + ")";
+        newColor = cjm.rgb(newColors);
         console.debug("flashing background color to " + newColor);
         cjm.page.style.backgroundColor = newColor;
         setTimeout(function() {
-            newColor = "rgb(" + cjm.backgroundColor.join(", ") + ")";
+            newColor = cjm.rgb(cjm.backgroundColor);
             console.debug("restoring background color to " + newColor);
             cjm.page.style.backgroundColor = newColor;
         }, 50);

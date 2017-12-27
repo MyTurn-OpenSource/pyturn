@@ -417,7 +417,7 @@ def handle_post(env):
                         username, group))
                 groups[group]['participants'][username] = defaultdict(
                     float,  # for `speaking` and `spoke` times
-                    {'timestamp': timestamp}
+                    {'timestamp': timestamp, 'requests': []}
                 )
                 postdict['joined'] = '%s:%s' % (username, group)
                 if 'talksession' not in groups[group]:
@@ -455,8 +455,8 @@ def handle_post(env):
             raise UserWarning('Help requested')
         elif buttonvalue == 'My Turn':
             # attempting to speak in ongoing session
-            # this would normally only be reached by browser in which
-            # JavaScript did not work properly in taking over default actions
+            # this can be reached either by normal HTML form submission
+            # or by XHR from JavaScript on client side
             debug('button', 'My Turn button pressed, env: %s', env)
             groups = DATA['groups']
             group = postdict['groupname']
@@ -467,6 +467,7 @@ def handle_post(env):
                     debug('button', "userdata: setting %s's request to %.6f",
                           username, timestamp)
                     userdata['request'] = timestamp
+                    userdata['requests'].append([timestamp, None])
                 else:
                     logging.warning('ignoring newer request %.6f, '
                                     'keeping %.6f', userdata['request'],
@@ -483,6 +484,7 @@ def handle_post(env):
                 userdata = groups[group]['participants'][username]
                 if userdata['request']:
                     userdata['request'] = None
+                    userdata['requests'][-1][1] = timestamp
                 else:
                     logging.error('no speaking request found for %s', username)
             except KeyError:
