@@ -580,6 +580,7 @@ def countdown(group, data=None):
     ...         'test': {
     ...          'total': '.001',
     ...          'talksession': {'start': now, 'speaker': None},
+    ...          'participants': {'nobody': {'requests': [[0.1, 0.2]]}},
     ...         }}}
     >>> countdown('test', data)
     '''
@@ -622,8 +623,8 @@ def countdown(group, data=None):
             return
         os.makedirs(reportdir, exist_ok=True)
         report = open(reportname, 'w')
-        report.write(json.dumps([participants[speakerdata]['requests']
-                                 for speakerdata in participants],
+        report.write(json.dumps([{speaker: participants[speaker]['requests']}
+                                 for speaker in participants],
                                 indent=4))
         report.close()
     except KeyError as error:
