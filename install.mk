@@ -36,7 +36,7 @@ set env:
 	$@
 install: $(APP_ACTIVE) $(SITE_ACTIVE)
 siteinstall: | $(SITE_ROOT)
-	[ -d statistics ] && rm -rf statistics/*
+	[ -d statistics ] && rm -rf statistics/* || true
 	rsync -avcz $(DRYRUN) $(DELETE) \
 	 --exclude=configuration --exclude='.git*' \
 	 . $(SITE_ROOT)/
