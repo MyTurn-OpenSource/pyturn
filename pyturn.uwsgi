@@ -4,6 +4,7 @@ socket = localhost:5678
 stats-http
 stats-server = localhost:5679
 plugin = python3
+chdir = /usr/local/jcomeauictx/myturn
 wsgi-file = /usr/local/jcomeauictx/myturn/myturn.py
 callable = server
 uid = www-data

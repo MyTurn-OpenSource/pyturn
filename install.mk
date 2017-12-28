@@ -36,9 +36,12 @@ set env:
 	$@
 install: $(APP_ACTIVE) $(SITE_ACTIVE)
 siteinstall: | $(SITE_ROOT)
+	[ -d statistics ] && rm -rf statistics/*
 	rsync -avcz $(DRYRUN) $(DELETE) \
 	 --exclude=configuration --exclude='.git*' \
 	 . $(SITE_ROOT)/
+	mkdir -p $(SITE_ROOT)/statistics
+	chown www-data $(SITE_ROOT)/statistics
 $(SITE_ROOT):
 	mkdir -p $@
 $(SITE_ACTIVE): $(SITE_CONFIG)
@@ -50,7 +53,7 @@ $(APP_ACTIVE): $(APP_CONFIG)
 	sed -i -e "s/$(LEGACY_PORT)/$(SERVER_PORT)/" \
 	 -e "s/legacy/$(BRANCH)/g" \
 	 -e "s/$(LEGACY_STATUS_PORT)/$(STATUS_PORT)/" \
-	 -e "s%/jcomeauictx/myturn/%/jcomeauictx/$(SERVICE)/%" \
+	 -e "s%/jcomeauictx/myturn\>%/jcomeauictx/$(SERVICE)%" \
 	 $@
 ifeq (release,$(BRANCH))
 	# make default a redirect to the release

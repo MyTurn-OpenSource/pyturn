@@ -36,9 +36,15 @@ except ImportError:
     uwsgi.unlock = LOCK.release
 #logging.debug('uwsgi.opt: %s', repr(uwsgi.opt))
 #logging.debug('sys.argv: %s', sys.argv)  # only shows [uwsgi]
-#logging.debug('current working directory: %s', os.path.abspath('.'))  # '/'
-# so we can see that sys.argv and PWD are useless for uwsgi operation
+# 2017-12-28 set `chdir` option in pyturn.uwsgi so now PWD should be correct
+#logging.debug('current working directory: %s', os.path.abspath('.'))  # was '/'
+# so we can see that sys.argv is useless for uwsgi operation
 THISDIR = os.path.dirname(uwsgi.opt.get('wsgi-file', b'').decode())
+if THISDIR and os.getcwd() != THISDIR:
+    logging.warning('having to chdir from %s to %s', os.getcwd(), THISDIR)
+    os.chdir(THISDIR)
+else:
+    logging.warning('THISDIR: %s, os.getcwd(): %s', THISDIR, os.getcwd())
 APPDIR = (uwsgi.opt.get('check_static', b'').decode() or
           os.path.join(THISDIR, 'html'))
 MIMETYPES = {'png': 'image/png', 'ico': 'image/x-icon', 'jpg': 'image/jpeg',
@@ -47,7 +53,7 @@ DATA = {
     'groups': {},  # active groups
     'finished': {},  # inactive groups (for "Report" page)
 }
-HTTPSESSIONS = {}  # threads linked with session keys go here
+HTTPSESSIONS = {}  # data like username, linked with session keys, goes here
 EXPECTED_ERRORS = (
     NotImplementedError,
     ValueError,
@@ -602,18 +608,28 @@ def countdown(group, data=None):
                 speakerdata['spoke'] += sleeptime
             groups[group]['talksession']['remaining'] -= sleeptime
             groups[group]['talksession']['tick'] += 1
-        uwsgi.lock()
+        # should we uwsgi.lock() here in case group is currently being updated?
+        # if so, need uwsgi.unlock() in `finally` clause
         data['finished'][group] = data['groups'].pop(group)
+        # now save the report of clicks, not same as report of time spoken
+        reportdir = os.path.join('statistics', group)
+        reportname = os.path.join(reportdir, '%.6f.json' % now)
+        try:
+            participants = data['finished'][group]['participants']
+        except KeyError:
+            logging.error("No such key 'participants' in %s",
+                          data['finished'][group])
+            return
+        os.makedirs(reportdir, exist_ok=True)
+        report = open(reportname, 'w')
+        report.write(json.dumps([participants[speakerdata]['requests']
+                                 for speakerdata in participants],
+                                indent=4))
+        report.close()
     except KeyError as error:
         logging.error('countdown: was group "%s" removed? KeyError: %s',
                       group, error, exc_info=True)
         logging.info('data: %s', data)
-    finally:
-        try:
-            uwsgi.unlock()
-        except Exception as nosuchlock:  # pylint: disable=broad-except
-            debug('all', 'ignoring uwsgi.unlock() error: %s', nosuchlock)
-            pass
 
 def update_httpsession(postdict):
     '''
