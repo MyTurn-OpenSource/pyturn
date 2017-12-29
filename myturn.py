@@ -645,21 +645,28 @@ def update_httpsession(postdict):
     timestamp = postdict['timestamp']
     if 'httpsession_key' in postdict and postdict['httpsession_key']:
         session_key = postdict['httpsession_key']
-        if 'username' in postdict and postdict['username']:
+        # only bother storing session once a username has been entered
+        if postdict.get('username', None):
             username = postdict['username']
+            newgroup = postdict.get('group', None)
             if session_key in HTTPSESSIONS:
                 if HTTPSESSIONS[session_key]['username'] != username:
-                    raise ValueError('Session belongs to "%s"' % username)
-                else:
-                    HTTPSESSIONS[session_key]['updated'] = postdict['timestamp']
+                    logging.warning(
+                        'changing session username from "%s" to "%s"',
+                        HTTPSESSIONS[session_key]['username'],
+                        username)
+                if newgroup:
+                    HTTPSESSIONS[session_key]['added_group'] = newgroup
+                HTTPSESSIONS[session_key]['updated'] = postdict['timestamp']
             else:
                 HTTPSESSIONS[session_key] = {
                     'timestamp': timestamp,
                     'updated': timestamp,
+                    'added_group': None,
                     'username': username}
         else:
             debug('sessions',
-                  'no username associated with session %s', session_key)
+                  'no username yet associated with session %s', session_key)
     else:
         logging.warning('no httpsession_key in POST')
 
