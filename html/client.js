@@ -15,6 +15,7 @@ com.jcomeau.myturn.groupdata = {talksession: {}, participants: {}};
 com.jcomeau.myturn.icon = "url('images/myturn-logo.png')";
 com.jcomeau.myturn.debugging = [];
 com.jcomeau.myturn.backgroundColor = null;
+com.jcomeau.myturn.buttonBackground = null;
 com.jcomeau.myturn.beat = [30, 100, 30];  // heartbeat vibration
 com.jcomeau.myturn.phantom = {};
 com.jcomeau.myturn.pollcount = -1;  // determines when to heartbeat
@@ -77,25 +78,29 @@ com.jcomeau.myturn.rgb = function(colorArray) {
     return "rgb(" + colorArray.join(", ") + ")";
 };
 
+com.jcomeau.myturn.toggle = function(colorArray) {
+    // switch color to something significantly darker or lighter
+    var newColors = colorArray.slice();  // makes a copy
+    for (var index = 0; index < newColors.length; index++) {
+        // can't use division here without Math.floor()
+        if (newColors[index] < 128) newColors[index] <<= 1;
+        else newColors[index] >>>= 1;
+    }
+    return newColors;
+};
+
+
 com.jcomeau.myturn.flash = function() {
     // ignore any args, it will get the same args as navigator.vibrate()
     var cjm = com.jcomeau.myturn;
-    var newColor, newColors = cjm.backgroundColor.slice();
-    if (cjm.backgroundColor && cjm.backgroundColor.length == 3) {
-        for (var index = 0; index < newColors.length; index++) {
-            // can't use division here without Math.floor()
-            if (newColors[index] < 128) newColors[index] <<= 1;
-            else newColors[index] >>>= 1;
-        }
-        newColor = cjm.rgb(newColors);
-        console.debug("flashing background color to " + newColor);
+    var newColor = cjm.rgb(cjm.toggle(cjm.backgroundColor));
+    console.debug("flashing background color to " + newColor);
+    cjm.page.style.backgroundColor = newColor;
+    setTimeout(function() {
+        newColor = cjm.rgb(cjm.backgroundColor);
+        console.debug("restoring background color to " + newColor);
         cjm.page.style.backgroundColor = newColor;
-        setTimeout(function() {
-            newColor = cjm.rgb(cjm.backgroundColor);
-            console.debug("restoring background color to " + newColor);
-            cjm.page.style.backgroundColor = newColor;
-        }, 50);
-    }
+    }, 50);
 };
 
 com.jcomeau.myturn.cancelRequest = function() {
@@ -315,6 +320,7 @@ addEventListener("load", function() {
             "input[name=groupname][type=hidden]").value;
         cjm.updateTalkSession(); // do it once now to make sure it works
         var myturnButton = document.getElementById("myturn-button");
+        cjm.buttonBackground = cjm.getRGB(myturnButton);
         myturnButton.style.color = "transparent";
         myturnButton.style.height = "33vmin";
         myturnButton.style.width = "33vmin";
