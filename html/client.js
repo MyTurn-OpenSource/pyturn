@@ -223,6 +223,15 @@ com.jcomeau.myturn.showReport = function() {
     request.send();
 };
 
+com.jcomeau.myturn.getRGB = function(element) {
+    if (typeof getComputedStyle != "undefined") {
+        return getComputedStyle(element)
+            .lightingColor.split(/rgb\(|, |\)/)
+            .slice(1, 4)  // filter out empty strings on each end
+            .map(function(datum) {return parseInt(datum)});
+    }
+};
+
 com.jcomeau.myturn.updateGroups = function() {
     var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
@@ -292,12 +301,8 @@ addEventListener("load", function() {
         }
     }
     // save background color of active div.body element for flasher to work
-    if (typeof getComputedStyle != "undefined") {
-        cjm.backgroundColor = getComputedStyle(cjm.page)
-            .lightingColor.split(/rgb\(|, |\)/)
-            .filter(function(datum) {return datum})
-            .map(function(datum) {return parseInt(datum)});
-    }
+    cjm.backgroundColor = cjm.getRGB(cjm.page);
+    // page-specific setup
     if (cjm.pagename == "joinform-body") {
         cjm.updateGroups();  // do it once now to make sure it works
         cjm.poller = setInterval(cjm.updateGroups, 500);

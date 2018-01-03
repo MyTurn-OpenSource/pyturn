@@ -124,3 +124,5 @@ adbshell:
 	adb shell
 logcat:
 	adb logcat
+shell:
+	bash
