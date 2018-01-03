@@ -47,10 +47,13 @@ com.jcomeau.myturn.initializeVibration = function() {
     }
 };
 
-com.jcomeau.myturn.myTurn = function() {
+com.jcomeau.myturn.myTurn = function(event) {
+    console.debug("My Turn mousedown");
     var request = new XMLHttpRequest();  // not supporting IE
     var cjm = com.jcomeau.myturn;
-    console.debug("My Turn mousedown");
+    var newColor = cjm.rgb(cjm.toggle(cjm.buttonBackground));
+    console.debug("changing 'My Turn' background color to " + newColor);
+    event.target.style.backgroundColor = newColor;
     request.open("POST", "/groups/" + cjm.groupname);
     request.setRequestHeader("Content-type",
                              "application/x-www-form-urlencoded");
@@ -89,7 +92,6 @@ com.jcomeau.myturn.toggle = function(colorArray) {
     return newColors;
 };
 
-
 com.jcomeau.myturn.flash = function() {
     // ignore any args, it will get the same args as navigator.vibrate()
     var cjm = com.jcomeau.myturn;
@@ -103,9 +105,12 @@ com.jcomeau.myturn.flash = function() {
     }, 50);
 };
 
-com.jcomeau.myturn.cancelRequest = function() {
+com.jcomeau.myturn.cancelRequest = function(event) {
     var request = new XMLHttpRequest();  // not supporting IE
     var cjm = com.jcomeau.myturn;
+    var newColor = cjm.rgb(cjm.buttonBackground);
+    console.debug("restoring 'My Turn' background color to " + newColor);
+    event.target.style.backgroundColor = newColor;
     console.debug("My Turn mouseup");
     request.open("POST", "/groups/" + cjm.groupname);
     request.setRequestHeader("Content-type",
@@ -231,7 +236,7 @@ com.jcomeau.myturn.showReport = function() {
 com.jcomeau.myturn.getRGB = function(element) {
     if (typeof getComputedStyle != "undefined") {
         return getComputedStyle(element)
-            .lightingColor.split(/rgb\(|, |\)/)
+            .backgroundColor.split(/rgb\(|, |\)/)
             .slice(1, 4)  // filter out empty strings on each end
             .map(function(datum) {return parseInt(datum)});
     }
