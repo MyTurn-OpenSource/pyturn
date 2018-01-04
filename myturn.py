@@ -293,6 +293,9 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     '''
     # sorting a dict gives you a list of keys
     data = data or DATA
+    session_key = data.get('httpsession_key', None)
+    session = HTTPSESSIONS.get(session_key, {})
+    added_group = session.get('added_group', None)
     parsed = parsed or html.fromstring(PAGE)
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
@@ -303,13 +306,16 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
         newgroup = builder.OPTION(group, value=group)
         grouplist.append(newgroup)
     # make newest group the "selected" one
-    # FIXME: for someone who just created a group, mark *that* one selected
+    # except for someone who just created a group, mark *that* one selected
     for group in grouplist.getchildren():
         try:
             del group.attrib['selected']
         except KeyError:
             pass
-    grouplist[-1].set('selected', 'selected')
+    try:
+        grouplist[grouplist.index(added_group)].set('selected', 'selected')
+    except (KeyError, ValueError, IndexError, TypeError):
+        grouplist[-1].set('selected', 'selected')
     grouplist.set("data-contents", contents)
     if formatted == 'list':
         return groups
@@ -642,6 +648,7 @@ def update_httpsession(postdict):
     another thread should go through and remove expired httpsessions
     '''
     # FIXME: this session mechanism can only be somewhat secure with https
+    # FIXME: a thread needs to remove old httpsessions to save memory
     timestamp = postdict['timestamp']
     if 'httpsession_key' in postdict and postdict['httpsession_key']:
         session_key = postdict['httpsession_key']
@@ -657,7 +664,7 @@ def update_httpsession(postdict):
                         username)
                 if newgroup:
                     HTTPSESSIONS[session_key]['added_group'] = newgroup
-                HTTPSESSIONS[session_key]['updated'] = postdict['timestamp']
+                HTTPSESSIONS[session_key]['updated'] = timestamp
             else:
                 HTTPSESSIONS[session_key] = {
                     'timestamp': timestamp,
