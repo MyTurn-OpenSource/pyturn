@@ -8,10 +8,14 @@ Copyright 2017 John Otis Comeau <jc@unternet.net>
 distributed under the terms of the GNU General Public License Version 3
 (see COPYING)
 
-for testing with local host http://myturn/, must first mate a local IP
-address with the name `myturn` in /etc/hosts, e.g.:
+for testing with a browser locally, must first mate a local IP
+address with the prefix `uwsgi-alpha.myturn` in /etc/hosts, e.g.:
 
-127.0.1.125 myturn
+0.0.0.0 uwsgi-alpha.myturn.home
+
+or
+
+127.0.0.1 localhost uwsgi-alpha.myturn.local
 '''
 # pragma pylint: disable=multiple-imports, consider-using-enumerate
 # disable warnings about uwsgi, which isn't available outside uwsgi context
