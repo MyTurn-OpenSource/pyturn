@@ -44,7 +44,8 @@ def find_element(driver, identifier):
         except NoSuchElementException:
             pass
     if element is None:
-        raise  # re-raise last exception
+        raise NoSuchElementException('Driver %s could not find element %s' %
+            (driver, identifier))
     return element
 
 def currentpath(driver):
