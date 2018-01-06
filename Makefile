@@ -14,7 +14,8 @@ PATH := $(HOME)/downloads:$(PATH)
 ANDROID_SDK := /usr/local/src/android/adt-bundle-linux-x86_64-20130717/sdk
 PATH := $(ANDROID_SDK)/platform-tools:$(PATH)
 TODAY ?= $(shell date +%Y-%m-%d)
-XTODAY = $(shell date +%Y/%m/%d)  # for nginx
+# XTODAY for nginx
+XTODAY = $(shell date +%Y/%m/%d)
 # set npm_config_argv to "alpha" for local (test) installation
 npm_config_argv ?= {"remain": ["alpha"]}
 # result of `make unittests` goes to ~/downloads for LASTLOG
@@ -22,7 +23,8 @@ TESTLOG ?= ~/downloads/apptest.log
 # last client log using Chrome remote Android debugger, saved to ~/downloads
 # don't use := or ?= for this, `touch` the log you want if necessary
 LASTLOG = $(shell ls -rt ~/downloads/*.log 2>/dev/null | tail -n 1)
-ERRORLOG := /var/log/nginx/pyturn-error.log  # shows connection errors
+# nginx errorlog shows connection errors
+ERRORLOG := /var/log/nginx/pyturn-error.log
 export
 default: test
 ngrep:
@@ -111,8 +113,8 @@ mergelogs:  # combine output of server and client side debugging logs
 	# filters out date because it's in different formats
 	cat <(sudo sed -n 's/^$(TODAY) \([0-9:,]\+:DEBUG:.*\)/\1/p' \
 	 /var/log/uwsgi/app/pyturn-alpha.log) \
-	 <(sed -n 's%^$(XTODAY) \(.*\)%\1%p' $(ERRORLOG)) \
-	 <(sed -n 's/$(TODAY) \(.*\)/\1/p' $(LASTLOG) | \
+	 <(sed -n 's%^$(XTODAY) %%p' $(ERRORLOG)) \
+	 <(sed -n 's/$(TODAY) //p' $(LASTLOG) | \
 	  egrep -v ':Finished Request|/wd/hub/session') | sort
 %.js.test: $(PHANTOMJS)
 	$< --debug=true $(@:.test=)
