@@ -29,23 +29,12 @@ EXPECTED_EXCEPTIONS = (
 )
 BROWSER = os.getenv('USE_TEST_BROWSER', 'PhantomJS')
 WEBDRIVER = getattr(webdriver, BROWSER)
-FINDERS = [
-    'id', 'css_selector', 'name', 'xpath', 'link_text',
-]
 
-def find_element(driver, identifier):
+def find_element(driver, finder, identifier):
     '''
-    Tries more than one way of locating the element and returns it
+    Convenience routine for finding element
     '''
-    element = None
-    for finder in FINDERS:
-        try:
-            element = getattr(driver, 'find_element_by_' + finder)(identifier)
-        except NoSuchElementException:
-            pass
-    if element is None:
-        raise NoSuchElementException('Driver %s could not find element %s' %
-            (driver, identifier))
+    element = getattr(driver, 'find_element_by_' + finder)(identifier)
     return element
 
 def currentpath(driver):
@@ -78,35 +67,35 @@ def joingroup(driver, username=None, groupname=None):
     '''
     if username is not None:
         try:
-            field = driver.find_element_by_css_selector(
-                'input[name="username"]')
+            field = find_element(driver, 'css_selector',
+                                 'input[name="username"]')
             field.send_keys(username)
         except EXPECTED_EXCEPTIONS:
             savescreen(driver, 'username_input_')
             raise
     if groupname is not None:
         try:
-            field = driver.find_element_by_id('group-select')
+            field = find_element(driver, 'id', 'group-select')
         except EXPECTED_EXCEPTIONS:
             savescreen(driver, 'groupselect_')
             raise
         Select(field).select_by_value(groupname)
     logging.debug('joingroup field: %s: %s', field, dir(field))
-    field = driver.find_element_by_css_selector(
-        'input[name="submit"][value="Join"]')
+    field = find_element(driver, 'css_selector',
+                        'input[name="submit"][value="Join"]')
     field.click()
 
 def newgroup(driver, groupname, minutes, turntime):
     '''
     Fill out group entry form
     '''
-    field = driver.find_element_by_css_selector('input[name="groupname"]')
+    field = find_element(driver, 'css_selector', 'input[name="groupname"]')
     field.send_keys(groupname)
-    field = driver.find_element_by_css_selector('input[name="total"]')
+    field = find_element(driver, 'css_selector', 'input[name="total"]')
     field.send_keys(str(minutes))
-    field = driver.find_element_by_css_selector('input[name="turn"]')
+    field = find_element(driver, 'css_selector', 'input[name="turn"]')
     field.send_keys(str(turntime))
-    field = driver.find_element_by_css_selector('input[value="Submit"]')
+    field = find_element(driver, 'css_selector', 'input[value="Submit"]')
     field.click()
 
 def myturn(driver, release=False):
@@ -114,7 +103,7 @@ def myturn(driver, release=False):
     Activate or deactivate `My Turn` button
     '''
     try:
-        button = driver.find_element_by_id('myturn-button')
+        button = find_element(driver, 'id', 'myturn-button')
     except EXPECTED_EXCEPTIONS:
         savescreen(driver, 'myturnbutton_')
         raise
@@ -149,7 +138,7 @@ def active_speaker(driver):
     '''
     return active speaker as shown in upper-left of discussion page
     '''
-    status = find_element(driver, 'talksession-speaker').text
+    status = find_element(driver, 'id', 'talksession-speaker').text
     return status.split()[-1]
 
 class TestMyturnApp(unittest.TestCase):
@@ -198,7 +187,7 @@ class TestMyturnApp(unittest.TestCase):
         myturn(self.driver, release=True)
         time.sleep(50.5);
         try:
-            report = self.driver.find_element_by_id('report-table')
+            report = find_element(self.driver, 'id', 'report-table')
             logging.info('report: %s', report)
         except EXPECTED_EXCEPTIONS:
             savescreen(self.driver, 'report_')
@@ -265,16 +254,16 @@ class TestMyturnMultiUser(unittest.TestCase):
         self.charlie.refresh()  # Charlie won't see new group until he refreshes
         joingroup(self.charlie, 'charlie', 'issue1')
         logging.debug('issue1: charlie pressing My Turn button')
-        find_element(self.charlie, 'myturn-button').click()
-        find_element(self.charlie, 'check-status').click()
-        status = find_element(self.charlie, 'talksession-speaker').text
+        find_element(self.charlie, 'id', 'myturn-button').click()
+        find_element(self.charlie, 'id', 'check-status').click()
+        status = find_element(self.charlie, 'id', 'talksession-speaker').text
         self.assertEqual(active_speaker(self.charlie), 'charlie')
         logging.debug('issue1: alice pressing My Turn button')
         myturn(self.alice)
         logging.debug('issue1: waiting until alice is active speaker')
         while active_speaker(self.alice) != 'alice':
             time.sleep(.1)
-        find_element(self.charlie, 'check-status').click()
+        find_element(self.charlie, 'id', 'check-status').click()
         # the following fails when server under heavy load, see issue #1
         logging.debug('issue1: checking charlie sees alice as active speaker')
         self.assertEqual(active_speaker(self.charlie), 'alice')
