@@ -141,24 +141,27 @@ com.jcomeau.myturn.cancelRequest = function(event) {
             }
         }
     };
-    request.send("submit=Cancel+request&username=" + cjm.username +
-                 "&groupname=" + cjm.groupname);
+    request.send(cjm.getFormData(event, [["submit", "Cancel request"]]));
 };
 
 com.jcomeau.myturn.joinGroup = function(event) {
     var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
-    var form = event.target.parentNode;
-    request.open("POST", "/groups/" + groupname);
-    request.onreadystatechange = function() {
-        console.debug("response code " + request.readyState + ": " +
-                    JSON.stringify(request.response || {}));
-        if (request.readyState == XMLHttpRequest.DONE &&
-                request.status == 200) {
-            var groupdata = cjm.phantom.parse(request.response);
-        }
-    };
-    request.send("submit=Join&username=" + username + "&group=" + groupname);
+    var formData = cjm.getFormData(event);
+    if (formData.group && formData.username) {
+        formData.append(["submit", "Join"]);
+        request.open("POST", "/groups/" + formData.group);
+        request.onreadystatechange = function() {
+            console.debug("response code " + request.readyState + ": " +
+                          JSON.stringify(request.response || {}));
+            if (request.readyState == XMLHttpRequest.DONE &&
+                    request.status == 200) {
+                var groupdata = cjm.phantom.parse(request.response);
+            }
+        };
+        request.send(formData);
+        return false;
+    }
 };
 
 com.jcomeau.myturn.updateTalkSession = function() {
@@ -364,8 +367,6 @@ addEventListener("load", function() {
         myturnButton.addEventListener("touchend", cjm.cancelRequest);
         myturnButton.onclick = function(event) {  // disable click event
             console.debug("trying to prevent click event from functioning");
-            event.preventDefault();
-            event.stopPropagation();
             return false;
         };
         var checkStatus = document.getElementById("check-status");
