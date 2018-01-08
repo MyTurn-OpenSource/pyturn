@@ -123,8 +123,6 @@ com.jcomeau.myturn.cancelRequest = function(event) {
     event.target.style.backgroundColor = newColor;
     console.debug("My Turn mouseup");
     request.open("POST", "/groups/" + cjm.groupname);
-    request.setRequestHeader("Content-type",
-                             "application/x-www-form-urlencoded");
     request.responseType = "json";  // returns object
     request.onreadystatechange = function() {
         console.debug("response code " + request.readyState + ": " +
@@ -149,7 +147,7 @@ com.jcomeau.myturn.joinGroup = function(event) {
     var request = new XMLHttpRequest();  // not supporting IE
     var formData = cjm.getFormData(event);
     if (formData.group && formData.username) {
-        formData.append(["submit", "Join"]);
+        formData.append("submit", "Join");
         request.open("POST", "/groups/" + formData.group);
         request.onreadystatechange = function() {
             console.debug("response code " + request.readyState + ": " +
