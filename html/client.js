@@ -47,6 +47,19 @@ com.jcomeau.myturn.initializeVibration = function() {
     }
 };
 
+com.jcomeau.myturn.getFormData = function(event, additional) {
+    var formElement = event.target;
+    while (formElement.tagName != "FORM") {
+        console.debug("looking for FORM upstream of " + formElement.tagName);
+        formElement = formElement.parentNode;
+    }
+    var formData = new FormData(formElement);
+    for (var index = 0; index < additional.length; index++) {
+        formData.append(additional[index][0], additional[index][1]);
+    }
+    return formData;
+};
+
 com.jcomeau.myturn.myTurn = function(event) {
     console.debug("My Turn mousedown");
     var request = new XMLHttpRequest();  // not supporting IE
@@ -55,8 +68,6 @@ com.jcomeau.myturn.myTurn = function(event) {
     console.debug("changing 'My Turn' background color to " + newColor);
     event.target.style.backgroundColor = newColor;
     request.open("POST", "/groups/" + cjm.groupname);
-    request.setRequestHeader("Content-type",
-                             "application/x-www-form-urlencoded");
     request.responseType = "json";  // returns object
     request.onreadystatechange = function() {
         console.debug("response code " + request.readyState + ": " +
@@ -73,8 +84,7 @@ com.jcomeau.myturn.myTurn = function(event) {
             }
         }
     };
-    request.send("submit=My+Turn&username=" + cjm.username + "&groupname=" +
-                 cjm.groupname);
+    request.send(cjm.getFormData(event, [["submit", "My Turn"]]));
 };
 
 com.jcomeau.myturn.rgb = function(colorArray) {
@@ -133,6 +143,22 @@ com.jcomeau.myturn.cancelRequest = function(event) {
     };
     request.send("submit=Cancel+request&username=" + cjm.username +
                  "&groupname=" + cjm.groupname);
+};
+
+com.jcomeau.myturn.joinGroup = function(event) {
+    var cjm = com.jcomeau.myturn;
+    var request = new XMLHttpRequest();  // not supporting IE
+    var form = event.target.parentNode;
+    request.open("POST", "/groups/" + groupname);
+    request.onreadystatechange = function() {
+        console.debug("response code " + request.readyState + ": " +
+                    JSON.stringify(request.response || {}));
+        if (request.readyState == XMLHttpRequest.DONE &&
+                request.status == 200) {
+            var groupdata = cjm.phantom.parse(request.response);
+        }
+    };
+    request.send("submit=Join&username=" + username + "&group=" + groupname);
 };
 
 com.jcomeau.myturn.updateTalkSession = function() {

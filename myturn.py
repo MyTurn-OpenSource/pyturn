@@ -402,9 +402,9 @@ def handle_post(env):
         if env.get('REQUEST_METHOD') != 'POST':
             DATA['postdict'] = {}
             return copy.deepcopy(DATA)
-        posted = urllib.parse.parse_qsl(env['wsgi.input'].read().decode())
-        DATA['postdict'] = postdict = dict(posted)
-        debug('all', 'handle_post: %s, postdict: %s', posted, postdict)
+        form = cgi.FieldStorage(fp=env['wsgi.input'], environ=env)
+        DATA['postdict'] = postdict = {k: form.getfirst(k) for k in form.keys()}
+        debug('all', 'handle_post: %s, postdict: %s', form, postdict)
         # [groupname, total, turn] and submit=Submit if group creation
         # [username, group] and submit=Join if joining a group
         postdict['timestamp'] = timestamp
