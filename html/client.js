@@ -145,6 +145,7 @@ com.jcomeau.myturn.cancelRequest = function(event) {
 com.jcomeau.myturn.joinGroup = function(event) {
     var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
+    request.responseType = "document";  // returns DOM object
     var formData = cjm.getFormData(event);
     if (formData.group && formData.username) {
         formData.append("submit", "Join");
@@ -155,6 +156,18 @@ com.jcomeau.myturn.joinGroup = function(event) {
             if (request.readyState == XMLHttpRequest.DONE &&
                     request.status == 200) {
                 var groupdata = cjm.phantom.parse(request.response);
+                var talkpage = request.response.getElementById(
+                    "talksession-body");
+                for (var index = 0; index < cjm.pages.length; index++) {
+                    var page = cjm.pages[index];
+                    var pagename = page.getAttribute("id");
+                    if (pagename == "talksession-body") {
+                        cjm.page = page;
+                        cjm.pagename = pagename;
+                        break;
+                    }
+                }
+                document.querySelector("div.body").replaceWith(talkpage);
             }
         };
         request.send(formData);
@@ -236,7 +249,7 @@ com.jcomeau.myturn.showReport = function() {
     var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
     request.open("GET", "/report/" + cjm.groupname);
-    request.responseType = "document";  // returns object
+    request.responseType = "document";  // returns DOM object
     request.onreadystatechange = function() {
         console.debug("response code " + request.readyState + ": " +
                     request.response);
@@ -273,7 +286,7 @@ com.jcomeau.myturn.updateGroups = function() {
     var cjm = com.jcomeau.myturn;
     var request = new XMLHttpRequest();  // not supporting IE
     request.open("GET", "/groups");
-    request.responseType = "document";
+    request.responseType = "document";  // returns DOM object
     request.onreadystatechange = function() {
         console.debug("response code " + request.readyState + ": " +
                     request.response);
@@ -343,6 +356,7 @@ addEventListener("load", function() {
     if (cjm.pagename == "joinform-body") {
         cjm.updateGroups();  // do it once now to make sure it works
         cjm.poller = setInterval(cjm.updateGroups, 500);
+        document.getElementById("join-button").onclick = cjm.joinGroup;
     } else if (cjm.pagename == "talksession-body") {
         /* get rid of "Check status" button, and make "My turn"
          * button activate on button-down and button-up */
