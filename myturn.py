@@ -191,7 +191,10 @@ def create_report(parsed=None, group=None, data=None, **formatting):
     ...  "participants": {"jc": {"spoke": 48.5}, "Ed": {"spoke": 3.25}}}}}""")
     >>> formatting = {'pretty_print': True, 'with_tail': False}
     >>> print(create_report(parsed, 'test', data, **formatting).decode('utf8'))
-    <table>
+    <div id="report-body" class="body">
+     <div id="report-wrapper" class="pagewrapper top">
+      <div id="report-box" class="box">
+       <table>
         <tr>
     <th>Name</th>
     <th>Elapsed Time</th>
@@ -205,11 +208,17 @@ def create_report(parsed=None, group=None, data=None, **formatting):
     <td>00:00:03</td>
     </tr>
        </table>
+      </div>
+    <!-- box -->
+     </div>
+    <!-- pagewrapper -->
+    </div>
     <BLANKLINE>
     '''
     parsed = parsed if parsed is not None else copy.deepcopy(PARSED)
     data = data or DATA
-    rows = parsed.xpath('//*[@id="report-body"]//table/tr')
+    body_div = parsed.xpath('//*[@id="report-body"]')[0]
+    rows = body_div.xpath('.//table/tr')
     debug('report', 'create_report: rows: %s', rows)
     template = rows[1]
     table = template.getparent()
@@ -229,7 +238,7 @@ def create_report(parsed=None, group=None, data=None, **formatting):
         debug('report', 'template now: %s', html.tostring(template))
         table.append(html.fromstring(html.tostring(template)))
         debug('report', 'table now: %s', html.tostring(table))
-    return html.tostring(table, **formatting)
+    return html.tostring(body_div, **formatting)
 
 def set_text(parsed, idlist, values):
     '''

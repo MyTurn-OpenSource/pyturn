@@ -4,7 +4,7 @@ if (typeof(com) == "undefined") var com = {};
 if (typeof(com.jcomeau) == "undefined") com.jcomeau = {};
 com.jcomeau.myturn = {};
 com.jcomeau.myturn.state = null;
-com.jcomeau.myturn.pages = null;
+com.jcomeau.myturn.pages = {};
 com.jcomeau.myturn.page = null;
 com.jcomeau.myturn.pagename = null;
 com.jcomeau.myturn.poller = null;
@@ -57,6 +57,7 @@ com.jcomeau.myturn.getFormData = function(event, additional) {
     for (var index = 0; index < additional.length; index++) {
         formData.append(additional[index][0], additional[index][1]);
     }
+    formData.append("XHR", true);  // shows up in server log as XmlHttpRequest
     return formData;
 };
 
@@ -144,9 +145,11 @@ com.jcomeau.myturn.cancelRequest = function(event) {
 
 com.jcomeau.myturn.joinGroup = function(event) {
     var cjm = com.jcomeau.myturn;
+    console.debug("joinGroup() starting");
     var request = new XMLHttpRequest();  // not supporting IE
     request.responseType = "document";  // returns DOM object
-    var formData = cjm.getFormData(event);
+    var formData = cjm.getFormData(event, []);
+    console.debug("formData: " + JSON.stringify(formData));
     if (formData.group && formData.username) {
         formData.append("submit", "Join");
         request.open("POST", "/groups/" + formData.group);
@@ -155,24 +158,22 @@ com.jcomeau.myturn.joinGroup = function(event) {
                           JSON.stringify(request.response || {}));
             if (request.readyState == XMLHttpRequest.DONE &&
                     request.status == 200) {
-                var groupdata = cjm.phantom.parse(request.response);
-                var talkpage = request.response.getElementById(
-                    "talksession-body");
-                for (var index = 0; index < cjm.pages.length; index++) {
-                    var page = cjm.pages[index];
-                    var pagename = page.getAttribute("id");
-                    if (pagename == "talksession-body") {
-                        cjm.page = page;
-                        cjm.pagename = pagename;
-                        break;
-                    }
-                }
-                document.querySelector("div.body").replaceWith(talkpage);
+                cjm.switchPage(request.response, "talksession");
             }
         };
+        console.debug("sending formData");
         request.send(formData);
         return false;
     }
+};
+
+com.jcomeau.myturn.switchPage = function(response, otherpage) {
+    var cjm = com.jcomeau.myturn;
+    var newpage = response.getElementById(otherpage + "-body");
+    cjm.pagename = otherpage;
+    cjm.page.replaceWith(newpage);
+    cjm.page = newpage;
+    return newpage;
 };
 
 com.jcomeau.myturn.updateTalkSession = function() {
@@ -255,19 +256,7 @@ com.jcomeau.myturn.showReport = function() {
                     request.response);
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
-            var report = request.response.getElementById("report-table");
-            for (var index = 0; index < cjm.pages.length; index++) {
-                var page = cjm.pages[index];
-                var pagename = page.getAttribute("id");
-                if (pagename == "report-body") {
-                    cjm.page = page;
-                    cjm.pagename = pagename;
-                    break;
-                }
-            }
-            // unfortunately, elements do not have getElementById method
-            cjm.page.getElementsByTagName("table")[0].replaceWith(report);
-            document.querySelector("div.body").replaceWith(cjm.page);
+            cjm.switchPage(request.response, "report");
         }
     };
     request.send();
@@ -335,29 +324,31 @@ addEventListener("load", function() {
     if (typeof URLSearchParams != "undefined" && location.search)
         cjm.debugging = (new URLSearchParams(location.search)).getAll("debug");
     cjm.state = "loading";
-    cjm.pages = document ? document.querySelectorAll("div.body") : [];
+    var pages = document ? document.querySelectorAll("div.body") : [];
     console.debug("pages: " + cjm.pages);
     // neither phantomjs nor htmlunit support for...of statements
-    for (var index = 0; index < cjm.pages.length; index++) {
-        var page = cjm.pages[index];
+    for (var index = 0; index < pages.length; index++) {
+        var page = pages[index];
+        var pagename = page.getAttribute("id").replace(/-body$/, "");
         if (page.style.display == "none") {
             page.parentNode.removeChild(page);
             // OK to set it visible now, it's no longer part of document
             page.style.display = "";
         } else {
             cjm.page = page;
-            cjm.pagename = page.getAttribute("id");
-            console.debug("page loaded: " + cjm.pagename);
+            cjm.pagename = pagename;
+            console.debug("page loaded: " + pagename);
         }
+        cjm.pages[pagename] = page;
     }
     // save background color of active div.body element for flasher to work
     cjm.backgroundColor = cjm.getRGB(cjm.page);
     // page-specific setup
-    if (cjm.pagename == "joinform-body") {
+    if (cjm.pagename == "joinform") {
         cjm.updateGroups();  // do it once now to make sure it works
         cjm.poller = setInterval(cjm.updateGroups, 500);
         document.getElementById("join-button").onclick = cjm.joinGroup;
-    } else if (cjm.pagename == "talksession-body") {
+    } else if (cjm.pagename == "talksession") {
         /* get rid of "Check status" button, and make "My turn"
          * button activate on button-down and button-up */
         cjm.username = document.querySelector(
