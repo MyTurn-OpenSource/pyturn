@@ -4,7 +4,7 @@ multiuser test of MyTurn implementations
 
 this one is geared to pyturn
 '''
-import sys, os, unittest, time, logging, uuid, tempfile, threading
+import sys, os, unittest, time, logging, uuid, tempfile, threading, urllib
 from datetime import datetime
 try:
     import urllib.parse as urlparse
@@ -26,6 +26,11 @@ WEBPAGE = 'http://uwsgi-alpha.myturn.local/' + QUERY_STRING
 EXPECTED_EXCEPTIONS = (
     NoSuchElementException,
     InvalidElementStateException,
+)
+CONNECTION_FAILURE = (  # encountered in driverlogger at get_log() call
+    WebDriverException,
+    urllib.error.URLError,
+    ConnectionResetError,
 )
 BROWSER = os.getenv('USE_TEST_BROWSER', 'PhantomJS')
 WEBDRIVER = getattr(webdriver, BROWSER)
@@ -121,9 +126,14 @@ def driverlogger(driver):
     Check constantly for JavaScript logs and output to Python logger
     '''
     index = None  # index into log returned by get_log
-    while True:
-        messages = driver.get_log('browser')
-        logger = logging.getLogger(threading.current_thread().name)
+    logger = logging.getLogger(threading.current_thread().name)
+    failures = 0
+    while failures < 100:
+        try:
+            messages = driver.get_log('browser')
+        except CONNECTION_FAILURE:
+            logger.debug('driverlogger: connection error in get_log')
+            failures += 1
         if len(messages):
             index = index or 0
             while messages[index:]:
