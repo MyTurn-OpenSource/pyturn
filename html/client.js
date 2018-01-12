@@ -153,7 +153,7 @@ com.jcomeau.myturn.joinGroup = function(event) {
     console.debug("group: " + formData.get("group"));
     if (formData.get("group") && formData.get("username")) {
         formData.append("submit", "Join");
-        request.open("POST", "/groups/" + formData.get("group"));
+        request.open("POST", "/app");
         request.onreadystatechange = function() {
             console.debug("response code " + request.readyState + ": " +
                           JSON.stringify(request.response || {}));
