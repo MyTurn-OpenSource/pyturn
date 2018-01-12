@@ -68,6 +68,11 @@ EXPECTED_ERRORS = (
 PARSED = html.parse(os.path.join(APPDIR, 'index.html')).getroot()
 PAGE = html.tostring(PARSED.getroottree())
 DEBUG = ['all']  # populate from querystring
+# create translation table of illegal characters for groupnames
+# ":" is used in this program for internal purposes, so disallow that
+# "/" cannot be allowed because we create a filename from groupname
+# otherwise, mostly being permissive
+ILLEGAL = str.maketrans(dict.fromkeys('''([{:/'"}])'''))
 
 def debug(category, *args):
     '''
@@ -432,7 +437,7 @@ def handle_post(env):
             groups = DATA['groups']
             debug('join', 'processing Join: %s', postdict)
             username = postdict.get('username', '')
-            group = postdict.get('group', '')
+            group = sanitize(postdict.get('group', ''))
             if not username:
                 raise ValueError('Name field cannot be empty')
             elif group in groups:
@@ -463,7 +468,7 @@ def handle_post(env):
             # groupname, total (time), turn (time) being added to groups
             # don't allow if groupname already being used
             groups = DATA['groups']
-            group = postdict['groupname']
+            group = sanitize(postdict['groupname'])
             if not group in groups:
                 groups[group] = postdict
                 groups[group]['participants'] = {}
@@ -587,6 +592,19 @@ def select_speaker(group, data=None):
         talksession['speaker'] = most_eligible_speaker(group, data)
     return talksession['speaker']
 
+def sanitize(name):
+    '''
+    can't count on someone entering, say, '../../../.hidden/evil' as groupname
+
+    in addition to ILLEGAL characters, also strip leading '.' and '-',
+    the first hiding the file from normal listing, the second making removal
+    difficult because it looks like an option to rm, so one needs to
+    `rm -- -evilfile`.
+    >>> sanitize('../../../.-hidden/::evil')
+    'hiddenevil'
+    '''
+    return name.translate(ILLEGAL).lstrip('-.')
+
 def countdown(group, data=None):
     '''
     expire the talksession after `minutes`
@@ -632,7 +650,7 @@ def countdown(group, data=None):
         # if so, need uwsgi.unlock() in `finally` clause
         data['finished'][group] = data['groups'].pop(group)
         # now save the report of clicks, not same as report of time spoken
-        reportdir = os.path.join('statistics', group)
+        reportdir = os.path.join('statistics', sanitize(group))
         reportname = os.path.join(reportdir, '%.6f.json' % now)
         try:
             participants = data['finished'][group]['participants']
