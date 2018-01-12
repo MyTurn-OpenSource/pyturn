@@ -149,8 +149,9 @@ com.jcomeau.myturn.joinGroup = function(event) {
     var request = new XMLHttpRequest();  // not supporting IE
     request.responseType = "document";  // returns DOM object
     var formData = cjm.getFormData(event, []);
-    console.debug("formData: " + JSON.stringify(formData));
-    if (formData.group && formData.username) {
+    console.debug("username: " + formData.get("username"));
+    console.debug("group: " + formData.get("group"));
+    if (formData.get("group") && formData.get("username")) {
         formData.append("submit", "Join");
         request.open("POST", "/groups/" + formData.group);
         request.onreadystatechange = function() {
@@ -164,6 +165,8 @@ com.jcomeau.myturn.joinGroup = function(event) {
         console.debug("sending formData");
         request.send(formData);
         return false;
+    } else {
+        console.log("passing click event to browser");
     }
 };
 
