@@ -149,7 +149,7 @@ def active_speaker(driver):
     return active speaker as shown in upper-left of discussion page
     '''
     status = find_element(driver, 'id', 'talksession-speaker').text
-    return status.split()[-1]
+    return ' '.join(status.split()[3:])
 
 class TestMyturnApp(unittest.TestCase):
     '''
@@ -193,6 +193,33 @@ class TestMyturnApp(unittest.TestCase):
         joingroup(self.driver, groupname='testing')
         myturn(self.driver)
         time.sleep(10)
+        savescreen(self.driver, 'before_releasing_myturn_')
+        myturn(self.driver, release=True)
+        time.sleep(50.5);
+        try:
+            report = find_element(self.driver, 'id', 'report-table')
+            logging.info('report: %s', report)
+        except EXPECTED_EXCEPTIONS:
+            savescreen(self.driver, 'report_')
+            raise
+
+    def test_spaces(self):
+        '''
+        Make sure spaces in username and groupname work OK
+        '''
+        logger = threading.Thread(target=driverlogger,
+                                        name='console.log',
+                                        args=(self.driver,))
+        logger.daemon = True  # so main thread doesn't hang at end
+        logger.start()
+        time.sleep(1)  # wait for redirect to /app
+        self.driver.get(WEBPAGE)
+        joingroup(self.driver, 'spacey tester', '')
+        newgroup(self.driver, 'testing spaces', 1, 2)
+        joingroup(self.driver, groupname='testing spaces')
+        myturn(self.driver)
+        time.sleep(10)
+        self.assertEqual(active_speaker(self.driver), 'spacey tester')
         savescreen(self.driver, 'before_releasing_myturn_')
         myturn(self.driver, release=True)
         time.sleep(50.5);
