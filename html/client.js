@@ -153,12 +153,13 @@ com.jcomeau.myturn.joinGroup = function(event) {
     console.debug("group: " + formData.get("group"));
     if (formData.get("group") && formData.get("username")) {
         formData.append("submit", "Join");
-        request.open("POST", "/groups/" + formData.group);
+        request.open("POST", "/groups/" + formData.get("group"));
         request.onreadystatechange = function() {
             console.debug("response code " + request.readyState + ": " +
                           JSON.stringify(request.response || {}));
             if (request.readyState == XMLHttpRequest.DONE &&
                     request.status == 200) {
+                cjm.poller = clearInterval(cjm.poller);
                 cjm.switchPage(request.response, "talksession");
             }
         };
@@ -176,6 +177,7 @@ com.jcomeau.myturn.switchPage = function(response, otherpage) {
     cjm.pagename = otherpage;
     cjm.page.replaceWith(newpage);
     cjm.page = newpage;
+    cjm.pageSpecificSetup();
     return newpage;
 };
 
@@ -309,6 +311,43 @@ com.jcomeau.myturn.updateGroups = function() {
     request.send();
 };
 
+com.jcomeau.myturn.pageSpecificSetup = function() {
+    var cjm = com.jcomeau.myturn;
+    if (cjm.pagename == "joinform") {
+        cjm.updateGroups();  // do it once now to make sure it works
+        cjm.poller = setInterval(cjm.updateGroups, 500);
+        document.getElementById("join-button").onclick = cjm.joinGroup;
+    } else if (cjm.pagename == "talksession") {
+        /* get rid of "Check status" button, and make "My turn"
+         * button activate on button-down and button-up */
+        cjm.username = document.querySelector(
+            "input[name=username][type=hidden]").value;
+        cjm.groupname = document.querySelector(
+            "input[name=groupname][type=hidden]").value;
+        cjm.updateTalkSession(); // do it once now to make sure it works
+        var myturnButton = document.getElementById("myturn-button");
+        cjm.buttonBackground = cjm.getRGB(myturnButton);
+        myturnButton.style.color = "transparent";
+        myturnButton.style.height = "33vmin";
+        myturnButton.style.width = "33vmin";
+        myturnButton.style.backgroundImage = cjm.icon;
+        myturnButton.style.backgroundSize = "cover";
+        myturnButton.style.outline = "none";
+        myturnButton.addEventListener("mousedown", cjm.myTurn);
+        myturnButton.addEventListener("touchstart", cjm.myTurn);
+        myturnButton.addEventListener("mouseup", cjm.cancelRequest);
+        myturnButton.addEventListener("touchend", cjm.cancelRequest);
+        myturnButton.onclick = function(event) {  // disable click event
+            console.debug("trying to prevent click event from functioning");
+            return false;
+        };
+        var checkStatus = document.getElementById("check-status");
+        checkStatus.parentNode.removeChild(checkStatus);
+        cjm.poller = setInterval(cjm.updateTalkSession, 500);
+        cjm.initializeVibration();
+    }
+};
+
 addEventListener("load", function() {
     console.debug("onload routine started");
     var cjm = com.jcomeau.myturn;
@@ -346,40 +385,7 @@ addEventListener("load", function() {
     }
     // save background color of active div.body element for flasher to work
     cjm.backgroundColor = cjm.getRGB(cjm.page);
-    // page-specific setup
-    if (cjm.pagename == "joinform") {
-        cjm.updateGroups();  // do it once now to make sure it works
-        cjm.poller = setInterval(cjm.updateGroups, 500);
-        document.getElementById("join-button").onclick = cjm.joinGroup;
-    } else if (cjm.pagename == "talksession") {
-        /* get rid of "Check status" button, and make "My turn"
-         * button activate on button-down and button-up */
-        cjm.username = document.querySelector(
-            "input[name=username][type=hidden]").value;
-        cjm.groupname = document.querySelector(
-            "input[name=groupname][type=hidden]").value;
-        cjm.updateTalkSession(); // do it once now to make sure it works
-        var myturnButton = document.getElementById("myturn-button");
-        cjm.buttonBackground = cjm.getRGB(myturnButton);
-        myturnButton.style.color = "transparent";
-        myturnButton.style.height = "33vmin";
-        myturnButton.style.width = "33vmin";
-        myturnButton.style.backgroundImage = cjm.icon;
-        myturnButton.style.backgroundSize = "cover";
-        myturnButton.style.outline = "none";
-        myturnButton.addEventListener("mousedown", cjm.myTurn);
-        myturnButton.addEventListener("touchstart", cjm.myTurn);
-        myturnButton.addEventListener("mouseup", cjm.cancelRequest);
-        myturnButton.addEventListener("touchend", cjm.cancelRequest);
-        myturnButton.onclick = function(event) {  // disable click event
-            console.debug("trying to prevent click event from functioning");
-            return false;
-        };
-        var checkStatus = document.getElementById("check-status");
-        checkStatus.parentNode.removeChild(checkStatus);
-        cjm.poller = setInterval(cjm.updateTalkSession, 500);
-        cjm.initializeVibration();
-    }
+    cjm.pageSpecificSetup();
     // save this redirect for last, only reached if all other tests pass
     if (location && path == "/") location.pathname = "/app";
     cjm.state = "loaded";
