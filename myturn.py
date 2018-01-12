@@ -20,10 +20,10 @@ or
 # pragma pylint: disable=multiple-imports, consider-using-enumerate
 # disable warnings about uwsgi, which isn't available outside uwsgi context
 # pragma pylint: disable=wrong-import-position, invalid-name
-from __future__ import print_function
 import sys, os, urllib.request, urllib.error, urllib.parse, logging, pwd
 import subprocess, site, cgi, datetime, threading, copy, json
 import uuid, time
+from html import escape  # ***MUST COME before `from lxml import html`!***
 from collections import defaultdict, OrderedDict
 from lxml import html
 from lxml.html import builder
@@ -96,12 +96,13 @@ def findpath(env):
     the union of what all the clients request.
     '''
     start = APPDIR
-    parsed = urllib.parse.urlparse(env.get('REQUEST_URI'), '')
+    parsed = urllib.parse.urlparse(
+        urllib.parse.unquote(env.get('REQUEST_URI', '')))
     if parsed.query:
         query = urllib.parse.parse_qs(parsed.query or '')
         DEBUG[:] = list(set(DEBUG) | set(query.get('debug', [])))
     debug('all', 'findpath: start: %s' % start)
-    path = env.get('HTTP_PATH')
+    path = urllib.parse.unquote(env.get('HTTP_PATH', ''))
     #debug('all', 'path, attempt 1: %s', path)
     path = path or parsed.path
     #debug('all', 'path, attempt 2: %s', path)
@@ -136,7 +137,7 @@ def loadpage(path, data=None):
         for tag in parsed.xpath('//meta[@http-equiv="refresh"]'):
             tag.getparent().remove(tag)
     if 'text' in postdict:
-        message = builder.PRE(cgi.escape(postdict['text']))
+        message = builder.PRE(escape(postdict['text']))
         parsed.xpath('//div[@id="error-text"]')[0].append(message)
         debug('load', 'showing error page')
         hide_except('error', parsed)
@@ -368,7 +369,7 @@ def server(env=None, start_response=None):
     elif path.startswith('groups/'):
         group = path.split('/')[1]
         try:
-            page = cgi.escape(json.dumps(data['groups'][group]))
+            page = escape(json.dumps(data['groups'][group]))
         except KeyError as groupname:
             debug('all', 'group "%s" does not exist', groupname)
             page = '{}'
@@ -377,7 +378,7 @@ def server(env=None, start_response=None):
         page = loadpage(path, data)
         status_code = '200 OK'
     elif path == 'status':
-        page = cgi.escape(json.dumps(data))
+        page = escape(json.dumps(data))
         status_code = '200 OK'
     else:
         try:
