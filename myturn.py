@@ -142,7 +142,7 @@ def loadpage(path, data=None):
         hide_except('error', parsed)
     elif postdict.get('joined'):
         debug('join', 'found "joined": %s', data['postdict'])
-        group = postdict['groupname']
+        group = sanitize(postdict['groupname'])
         if not group in groups:
             if not group in data['finished']:
                 debug('all', 'nonexistent group, showing joinform again')
@@ -468,7 +468,7 @@ def handle_post(env):
             # groupname, total (time), turn (time) being added to groups
             # don't allow if groupname already being used
             groups = DATA['groups']
-            group = sanitize(postdict['groupname'])
+            group = postdict['groupname'] = sanitize(postdict['groupname'])
             if not group in groups:
                 groups[group] = postdict
                 groups[group]['participants'] = {}
@@ -489,7 +489,7 @@ def handle_post(env):
             # or by XHR from JavaScript on client side
             debug('button', 'My Turn button pressed, env: %s', env)
             groups = DATA['groups']
-            group = postdict['groupname']
+            group = sanitize(postdict['groupname'])
             username = postdict['username']
             try:
                 userdata = groups[group]['participants'][username]
@@ -508,7 +508,7 @@ def handle_post(env):
         elif buttonvalue == 'Cancel request':
             debug('button', 'My Turn button released')
             groups = DATA['groups']
-            group = postdict['groupname']
+            group = sanitize(postdict['groupname'])
             username = postdict['username']
             try:
                 userdata = groups[group]['participants'][username]
@@ -602,8 +602,10 @@ def sanitize(name):
     `rm -- -evilfile`.
     >>> sanitize('../../../.-hidden/::evil')
     'hiddenevil'
+
+    >>> sanitize(None)
     '''
-    return name.translate(ILLEGAL).lstrip('-.')
+    return name.translate(ILLEGAL).lstrip('-.') if name is not None else None
 
 def countdown(group, data=None):
     '''
@@ -650,7 +652,7 @@ def countdown(group, data=None):
         # if so, need uwsgi.unlock() in `finally` clause
         data['finished'][group] = data['groups'].pop(group)
         # now save the report of clicks, not same as report of time spoken
-        reportdir = os.path.join('statistics', sanitize(group))
+        reportdir = os.path.join('statistics', group)
         reportname = os.path.join(reportdir, '%.6f.json' % now)
         try:
             participants = data['finished'][group]['participants']
@@ -686,7 +688,7 @@ def update_httpsession(postdict):
         # only bother storing session once a username has been entered
         if postdict.get('username', None):
             username = postdict['username']
-            newgroup = postdict.get('group', None)
+            newgroup = sanitize(postdict.get('group', None))
             if session_key in HTTPSESSIONS:
                 if HTTPSESSIONS[session_key]['username'] != username:
                     logging.warning(
