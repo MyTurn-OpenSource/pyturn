@@ -369,7 +369,7 @@ def server(env=None, start_response=None):
     elif path.startswith('groups/'):
         group = path.split('/')[1]
         try:
-            page = escape(json.dumps(data['groups'][group]))
+            page = json.dumps(data['groups'][group])
         except KeyError as groupname:
             debug('all', 'group %s does not exist in %s', groupname, data)
             page = '{}'
