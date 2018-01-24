@@ -371,7 +371,7 @@ def server(env=None, start_response=None):
         try:
             page = escape(json.dumps(data['groups'][group]))
         except KeyError as groupname:
-            debug('all', 'group "%s" does not exist', groupname)
+            debug('all', 'group %s does not exist in %s', groupname, data)
             page = '{}'
         status_code = '200 OK'
     elif path in ('', 'noscript', 'app'):
