@@ -27,6 +27,7 @@ from html import escape  # ***MUST COME before `from lxml import html`!***
 from collections import defaultdict, OrderedDict
 from lxml import html
 from lxml.html import builder
+from http.cookies import SimpleCookie
 logging.basicConfig(
     level=logging.DEBUG if __debug__ else logging.INFO,
     format='%(asctime)s:%(levelname)s:%(name)s:%(message)s')
@@ -387,7 +388,9 @@ def server(env=None, start_response=None):
         except (IOError, OSError) as filenotfound:
             status_code = '404 File not found'
             page = '<h1>No such page: %s</h1>' % str(filenotfound)
-    start_response(status_code, [('Content-type', mimetype)])
+    headers = [('Content-type', mimetype)]
+    #headers.extend(get_session_cookies)  # not yet coded
+    start_response(status_code, headers)
     debug('all', 'page: %s', page[:128])
     return [page.encode('utf8')]
 
