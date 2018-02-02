@@ -22,7 +22,7 @@ or
 # pragma pylint: disable=wrong-import-position, invalid-name
 import sys, os, urllib.request, urllib.error, urllib.parse, logging, pwd
 import subprocess, site, cgi, datetime, threading, copy, json
-import uuid, time
+import uuid, time, re
 from html import escape  # ***MUST COME before `from lxml import html`!***
 from collections import defaultdict, OrderedDict
 from lxml import html
@@ -401,10 +401,24 @@ def server(env=None, start_response=None):
             page = '<h1>No such page: %s</h1>' % str(filenotfound)
     headers = [('Content-type', mimetype)]
     if cookie is not None:
-        headers.extend(cookie.output().split('\s', 1))
+        logging.debug('setting cookie headers %r', cookie.output())
+        headers.extend(cookie_headers(cookie))
     start_response(status_code, headers)
     debug('all', 'page: %s', page[:128])
     return [page.encode('utf8')]
+
+def cookie_headers(cookie):
+    '''
+    make list of tuples for cookie values
+
+    >>> cookie = SimpleCookie()
+    >>> cookie['test'] = 'this'
+    >>> cookie['test']['path'] = '/'
+    >>> cookie_headers(cookie)
+    [('Set-Cookie', 'test=this; Path=/')]
+    '''
+    cookies = cookie.output().split('\r\n')
+    return [tuple(re.compile(': ').split(c, 1)) for c in cookies]
 
 def handle_post(env):
     '''
