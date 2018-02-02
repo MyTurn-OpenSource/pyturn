@@ -352,13 +352,24 @@ def hide_except(keep, tree):
         elif 'style' in page.attrib:
             del page.attrib['style']
 
+def data_merge(data, cookie):
+    '''
+    anything missing in data['postdict'] gets set from cookie if found
+    '''
+    if cookie and data.get('postdict'):
+        if not data['postdict'].get('username'):
+            data['postdict']['username'] = cookie['username'].value
+        if not data['postdict'].get('http_sessionkey'):
+            data['postdict']['http_sessionkey'] = cookie['sessionid'].value
+
 def server(env=None, start_response=None):
     '''
     primary server process, sends page with current groups list
     '''
     status_code, mimetype, page = '500 Server error', 'text/html', '(Unknown)'
     start, path = findpath(env)
-    data = handle_post(env)
+    cookie, data = handle_post(env)
+    data_merge(data, cookie)  # set any missing data from cookie
     debug('all', 'server: data: %s', data)
     if path in ('groups',):
         page = populate_grouplist(None, data, formatted='element')
@@ -389,7 +400,8 @@ def server(env=None, start_response=None):
             status_code = '404 File not found'
             page = '<h1>No such page: %s</h1>' % str(filenotfound)
     headers = [('Content-type', mimetype)]
-    #headers.extend(get_session_cookies)  # not yet coded
+    if cookie is not None:
+        headers.extend(cookie.output().split('\s', 1))
     start_response(status_code, headers)
     debug('all', 'page: %s', page[:128])
     return [page.encode('utf8')]
@@ -416,10 +428,11 @@ def handle_post(env):
     worker = getattr(uwsgi, 'worker_id', lambda *args: None)()
     DATA['handler'] = (worker, env.get('uwsgi.core'))
     timestamp = datetime.datetime.utcnow().timestamp()
+    cookie = SimpleCookie(env['HTTP_COOKIE']) if 'HTTP_COOKIE' in env else None
     try:
         if env.get('REQUEST_METHOD') != 'POST':
             DATA['postdict'] = {}
-            return copy.deepcopy(DATA)
+            return cookie, copy.deepcopy(DATA)
         form = cgi.FieldStorage(fp=env['wsgi.input'], environ=env)
         DATA['postdict'] = postdict = {k: form.getfirst(k) for k in form.keys()}
         debug('all', 'handle_post: %s, postdict: %s', form, postdict)
@@ -434,7 +447,7 @@ def handle_post(env):
             buttonvalue = postdict['submit']
         except KeyError:
             raise ValueError('No "submit" button found')
-        update_httpsession(postdict)
+        cookie = update_httpsession(postdict)
         if buttonvalue == 'Join':
             # username being added to group
             # don't allow if name already in group
@@ -467,7 +480,7 @@ def handle_post(env):
                     counter.daemon = True  # leave no zombies on exit
                     counter.start()
             # else group not in groups, no problem, return to add group form
-            return copy.deepcopy(DATA)
+            return cookie, copy.deepcopy(DATA)
         elif buttonvalue == 'Submit':
             # groupname, total (time), turn (time) being added to groups
             # don't allow if groupname already being used
@@ -476,7 +489,7 @@ def handle_post(env):
             if not group in groups:
                 groups[group] = postdict
                 groups[group]['participants'] = {}
-                return copy.deepcopy(DATA)
+                return cookie, copy.deepcopy(DATA)
             else:
                 raise ValueError((
                     'Group {group[groupname]} already exists with total time '
@@ -484,7 +497,7 @@ def handle_post(env):
                     '{group[turn]} seconds').format(group=groups[group]))
         elif buttonvalue == 'OK':
             # affirming receipt of error message or Help screen
-            return copy.deepcopy(DATA)
+            return cookie, copy.deepcopy(DATA)
         elif buttonvalue == 'Help':
             raise UserWarning('Help requested')
         elif buttonvalue == 'My Turn':
@@ -508,7 +521,7 @@ def handle_post(env):
                                     timestamp)
             except KeyError:
                 raise SystemError('Group %s is no longer active' % group)
-            return copy.deepcopy(DATA)
+            return cookie, copy.deepcopy(DATA)
         elif buttonvalue == 'Cancel request':
             debug('button', 'My Turn button released')
             groups = DATA['groups']
@@ -523,20 +536,20 @@ def handle_post(env):
                     logging.error('no speaking request found for %s', username)
             except KeyError:
                 raise SystemError('Group %s is no longer active' % group)
-            return copy.deepcopy(DATA)
+            return cookie, copy.deepcopy(DATA)
         elif buttonvalue == 'Check status':
-            return copy.deepcopy(DATA)
+            return cookie, copy.deepcopy(DATA)
         else:
             raise ValueError('Unknown form submitted')
     except UserWarning as request:
         if str(request) == 'Help requested':
             debug('all', 'displaying help screen')
             DATA['postdict']['text'] = read(os.path.join(THISDIR, 'README.md'))
-            return copy.deepcopy(DATA)
+            return cookie, copy.deepcopy(DATA)
     except EXPECTED_ERRORS as failed:
         debug('all', 'displaying error: "%r"', failed)
         DATA['postdict']['text'] = repr(failed)
-        return copy.deepcopy(DATA)
+        return cookie, copy.deepcopy(DATA)
     finally:
         uwsgi.unlock()
 
@@ -687,6 +700,7 @@ def update_httpsession(postdict):
     # FIXME: this session mechanism can only be somewhat secure with https
     # FIXME: a thread needs to remove old httpsessions to save memory
     timestamp = postdict['timestamp']
+    cookie = None
     if 'httpsession_key' in postdict and postdict['httpsession_key']:
         session_key = postdict['httpsession_key']
         # only bother storing session once a username has been entered
@@ -708,11 +722,19 @@ def update_httpsession(postdict):
                     'updated': timestamp,
                     'added_group': None,
                     'username': username}
+            cookie = SimpleCookie()
+            cookie['sessionid'] = session_key
+            cookie['sessionid']['path'] = '/'
+            logging.debug('cookie: %s', cookie)
+            cookie['username'] = username
+            cookie['username']['path'] = '/'
+            logging.debug('cookie: %s', cookie)
         else:
             debug('sessions',
                   'no username yet associated with session %s', session_key)
     else:
         logging.warning('no httpsession_key in POST')
+    return cookie
 
 def render(pagename, standalone=True):
     '''
