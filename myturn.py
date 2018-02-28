@@ -316,7 +316,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     session_key = data.get('httpsession_key', None)
     session = HTTPSESSIONS.get(session_key, {})
     added_group = session.get('added_group', None)
-    parsed = parsed or html.fromstring(PAGE)
+    parsed = parsed if parsed is not None else html.fromstring(PAGE)
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
     contents = ':'.join([''] + groups)
@@ -356,11 +356,20 @@ def data_merge(data, cookie):
     '''
     anything missing in data['postdict'] gets set from cookie if found
     '''
-    if cookie and data.get('postdict'):
+    if cookie:
         if not data['postdict'].get('username'):
+            logging.debug('data_merge: setting username from cookie')
             data['postdict']['username'] = cookie['username'].value
+        else:
+            logging.debug('data_merge: found username already in postdict')
         if not data['postdict'].get('http_sessionkey'):
+            logging.debug('data_merge: setting session key from cookie')
             data['postdict']['http_sessionkey'] = cookie['sessionid'].value
+        else:
+            logging.debug('data_merge: session key already in postdict')
+    else:
+        logging.debug('data_merge: cookie: %r, postdict: %s',
+                      cookie, data.get('postdict'))
 
 def server(env=None, start_response=None):
     '''
@@ -369,6 +378,7 @@ def server(env=None, start_response=None):
     status_code, mimetype, page = '500 Server error', 'text/html', '(Unknown)'
     start, path = findpath(env)
     cookie, data = handle_post(env)
+    logging.debug('server: cookie: %s', cookie)
     data_merge(data, cookie)  # set any missing data from cookie
     debug('all', 'server: data: %s', data)
     if path in ('groups',):

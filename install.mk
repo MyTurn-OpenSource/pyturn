@@ -7,6 +7,9 @@ PACKAGE := $(shell nodejs -e \
  'process.stdout.write(JSON.parse(process.env.npm_config_argv)["remain"][0])')
 BRANCH := $(shell echo $(PACKAGE) | cut -d\# -f2)
 # we're only interested in specially named branches, to determine port number
+ifeq ($(strip $(BRANCH)),)
+ BRANCH := $(shell git branch --no-color | awk '$$1 ~ /^\*$$/ {print $$2}')
+endif
 BRANCH := $(findstring $(BRANCH), alpha beta)
 ifeq ($(strip $(BRANCH)),)
  BRANCH := release

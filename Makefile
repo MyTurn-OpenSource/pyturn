@@ -68,7 +68,7 @@ install: install.mk
 alphapatch:
 	if [ "$$(git status | sed -n 's/^On branch \(.*\)/\1/p')" = "alpha" -a \
 	  "$(HOSTNAME)" = "aspire" ]; then \
-	 sed -i 's/^\( *listen 80\)/\1 default_server/' \
+	 sed -i 's/^\( *listen 80\);$$/\1 default_server;/' \
 	  /etc/nginx/sites-available/pyturn-alpha; \
 	fi
 %.ssh:
