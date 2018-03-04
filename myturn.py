@@ -138,7 +138,7 @@ def loadpage(path, data=None):
         for tag in parsed.xpath('//meta[@http-equiv="refresh"]'):
             tag.getparent().remove(tag)
     if 'text' in postdict:
-        message = builder.PRE(escape(postdict['text']))
+        message = builder.PRE(postdict['text'])
         parsed.xpath('//div[@id="error-text"]')[0].append(message)
         debug('load', 'showing error page')
         hide_except('error', parsed)

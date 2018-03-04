@@ -128,3 +128,6 @@ logcat:
 	adb logcat
 shell:
 	bash
+doctests: myturn.doctest
+%.doctest: %.py
+	python3 -m doctest $<
