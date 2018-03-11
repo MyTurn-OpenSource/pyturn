@@ -36,6 +36,31 @@
    </div>
   </div><!-- loadindicator -->
  </div><!-- body -->
+ <div id="enter-body" class="body">
+  <!-- pagewrapper table-cell styled, centering horizontally and vertically -->
+  <div id="enter-wrapper" class="pagewrapper">
+   <!-- box contains both form and buttons to be centered in page -->
+   <!-- the "box" styling centers the content within the pagewrapper -->
+   <div id="enter-box" class="box">
+    <form id="enterform" method="post">
+     <!-- formfields has rounded corners -->
+     <div class="formfields">
+      <div class="inputrow">
+       <label for="username">Your name</label>
+       <input type="text" name="username" required></input>
+      </div>
+     </div>
+     <!-- buttons outside rounded border -->
+     <div id="enter-buttons" class="submitbuttons">
+      <input id="enter-button" type="submit"
+       name="submit" value="Enter"></input>
+      <input type="submit" name="submit" value="Help" formnovalidate></input>
+     </div>
+     <input type="hidden" name="httpsession_key" value="">
+    </form>
+   </div><!-- box -->
+  </div><!-- pagewrapper -->
+ </div><!-- body -->
  <div id="joinform-body" class="body">
   <!-- pagewrapper table-cell styled, centering horizontally and vertically -->
   <div id="joinform-wrapper" class="pagewrapper">
