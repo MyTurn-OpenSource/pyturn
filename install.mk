@@ -10,13 +10,14 @@ BRANCH := $(shell echo $(PACKAGE) | cut -d\# -f2)
 ifeq ($(strip $(BRANCH)),)
  BRANCH := $(shell git branch --no-color | awk '$$1 ~ /^\*$$/ {print $$2}')
 endif
-BRANCH := $(findstring $(BRANCH), alpha beta)
+BRANCH := $(findstring $(BRANCH), alpha beta heart2heart)
 ifeq ($(strip $(BRANCH)),)
  BRANCH := release
 endif
 APP := pyturn
 SERVICE := $(APP)-$(BRANCH)
 # ports are even numbers so we can have a status port at port+1
+HEART2HEART_PORT := 5686
 ALPHA_PORT := 5684
 BETA_PORT := 5682
 RELEASE_PORT := 5680
@@ -76,6 +77,9 @@ ifeq (release,$(BRANCH))
 	fi
 endif
 $(SITE_CONFIG): /tmp/$(SERVICE).nginx .FORCE
+	if [ "$(HOSTNAME)" = "aspire" ]; then \
+	 sed -i 's/^\( *listen 80\);$$/\1 default_server;/' $<; \
+	fi
 	if [ -e "$@" ]; then \
 	 if diff -q $< $@; then \
 	  echo $@ unchanged >&2; \

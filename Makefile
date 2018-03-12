@@ -16,8 +16,6 @@ PATH := $(ANDROID_SDK)/platform-tools:$(PATH)
 TODAY ?= $(shell date +%Y-%m-%d)
 # XTODAY for nginx
 XTODAY = $(shell date +%Y/%m/%d)
-# set npm_config_argv to "alpha" for local (test) installation
-npm_config_argv ?= {"remain": ["alpha"]}
 # result of `make unittests` goes to ~/downloads for LASTLOG
 TESTLOG ?= ~/downloads/apptest.log
 # last client log using Chrome remote Android debugger, saved to ~/downloads
@@ -63,14 +61,7 @@ edit: myturn.py html/index.html html/css/style.css
 	pylint3 --disable=locally-disabled $<
 install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
-	-$(MAKE) alphapatch
 	$(MAKE) restart
-alphapatch:
-	if [ "$$(git status | sed -n 's/^On branch \(.*\)/\1/p')" = "alpha" -a \
-	  "$(HOSTNAME)" = "aspire" ]; then \
-	 sed -i 's/^\( *listen 80\);$$/\1 default_server;/' \
-	  /etc/nginx/sites-available/pyturn-alpha; \
-	fi
 %.ssh:
 	# must first set up ~/.ssh/config:
 	# Host droplet
