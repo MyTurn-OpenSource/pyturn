@@ -175,8 +175,8 @@ def loadpage(path, data=None):
         debug('join', 'showing groupform after joinform')
         hide_except('groupform', parsed)
     else:
-        debug('load', 'showing joinform by default')
-        hide_except('joinform', parsed)
+        debug('load', 'showing login (enter) by default')
+        hide_except('enter', parsed)
     return html.tostring(parsed).decode()
 
 def create_report(parsed=None, group=None, data=None, **formatting):
