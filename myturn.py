@@ -174,9 +174,11 @@ def loadpage(path, data=None):
         # selected element is empty (as it is by default in this case)
         debug('join', 'showing groupform after joinform')
         hide_except('groupform', parsed)
+    elif not postdict.get('username'):
+        debug('load', 'showing login (enter) page')
     else:
-        debug('load', 'showing login (enter) by default')
-        hide_except('enter', parsed)
+        debug('load', 'showing joinform by default')
+        hide_except('joinform', parsed)
     return html.tostring(parsed).decode()
 
 def create_report(parsed=None, group=None, data=None, **formatting):
@@ -519,8 +521,7 @@ def handle_post(env):
                     'Group {group[groupname]} already exists with total time '
                     '{group[total]} minutes and turn time '
                     '{group[turn]} seconds').format(group=groups[group]))
-        elif buttonvalue == 'OK':
-            # affirming receipt of error message or Help screen
+        elif buttonvalue in ('OK', 'Enter', 'Check status'):
             return cookie, copy.deepcopy(DATA)
         elif buttonvalue == 'Help':
             raise UserWarning('Help requested')
@@ -560,8 +561,6 @@ def handle_post(env):
                     logging.error('no speaking request found for %s', username)
             except KeyError:
                 raise SystemError('Group %s is no longer active' % group)
-            return cookie, copy.deepcopy(DATA)
-        elif buttonvalue == 'Check status':
             return cookie, copy.deepcopy(DATA)
         else:
             raise ValueError('Unknown form submitted')
