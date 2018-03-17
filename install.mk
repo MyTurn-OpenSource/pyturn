@@ -1,10 +1,12 @@
 SHELL := /bin/bash
 NODE_ENV := $(shell nodejs -e \
- 'process.stdout.write(JSON.stringify(process.env))')
-NPM_CONFIG_ARGV := $(shell nodejs -e \
- 'process.stdout.write(process.env.npm_config_argv)')
-PACKAGE := $(shell nodejs -e \
- 'process.stdout.write(JSON.parse(process.env.npm_config_argv)["remain"][0])')
+ 'process.stdout.write(JSON.stringify(process.env))' 2>>/var/log/nodejs.log)
+ifeq ($(strip $(NODE_ENV)),)
+ NPM_CONFIG_ARGV := $(shell nodejs -e \
+  'process.stdout.write(process.env.npm_config_argv)')
+ PACKAGE := $(shell nodejs -e \
+  'process.stdout.write(JSON.parse(process.env.npm_config_argv)["remain"][0])')
+endif
 BRANCH := $(shell echo $(PACKAGE) | cut -d\# -f2)
 # we're only interested in specially named branches, to determine port number
 ifeq ($(strip $(BRANCH)),)
