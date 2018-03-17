@@ -67,25 +67,16 @@
    <!-- box contains both form and buttons to be centered in page -->
    <!-- the "box" styling centers the content within the pagewrapper -->
    <div id="joinform-box" class="box">
+    <p>There are currently no groups. You can simply wait for one to appear,
+      or you can create one yourself.
+    </p>
     <form id="joinform" method="post">
-     <!-- formfields has rounded corners -->
-     <div class="formfields">
-      <div class="inputrow">
-       <label for="username">Your name</label>
-       <input type="text" name="username" required></input>
-      </div>
-      <div class="inputrow">
-       <label for="group">Group</label>
-       <select id="group-select" name="group" data-contents="">
-        <option selected value="">(Create new group)</option>
-       </select>
-      </div>
-     </div>
      <!-- buttons outside rounded border -->
      <div id="joinform-buttons" class="submitbuttons">
-      <input id="join-button" type="submit" name="submit" value="Join"></input>
-      <input type="submit" name="submit" value="Help" formnovalidate></input>
+      <input id="create-button" type="submit" name="submit" value="Create">
+      </input>
      </div>
+     <input type="hidden" name="username" value="">
      <input type="hidden" name="httpsession_key" value="">
     </form>
    </div><!-- box -->

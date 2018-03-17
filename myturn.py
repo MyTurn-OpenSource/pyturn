@@ -322,7 +322,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
     contents = ':'.join([''] + groups)
-    grouplist = parsed.xpath('//select[@name="group"]')[0]
+    grouplist = (parsed.xpath('//select[@name="group"]') or [None])[0]
     debug('grouplist', 'populate_grouplist: %s', grouplist)
     for group in groups:
         newgroup = builder.OPTION(group, value=group)
