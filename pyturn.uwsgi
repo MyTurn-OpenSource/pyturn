@@ -8,6 +8,8 @@ chdir = /usr/local/jcomeauictx/myturn
 wsgi-file = /usr/local/jcomeauictx/myturn/myturn.py
 callable = server
 uid = www-data
+gid = adm
+logfile-chown
 threads = 4
 processes = 1
 # guide to "magic" variables:

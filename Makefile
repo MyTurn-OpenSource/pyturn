@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 APP := pyturn
+BRANCH := $(shell git branch --no-color | awk '$$1 ~ /^\*$$/ {print $$2}')
 PORT := 5678
 PHANTOMJS_TBZ := https://bitbucket.org/ariya/phantomjs/downloads
 PHANTOMJS_TBZ := $(PHANTOMJS_TBZ)/phantomjs-2.1.1-linux-i686.tar.bz2
@@ -40,10 +41,11 @@ accesslog:
 	tail -n 50 /var/log/nginx/access.log /var/log/nginx/$(APP)-access.log
 newlogs:
 	sudo rm -f /var/log/nginx/*log
+# Have root add you to adm group: usermod -a -g adm luser
 wsgilog applog:
-	sudo tail -n 50 /var/log/uwsgi/app/$(APP)*.log
+	tail -n 50 /var/log/uwsgi/app/$(APP)-$(BRANCH).log
 logs:
-	sudo tail -n 200 -f /var/log/uwsgi/app/$(APP)*.log \
+	tail -n 200 -f /var/log/uwsgi/app/$(APP)-$(BRANCH).log \
 	 /var/log/nginx/$(APP)-error.log
 edit_all: myturn.py apptest.py html/index.html html/css/style.css \
 	 html/client.js $(APP).uwsgi $(APP).nginx
