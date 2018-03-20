@@ -24,6 +24,7 @@ TESTLOG ?= ~/downloads/apptest.log
 LASTLOG = $(shell ls -rt ~/downloads/*.log 2>/dev/null | tail -n 1)
 # nginx errorlog shows connection errors
 ERRORLOG := /var/log/nginx/pyturn-error.log
+BROWSER ?= chrome
 export
 default: test
 ngrep:
@@ -124,3 +125,6 @@ shell:
 doctests: myturn.doctest
 %.doctest: %.py
 	python3 -m doctest $<
+view: html/index.html
+	grep -v noscript $< > /tmp/index.html
+	$(BROWSER) /tmp/index.html
