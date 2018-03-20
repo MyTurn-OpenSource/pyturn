@@ -322,22 +322,11 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     groups = sorted(data['groups'],
                     key=lambda g: data['groups'][g]['timestamp'])
     contents = ':'.join([''] + groups)
-    grouplist = (parsed.xpath('//select[@name="group"]') or [None])[0]
+    grouplist = parsed.xpath('//input[@type="submit"][@name="group"]')
     debug('grouplist', 'populate_grouplist: %s', grouplist)
     for group in groups:
-        newgroup = builder.OPTION(group, value=group)
+        newgroup = builder.INPUT(group, value=group)
         grouplist.append(newgroup)
-    # make newest group the "selected" one
-    # except for someone who just created a group, mark *that* one selected
-    for group in grouplist.getchildren():
-        try:
-            del group.attrib['selected']
-        except KeyError:
-            pass
-    try:
-        grouplist[grouplist.index(added_group)].set('selected', 'selected')
-    except (KeyError, ValueError, IndexError, TypeError):
-        grouplist[-1].set('selected', 'selected')
     grouplist.set("data-contents", contents)
     if formatted == 'list':
         return groups
