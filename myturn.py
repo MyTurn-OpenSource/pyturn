@@ -176,6 +176,7 @@ def loadpage(path, data=None):
         hide_except('groupform', parsed)
     elif not postdict.get('username'):
         debug('load', 'showing login (enter) page')
+        hide_except('enter', parsed)
     else:
         debug('load', 'showing joinform by default')
         hide_except('joinform', parsed)
