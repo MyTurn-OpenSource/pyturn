@@ -168,8 +168,7 @@ def loadpage(path, data=None):
             set_button(parsed, ['myturn-button'], [buttonvalue])
             debug('talk', 'showing talk page')
             hide_except('talksession', parsed)
-    elif (postdict.get('submit') == 'Join' and postdict.get('username') and
-          postdict.get('group', '') == ''):
+    elif postdict.get('submit') == 'Create' and postdict.get('username'):
         # some browsers won't return `group` in postdict at all if
         # selected element is empty (as it is by default in this case)
         debug('join', 'showing groupform after joinform')
@@ -511,7 +510,7 @@ def handle_post(env):
                     'Group {group[groupname]} already exists with total time '
                     '{group[total]} minutes and turn time '
                     '{group[turn]} seconds').format(group=groups[group]))
-        elif buttonvalue in ('OK', 'Enter', 'Check status'):
+        elif buttonvalue in ('OK', 'Enter', 'Check status', 'Create'):
             return cookie, copy.deepcopy(DATA)
         elif buttonvalue == 'Help':
             raise UserWarning('Help requested')
