@@ -1,0 +1,1 @@
+*/10 * * * * root /usr/local/jcomeauictx/pyturn-heart2heart/json2csv.py

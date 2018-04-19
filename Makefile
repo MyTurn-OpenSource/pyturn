@@ -65,6 +65,7 @@ edit: myturn.py html/index.html html/css/style.css
 install: install.mk
 	$(MAKE) DRYRUN= -f $< siteinstall install
 	$(MAKE) restart
+	cp -f pyturn.cron /etc/cron.d/pyturn
 %.ssh:
 	# must first set up ~/.ssh/config:
 	# Host droplet

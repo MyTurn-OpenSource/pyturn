@@ -18,7 +18,7 @@ def process(filename):
         except IOError as lockfail:
             logging.error('failed locking %s: %s', filename, lockfail.errno)
             return
-        data = json.loads(f.read())
+        data = json.loads(infile.read())
         writer = csv.writer(sys.stdout)
         for record in data:
             for username in record:
