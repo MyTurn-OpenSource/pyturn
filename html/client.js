@@ -286,25 +286,18 @@ com.jcomeau.myturn.updateGroups = function() {
                     request.response);
         if (request.readyState == XMLHttpRequest.DONE &&
                 request.status == 200) {
-            var selector = document.getElementById("group-select");
-            var previous = selector.value;
-            var replacement = request.response.getElementById("group-select");
+            var selector = document.getElementById("joinform-options");
+            var replacement = request.response.getElementById(
+                "joinform-options");
             console.debug("selector: " + selector);
             console.debug("replacement: " + replacement);
-            /* if there are any non-default options, and default is selected,
-             * don't change to the newest group */
-            if (previous || previous.length > 1) {
-                console.debug("keeping already selected \""+ previous + "\"");
-                /* setting selected value to what it was before...
-                 * in the case that the previous selected group is no longer
-                 * active, the Chrome browser will show a blank selection */
-                replacement.value = previous;
-            }
             if (replacement.dataset.contents != selector.dataset.contents) {
-                console.debug("replacing group-select with new copy from server");
+                console.debug(
+                    "replacing group-select with new copy from server");
                 selector.replaceWith(replacement);
             } else {
-                console.debug("leaving group-select as it was, nothing changed");
+                console.debug(
+                    "leaving group-select as it was, nothing changed");
             }
         }
     };
