@@ -325,7 +325,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     grouplist = parsed.xpath('//div[@id="joinform-options"]')[0]
     debug('grouplist', 'populate_grouplist: %s', grouplist)
     for group in groups:
-        newgroup = builder.INPUT(group, value=group)
+        newgroup = builder.INPUT(group, value=group, type='submit')
         grouplist.append(newgroup)
     grouplist.set("data-contents", contents)
     if formatted == 'list':
