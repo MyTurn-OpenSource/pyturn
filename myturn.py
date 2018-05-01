@@ -325,7 +325,7 @@ def populate_grouplist(parsed=None, data=None, formatted='list', **options):
     grouplist = parsed.xpath('//div[@id="joinform-options"]')[0]
     debug('grouplist', 'populate_grouplist: %s', grouplist)
     for group in groups:
-        newgroup = builder.INPUT(group, value=group, type='submit')
+        newgroup = builder.INPUT(group, value=group, name='join', type='submit')
         grouplist.append(newgroup)
     grouplist.set("data-contents", contents)
     if formatted == 'list':
@@ -461,15 +461,16 @@ def handle_post(env):
         try:
             buttonvalue = postdict['submit']
         except KeyError:
-            raise ValueError('No "submit" button found')
+            logging.debug('No "submit" button found, assuming group joined')
+            buttonvalue = None
         cookie = update_httpsession(postdict)
-        if buttonvalue == 'Join':
+        if buttonvalue is None:
             # username being added to group
             # don't allow if name already in group
             groups = DATA['groups']
             debug('join', 'processing Join: %s', postdict)
             username = postdict.get('username', '')
-            group = sanitize(postdict.get('group', ''))
+            group = sanitize(postdict.get('join', ''))
             if not username:
                 raise ValueError('Name field cannot be empty')
             elif group in groups:
