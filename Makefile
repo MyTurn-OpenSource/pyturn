@@ -2,8 +2,11 @@ SHELL := /bin/bash
 APP := pyturn
 BRANCH := $(shell git branch --no-color | awk '$$1 ~ /^\*$$/ {print $$2}')
 PORT := 5678
-PHANTOMJS_VERSION := phantomjs-2.5.0-beta-ubuntu-xenial
-PHANTOMJS_PACKAGE := phantomjs-2.5.0-beta-linux-ubuntu-xenial-x86_64
+# a bunch of shared library packages from wheezy and jessie are needed
+# for phantomjs, even though the binary is statically linked:
+# sudo apt-get install libpng12-0 libssl1.0.0 libicu52 libhyphen0 libwebp5
+PHANTOMJS_VERSION := phantomjs-2.5.0-beta-ubuntu-trusty
+PHANTOMJS_PACKAGE := phantomjs-2.5.0-beta-linux-ubuntu-trusty-x86_64
 PHANTOMJS_TBZ := https://bitbucket.org/ariya/phantomjs/downloads
 PHANTOMJS_TBZ := $(PHANTOMJS_TBZ)/$(PHANTOMJS_PACKAGE).tar.gz
 PHANTOMJS := /usr/src/$(PHANTOMJS_VERSION)/bin/phantomjs
