@@ -2,9 +2,11 @@ SHELL := /bin/bash
 APP := pyturn
 BRANCH := $(shell git branch --no-color | awk '$$1 ~ /^\*$$/ {print $$2}')
 PORT := 5678
+PHANTOMJS_VERSION := phantomjs-2.5.0-beta-ubuntu-xenial
+PHANTOMJS_PACKAGE := phantomjs-2.5.0-beta-linux-ubuntu-xenial-x86_64
 PHANTOMJS_TBZ := https://bitbucket.org/ariya/phantomjs/downloads
-PHANTOMJS_TBZ := $(PHANTOMJS_TBZ)/phantomjs-2.1.1-linux-i686.tar.bz2
-PHANTOMJS := /usr/src/phantomjs-2.1.1-linux-i686/bin/phantomjs
+PHANTOMJS_TBZ := $(PHANTOMJS_TBZ)/$(PHANTOMJS_PACKAGE).tar.gz
+PHANTOMJS := /usr/src/$(PHANTOMJS_VERSION)/bin/phantomjs
 # HOSTNAME isn't set when used with `sudo make install`
 HOSTNAME ?= $(shell hostname)
 # add location of phantomjs to PATH
@@ -82,6 +84,7 @@ set:
 	$@
 $(PHANTOMJS): ~/Downloads/$(notdir $(PHANTOMJS_TBZ))
 	cd /usr/src/ && tar xvf $<
+	chmod +x $@
 	touch $@
 unittests: $(PHANTOMJS)
 	$(MAKE) restart  # start with clean slate
